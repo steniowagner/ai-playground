@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class EmbeddingsProvider(ABC):
+class Embedder(ABC):
     @abstractmethod
     def embed_documents(self, texts: list[str]) -> list[list[float]]:
         pass

@@ -1,8 +1,8 @@
-from agent.embeddings.base import EmbeddingsProvider
+from agent.embeddings.base import Embedder
 from sentence_transformers import SentenceTransformer
 
 
-class HuggingFaceEmbeddingsProvider(EmbeddingsProvider):
+class HuggingFaceEmbedder(Embedder):
     def __init__(self):
         self._model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
@@ -17,7 +17,7 @@ class HuggingFaceEmbeddingsProvider(EmbeddingsProvider):
         return embeddings.tolist()
 
     def embed_query(self, text: str) -> list[float]:
-        embeddings = self._model.encode_document(
+        embeddings = self._model.encode_query(
             [text], convert_to_numpy=True, normalize_embeddings=True
         )
 

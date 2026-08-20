@@ -1,8 +1,8 @@
-from agent.embeddings.base import EmbeddingsProvider
+from agent.embeddings.base import Embedder
 from openai import OpenAI
 
 
-class OpenAIEmbeddingsProvider(EmbeddingsProvider):
+class OpenAIEmbedder(Embedder):
     def __init__(self):
         self._client = OpenAI()
 
@@ -18,7 +18,7 @@ class OpenAIEmbeddingsProvider(EmbeddingsProvider):
 
         return [item.embedding for item in ordered_embeddings]
 
-    def embed_query(self, text) -> list[float]:
+    def embed_query(self, text: str) -> list[float]:
         response = self._client.embeddings.create(
             model="text-embedding-3-small", input=[text]
         )

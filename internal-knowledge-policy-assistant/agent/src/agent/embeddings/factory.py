@@ -1,19 +1,19 @@
 from typing import Literal
 
-from agent.embeddings.base import EmbeddingsProvider
-from agent.embeddings.providers.hugging_face import (
-    HuggingFaceEmbeddingsProvider,
+from agent.embeddings.base import Embedder
+from agent.embeddings.implementations.hugging_face import (
+    HuggingFaceEmbedder,
 )
-from agent.embeddings.providers.openai import OpenAIEmbeddingsProvider
+from agent.embeddings.implementations.openai import OpenAIEmbedder
 
 
-def create_embeddings_provider(
+def create_embedder(
     provider: Literal["hugging-face", "openai"],
-) -> EmbeddingsProvider:
+) -> Embedder:
     match provider:
         case "hugging-face":
-            return HuggingFaceEmbeddingsProvider()
+            return HuggingFaceEmbedder()
         case "openai":
-            return OpenAIEmbeddingsProvider()
+            return OpenAIEmbedder()
         case _:
             raise ValueError(f"Unsupported Embedding provider: {provider}")
