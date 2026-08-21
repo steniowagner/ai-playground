@@ -1,10 +1,10 @@
 import pytest
-
 from agent.chunking.base import Chunk, Chunker
 from agent.domain.document import Document
 from agent.embeddings.base import Embedder
 from agent.ingestion.loaders.base import DocumentLoader
 from agent.ingestion.pipeline import IngestionPipeline
+from agent.repositories.in_memory import InMemoryVectorRepository
 
 
 class FakeDocumentLoader(DocumentLoader):
@@ -42,7 +42,13 @@ class FakeEmbedder(Embedder):
 
 def make_pipeline(
     embeddings: list[list[float]],
-) -> tuple[IngestionPipeline, FakeDocumentLoader, FakeChunker, FakeEmbedder]:
+) -> tuple[
+    IngestionPipeline,
+    FakeDocumentLoader,
+    FakeChunker,
+    FakeEmbedder,
+    InMemoryVectorRepository,
+]:
     document = Document(
         id="policy",
         content="First section. Second section.",
@@ -54,34 +60,43 @@ def make_pipeline(
         Chunk("First section.", 0, 3, 0, 14),
         Chunk("Second section.", 1, 3, 15, 30),
     ]
-    loader = FakeDocumentLoader(document)
+    document_loader = FakeDocumentLoader(document)
     chunker = FakeChunker(chunks)
     embedder = FakeEmbedder(embeddings)
+    repository = InMemoryVectorRepository()
 
     return (
-        IngestionPipeline(embedder, loader, chunker),
-        loader,
+        IngestionPipeline(
+            embedder=embedder,
+            document_loader=document_loader,
+            chunker=chunker,
+            repository=repository,
+        ),
+        document_loader,
         chunker,
         embedder,
+        repository,
     )
 
 
-def test_ingest_loads_chunks_embeds_and_combines_results() -> None:
-    pipeline, loader, chunker, embedder = make_pipeline(
+def test_ingest_loads_chunks_embeds_and_stores_results() -> None:
+    pipeline, document_loader, chunker, embedder, repository = make_pipeline(
         [[1.0, 0.0], [0.0, 1.0]]
     )
 
-    result = pipeline.ingest("policy.md")
+    pipeline.ingest("policy.md")
 
-    assert loader.sources == ["policy.md"]
+    assert document_loader.sources == ["policy.md"]
     assert chunker.texts == ["First section. Second section."]
     assert embedder.document_batches == [["First section.", "Second section."]]
-    assert [item.chunk.id for item in result] == ["policy:0", "policy:1"]
-    assert [item.embedding for item in result] == [
-        [1.0, 0.0],
-        [0.0, 1.0],
+
+    stored_results = repository.search([1.0, 0.0])
+    assert [result.chunk.id for result in stored_results] == [
+        "policy:0",
+        "policy:1",
     ]
-    assert result[0].chunk.metadata == {
+    assert stored_results[0].score == pytest.approx(1.0)
+    assert stored_results[0].chunk.metadata == {
         "department": "HR",
         "source": "/documents/policy.md",
         "document_type": ".md",
@@ -89,7 +104,9 @@ def test_ingest_loads_chunks_embeds_and_combines_results() -> None:
 
 
 def test_ingest_rejects_mismatched_embedding_count() -> None:
-    pipeline, _, _, _ = make_pipeline([[1.0, 0.0]])
+    pipeline, _, _, _, repository = make_pipeline([[1.0, 0.0]])
 
     with pytest.raises(ValueError, match=r"zip\(\) argument 2 is shorter"):
         pipeline.ingest("policy.md")
+
+    assert repository.search([1.0, 0.0]) == []
