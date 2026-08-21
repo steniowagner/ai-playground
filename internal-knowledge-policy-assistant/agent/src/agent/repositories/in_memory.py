@@ -1,5 +1,5 @@
 from agent.domain.embedded_chunk import EmbeddedChunk
-from agent.vector_utils.calculate_cosine_similarity import calculate_cosine_similarity
+from agent.utils.calculate_cosine_similarity import calculate_cosine_similarity
 
 from .base import VectorRepository
 from .search_result import SearchResult

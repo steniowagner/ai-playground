@@ -3,6 +3,8 @@ from agent.embeddings.factory import create_embedder
 from agent.ingestion.loaders.factory import create_document_loader
 from agent.ingestion.pipeline import IngestionPipeline
 from agent.repositories.factory import create_repository
+from agent.services.knowledge_service import KnowledgeService
+from agent.utils.ingest_local_files import ingest_local_files
 
 
 def main() -> None:
@@ -18,15 +20,13 @@ def main() -> None:
         repository=repository,
     )
 
-    ingestion_pipeline.ingest(
-        "/Users/steniowagner/dev/agents-playground/internal-knowledge-policy-assistant/agent/src/agent/documents/pdf/expense_policy.pdf"
-    )
+    ingest_local_files(ingestion_pipeline)
 
-    query = "is alchol reimbursable?"
-    query_emebedding = embedder.embed_query(query)
+    query = "Can contractors access production?"
+    knowledge_service = KnowledgeService(embedder=embedder, repository=repository)
+    response = knowledge_service.search(query)
 
-    d = repository.search(query_embedding=query_emebedding)
-    for r in d:
+    for r in response:
         print(f"Score: {r.score}")
         print(f"File: {r.chunk.metadata['filename']}")
         print(f"Content: {r.chunk.content}")

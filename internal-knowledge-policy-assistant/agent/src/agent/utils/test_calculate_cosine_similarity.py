@@ -1,5 +1,5 @@
 import pytest
-from agent.vector_utils.calculate_cosine_similarity import (
+from agent.utils.calculate_cosine_similarity import (
     calculate_cosine_similarity,
 )
 
