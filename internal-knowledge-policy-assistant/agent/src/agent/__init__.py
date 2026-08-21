@@ -24,7 +24,7 @@ def main() -> None:
 
     query = "Can contractors access production?"
     knowledge_service = KnowledgeService(embedder=embedder, repository=repository)
-    response = knowledge_service.search(query)
+    response = knowledge_service.search(query=query, top_k=1, minimum_score=0.5)
 
     for r in response:
         print(f"Score: {r.score}")
