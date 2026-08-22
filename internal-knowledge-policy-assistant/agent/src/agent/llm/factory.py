@@ -5,7 +5,7 @@ from .clients.groq import GroqClient
 from .clients.openai import OpenAIClient
 
 
-def create_llm_client(provider: Literal["openai"]) -> LLMClient:
+def create_llm_client(provider: Literal["openai", "groq"]) -> LLMClient:
     match provider:
         case "openai":
             return OpenAIClient()

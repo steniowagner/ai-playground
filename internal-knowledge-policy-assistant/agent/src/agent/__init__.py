@@ -1,7 +1,9 @@
 from agent.chunking import create_chunker
 from agent.embeddings.factory import create_embedder
+from agent.generation.service import GenerationService
 from agent.ingestion.loaders.factory import create_document_loader
 from agent.ingestion.pipeline import IngestionPipeline
+from agent.llm.factory import create_llm_client
 from agent.repositories.factory import create_repository
 from agent.retrieval.context_builder import ContextBuilder
 from agent.retrieval.service import RetrievalService
@@ -23,18 +25,15 @@ def main() -> None:
 
     ingest_local_files(ingestion_pipeline)
 
-    query = "Can contractors access production?"
     retrieval_service = RetrievalService(embedder=embedder, repository=repository)
-    search_results = retrieval_service.search(query=query)
+    llm_client = create_llm_client("groq")
     context_builder = ContextBuilder()
-    context = context_builder.build(search_results)
+    generation_service = GenerationService(
+        retrieval_service=retrieval_service,
+        context_builder=context_builder,
+        llm_client=llm_client,
+    )
 
-    for r in search_results:
-        print(f"Score: {r.score}")
-        print(f"File: {r.chunk.metadata['filename']}")
-        print(f"Content: {r.chunk.content}")
-        print("#######################")
-
-    print("#######################")
-
-    print(f"Context: {context}")
+    question = "Can contractors access production?"
+    answer = generation_service.answer(question)
+    print(answer)

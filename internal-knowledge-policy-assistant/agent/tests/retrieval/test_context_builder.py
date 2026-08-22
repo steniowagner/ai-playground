@@ -39,9 +39,7 @@ def test_build_formats_source_score_and_content() -> None:
     context = ContextBuilder().build([result])
 
     assert context == (
-        "[Source: policy.md]\n"
-        "[Score: 0.8765]\n"
-        "Contractors require approval."
+        "[Source: policy.md]\n[Score: 0.8765]\nContractors require approval."
     )
 
 
