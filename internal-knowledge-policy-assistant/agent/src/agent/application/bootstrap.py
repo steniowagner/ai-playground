@@ -14,14 +14,14 @@ from .assistant import PolicyAssistant
 
 
 def create_policy_assistant() -> PolicyAssistant:
+    document_loader = create_document_loader(DEFAULT_VALUES["loader"])
     embedder = create_embedder(DEFAULT_VALUES["embedder"])
-    loader = create_document_loader(DEFAULT_VALUES["loader"])
     chunker = create_chunker(DEFAULT_VALUES["chunker"])
     repository = create_repository(DEFAULT_VALUES["repository"])
 
     ingestion_pipeline = IngestionPipeline(
+        document_loader=document_loader,
         embedder=embedder,
-        document_loader=loader,
         chunker=chunker,
         repository=repository,
     )

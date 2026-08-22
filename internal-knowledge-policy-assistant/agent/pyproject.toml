@@ -8,11 +8,14 @@ authors = [
 ]
 requires-python = ">=3.14"
 dependencies = [
+    "fastapi>=0.141.1",
     "groq>=1.6.0",
     "openai>=3.2.0",
+    "pydantic>=2.13.4",
     "pypdf>=6.16.1",
     "sentence-transformers>=6.0.0",
     "transformers>=5.15.1",
+    "uvicorn[standard]>=0.52.4",
 ]
 
 [project.scripts]

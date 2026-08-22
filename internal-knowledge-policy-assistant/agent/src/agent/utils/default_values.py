@@ -5,4 +5,5 @@ DEFAULT_VALUES = {
     "repository": "in-memory",
     "top_k": 5,
     "min_score": 0.0,
+    "valid_sources": {"local"},
 }
