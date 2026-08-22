@@ -4,14 +4,12 @@ from agent.repositories.base import VectorRepository
 from agent.retrieval.service import RetrievalService
 
 from .build_report import build_retrieval_evaluation_report
-from .evaluation_cases import RETRIEVAL_EVALUATION_CASES
+from .cases import RETRIEVAL_EVALUATION_CASES
 from .evaluator import RetrievalEvaluator
 
 
 class RetrievalEvaluationService:
     def __init__(self, embedder: Embedder, repository: VectorRepository) -> None:
-        self._embedder = embedder
-        self._repository = repository
         self._retrieval_service = RetrievalService(
             embedder=embedder, repository=repository
         )

@@ -1,5 +1,6 @@
 from agent.chunking import create_chunker
 from agent.embeddings.factory import create_embedder
+from agent.evaluation.generation.service import GenerationEvaluationService
 from agent.evaluation.retrieval.service import RetrievalEvaluationService
 from agent.generation.service import GenerationService
 from agent.ingestion.loaders.factory import create_document_loader
@@ -27,6 +28,7 @@ def exec_rag_flow():
     ingest_local_files(ingestion_pipeline)
 
     retrieval_service = RetrievalService(embedder=embedder, repository=repository)
+
     llm_client = create_llm_client("groq")
     context_builder = ContextBuilder()
     generation_service = GenerationService(
@@ -59,5 +61,23 @@ def evaluate_retrieval_flow():
     print(r)
 
 
+def evaluate_generate_flow():
+    embedder = create_embedder("hugging-face")
+    repository = create_repository("in-memory")
+    retrieval_service = RetrievalService(embedder=embedder, repository=repository)
+
+    llm_client = create_llm_client("groq")
+    context_builder = ContextBuilder()
+    generation_evaluation_service = GenerationEvaluationService(
+        llm_client=llm_client,
+        context_builder=context_builder,
+        retrieval_service=retrieval_service,
+    )
+
+    r = generation_evaluation_service.evaluate_generation()
+    print(r)
+
+
 def main() -> None:
     evaluate_retrieval_flow()
+    evaluate_generate_flow()

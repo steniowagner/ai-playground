@@ -1,6 +1,6 @@
 from agent.domain.document_chunk import DocumentChunk
 from agent.domain.search_result import SearchResult
-from agent.evaluation.retrieval.evaluation_cases import RetrievalEvaluationCase
+from agent.evaluation.retrieval.cases import RetrievalEvaluationCase
 from agent.evaluation.retrieval.evaluator import RetrievalEvaluator
 
 

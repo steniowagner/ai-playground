@@ -1,7 +1,7 @@
 from agent.evaluation.report import EvaluationReport
 from agent.evaluation.retrieval import service as service_module
+from agent.evaluation.retrieval.cases import RetrievalEvaluationCase
 from agent.evaluation.retrieval.evaluation import RetrievalEvaluation
-from agent.evaluation.retrieval.evaluation_cases import RetrievalEvaluationCase
 from agent.evaluation.retrieval.service import RetrievalEvaluationService
 
 

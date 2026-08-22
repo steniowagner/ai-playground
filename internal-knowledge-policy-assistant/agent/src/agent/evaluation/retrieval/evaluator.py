@@ -1,7 +1,7 @@
 from agent.retrieval.service import RetrievalService
 
+from .cases import RetrievalEvaluationCase
 from .evaluation import RetrievalEvaluation
-from .evaluation_cases import RetrievalEvaluationCase
 
 
 class RetrievalEvaluator:
