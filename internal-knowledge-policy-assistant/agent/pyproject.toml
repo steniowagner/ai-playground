@@ -17,6 +17,7 @@ dependencies = [
 
 [project.scripts]
 agent = "agent:main"
+cli = "agent.clients.cli:main"
 
 [build-system]
 requires = ["uv_build>=0.12.5,<0.13.0"]
