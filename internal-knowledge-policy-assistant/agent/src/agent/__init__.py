@@ -3,7 +3,8 @@ from agent.embeddings.factory import create_embedder
 from agent.ingestion.loaders.factory import create_document_loader
 from agent.ingestion.pipeline import IngestionPipeline
 from agent.repositories.factory import create_repository
-from agent.services.knowledge_service import KnowledgeService
+from agent.retrieval.context_builder import ContextBuilder
+from agent.retrieval.service import RetrievalService
 from agent.utils.ingest_local_files import ingest_local_files
 
 
@@ -23,11 +24,17 @@ def main() -> None:
     ingest_local_files(ingestion_pipeline)
 
     query = "Can contractors access production?"
-    knowledge_service = KnowledgeService(embedder=embedder, repository=repository)
-    response = knowledge_service.search(query=query, top_k=1, minimum_score=0.5)
+    retrieval_service = RetrievalService(embedder=embedder, repository=repository)
+    search_results = retrieval_service.search(query=query)
+    context_builder = ContextBuilder()
+    context = context_builder.build(search_results)
 
-    for r in response:
+    for r in search_results:
         print(f"Score: {r.score}")
         print(f"File: {r.chunk.metadata['filename']}")
         print(f"Content: {r.chunk.content}")
         print("#######################")
+
+    print("#######################")
+
+    print(f"Context: {context}")

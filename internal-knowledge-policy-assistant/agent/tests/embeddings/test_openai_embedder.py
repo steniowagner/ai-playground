@@ -20,9 +20,7 @@ class FakeEmbeddingsResource:
                 ]
             )
 
-        return SimpleNamespace(
-            data=[SimpleNamespace(index=0, embedding=[0.5, 0.5])]
-        )
+        return SimpleNamespace(data=[SimpleNamespace(index=0, embedding=[0.5, 0.5])])
 
 
 class FakeOpenAI:

@@ -59,10 +59,30 @@ def test_search_respects_result_limit() -> None:
         ]
     )
 
-    results = repository.search([1.0, 0.0], limit=2)
+    results = repository.search([1.0, 0.0], top_k=2)
 
     assert len(results) == 2
     assert [result.chunk.id for result in results] == ["policy:0", "policy:1"]
+
+
+def test_search_filters_scores_before_applying_top_k() -> None:
+    repository = InMemoryVectorRepository()
+    repository.add(
+        [
+            make_embedded_chunk("policy:0", [1.0, 0.0]),
+            make_embedded_chunk("policy:1", [0.6, 0.8]),
+            make_embedded_chunk("policy:2", [0.0, 1.0]),
+        ]
+    )
+
+    results = repository.search(
+        [1.0, 0.0],
+        top_k=3,
+        min_score=0.6,
+    )
+
+    assert [result.chunk.id for result in results] == ["policy:0", "policy:1"]
+    assert [result.score for result in results] == pytest.approx([1.0, 0.6])
 
 
 def test_add_appends_new_chunks() -> None:

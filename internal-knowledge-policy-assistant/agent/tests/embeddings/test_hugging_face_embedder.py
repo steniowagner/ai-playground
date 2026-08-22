@@ -33,9 +33,7 @@ class FakeSentenceTransformer:
         convert_to_numpy: bool,
         normalize_embeddings: bool,
     ) -> FakeEmbeddings:
-        self.document_calls.append(
-            (texts, convert_to_numpy, normalize_embeddings)
-        )
+        self.document_calls.append((texts, convert_to_numpy, normalize_embeddings))
         return FakeEmbeddings([[1.0, 0.0] for _ in texts])
 
     def encode_query(
@@ -60,9 +58,7 @@ def test_embed_documents_uses_document_encoding(monkeypatch) -> None:
 
     assert result == [[1.0, 0.0], [1.0, 0.0]]
     assert embedder._model.model_name == "sentence-transformers/all-MiniLM-L6-v2"
-    assert embedder._model.document_calls == [
-        (["first", "second"], True, True)
-    ]
+    assert embedder._model.document_calls == [(["first", "second"], True, True)]
 
 
 def test_embed_documents_skips_model_for_empty_input(monkeypatch) -> None:

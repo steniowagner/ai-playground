@@ -1,8 +1,8 @@
 from agent.domain.embedded_chunk import EmbeddedChunk
+from agent.domain.search_result import SearchResult
 from agent.utils.calculate_cosine_similarity import calculate_cosine_similarity
 
 from .base import VectorRepository
-from .search_result import SearchResult
 
 
 class InMemoryVectorRepository(VectorRepository):
@@ -13,7 +13,10 @@ class InMemoryVectorRepository(VectorRepository):
         self._chunks.extend(chunks)
 
     def search(
-        self, query_embedding: list[float], limit: int = 5
+        self,
+        query_embedding: list[float],
+        top_k: int = 5,
+        min_score: float = 0.0,
     ) -> list[SearchResult]:
         results = [
             SearchResult(
@@ -23,4 +26,7 @@ class InMemoryVectorRepository(VectorRepository):
             for item in self._chunks
         ]
 
-        return sorted(results, key=lambda result: result.score, reverse=True)[:limit]
+        if min_score > 0.0:
+            results = [result for result in results if result.score >= min_score]
+
+        return sorted(results, key=lambda result: result.score, reverse=True)[:top_k]
