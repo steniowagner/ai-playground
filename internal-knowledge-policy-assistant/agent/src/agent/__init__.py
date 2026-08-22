@@ -1,5 +1,6 @@
 from agent.chunking import create_chunker
 from agent.embeddings.factory import create_embedder
+from agent.evaluation.retrieval.service import RetrievalEvaluationService
 from agent.generation.service import GenerationService
 from agent.ingestion.loaders.factory import create_document_loader
 from agent.ingestion.pipeline import IngestionPipeline
@@ -10,7 +11,7 @@ from agent.retrieval.service import RetrievalService
 from agent.utils.ingest_local_files import ingest_local_files
 
 
-def main() -> None:
+def exec_rag_flow():
     embedder = create_embedder("hugging-face")
     document_loader = create_document_loader("local")
     chunker = create_chunker("hugging-face")
@@ -37,3 +38,26 @@ def main() -> None:
     question = "Can contractors access production?"
     answer = generation_service.answer(question)
     print(answer)
+
+
+def evaluate_retrieval_flow():
+    embedder = create_embedder("hugging-face")
+    document_loader = create_document_loader("local")
+    chunker = create_chunker("hugging-face")
+    repository = create_repository("in-memory")
+
+    ingestion_pipeline = IngestionPipeline(
+        embedder=embedder,
+        document_loader=document_loader,
+        chunker=chunker,
+        repository=repository,
+    )
+    ingest_local_files(ingestion_pipeline)
+
+    retrieval_evaluation_service = RetrievalEvaluationService(embedder, repository)
+    r = retrieval_evaluation_service.evaluate_retrieval()
+    print(r)
+
+
+def main() -> None:
+    evaluate_retrieval_flow()
