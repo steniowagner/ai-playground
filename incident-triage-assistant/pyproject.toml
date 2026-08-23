@@ -7,10 +7,12 @@ authors = [
     { name = "Stenio Wagner", email = "stenio.wagner1@gmail.com" }
 ]
 requires-python = ">=3.14"
-dependencies = []
+dependencies = [
+    "pydantic>=2.13.4",
+]
 
 [project.scripts]
-incident-triage-assistant = "incident_triage_assistant:main"
+assistant = "incident_triage_assistant:main"
 
 [build-system]
 requires = ["uv_build>=0.12.5,<0.13.0"]

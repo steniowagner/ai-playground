@@ -1,0 +1,9 @@
+{
+  "schema_version": "1.0",
+  "feature_flags": [
+    {"flag":"checkout_require_billing_country","service":"checkout-api","environment":"production","enabled":true,"owner_team":"payments","changed_at":"2026-07-10T14:05:00Z","changed_by_deployment":"dep-882"},
+    {"flag":"checkout_require_billing_country","service":"checkout-api","environment":"staging","enabled":true,"owner_team":"payments","changed_at":"2026-07-15T17:36:00Z","changed_by_deployment":"dep-918"},
+    {"flag":"notification_parallel_webhooks","service":"notification-worker","environment":"production","enabled":true,"owner_team":"customer-comms","changed_at":"2026-07-12T16:25:00Z","changed_by_deployment":"dep-901"},
+    {"flag":"catalog_product_badges","service":"catalog-api","environment":"production","enabled":true,"owner_team":"catalog","changed_at":"2026-07-11T19:07:00Z","changed_by_deployment":"dep-904"}
+  ]
+}

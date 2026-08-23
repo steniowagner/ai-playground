@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "users": [
+    {"user_id":"alice.ops","display_name":"Alice Morgan","roles":["incident_commander","operations_lead"],"active":true},
+    {"user_id":"bruno.payments","display_name":"Bruno Lima","roles":["service_owner","on_call_engineer"],"teams":["payments"],"active":true},
+    {"user_id":"carla.comms","display_name":"Carla Reyes","roles":["service_owner","on_call_engineer"],"teams":["customer-comms"],"active":true},
+    {"user_id":"diego.fulfilment","display_name":"Diego Santos","roles":["service_owner","on_call_engineer"],"teams":["fulfilment"],"active":true},
+    {"user_id":"erin.developer","display_name":"Erin Chen","roles":["developer"],"active":true},
+    {"user_id":"former.contractor","display_name":"Former Contractor","roles":["operations_lead"],"active":false}
+  ],
+  "approval_policy": {
+    "production": ["incident_commander", "operations_lead"],
+    "staging": ["incident_commander", "operations_lead", "service_owner", "on_call_engineer"]
+  }
+}

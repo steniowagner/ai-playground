@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "deployments": [
+    {"deployment_id":"dep-880","service":"checkout-api","environment":"production","version":"2026.07.09.3","commit":"2f41a63","started_at":"2026-07-09T17:00:00Z","completed_at":"2026-07-09T17:08:00Z","status":"succeeded","summary":"Improve checkout request tracing"},
+    {"deployment_id":"dep-882","service":"checkout-api","environment":"production","version":"2026.07.10.1","commit":"89d3c14","started_at":"2026-07-10T13:58:00Z","completed_at":"2026-07-10T14:05:00Z","status":"succeeded","summary":"Require billing country during order mapping"},
+    {"deployment_id":"dep-884","service":"payment-adapter","environment":"production","version":"2026.07.09.2","commit":"410ef2a","started_at":"2026-07-09T10:00:00Z","completed_at":"2026-07-09T10:06:00Z","status":"succeeded","summary":"Add provider response timing metric"},
+    {"deployment_id":"dep-901","service":"notification-worker","environment":"production","version":"2026.07.12.1","commit":"a81bb60","started_at":"2026-07-12T16:17:00Z","completed_at":"2026-07-12T16:25:00Z","status":"succeeded","summary":"Use shared connection pool for webhook delivery"},
+    {"deployment_id":"dep-904","service":"catalog-api","environment":"production","version":"2026.07.11.4","commit":"b70aa39","started_at":"2026-07-11T19:00:00Z","completed_at":"2026-07-11T19:07:00Z","status":"succeeded","summary":"Add optional product badge field"},
+    {"deployment_id":"dep-912","service":"web-gateway","environment":"production","version":"2026.07.13.2","commit":"031db9a","started_at":"2026-07-13T15:30:00Z","completed_at":"2026-07-13T15:35:00Z","status":"succeeded","summary":"Update access-log format"},
+    {"deployment_id":"dep-918","service":"checkout-api","environment":"staging","version":"2026.07.15.2-rc1","commit":"d7f01cc","started_at":"2026-07-15T17:30:00Z","completed_at":"2026-07-15T17:36:00Z","status":"succeeded","summary":"Add stricter test-card validation"},
+    {"deployment_id":"dep-920","service":"inventory-worker","environment":"production","version":"2026.07.14.1","commit":"178cf55","started_at":"2026-07-14T09:10:00Z","completed_at":"2026-07-14T09:18:00Z","status":"succeeded","summary":"Improve reservation retry telemetry"},
+    {"deployment_id":"dep-923","service":"notification-worker","environment":"staging","version":"2026.07.16.3-rc2","commit":"ea7135b","started_at":"2026-07-16T16:00:00Z","completed_at":"2026-07-16T16:05:00Z","status":"succeeded","summary":"Expose batch-size test control"}
+  ]
+}
