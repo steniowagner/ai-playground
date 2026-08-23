@@ -1,24 +1,4 @@
-# Pre-Maryam AI Engineering Projects
-
-These two projects are designed as a practical bridge between
-introductory AI engineering material and Maryam Miradi's AI Agents
-Mastery course.
-
-The main goal is to understand the mechanisms underneath RAG and agent
-frameworks **before** using abstractions such as LangChain, LangGraph,
-CrewAI, PydanticAI, AutoGen, or Google ADK.
-
-The progression is intentional:
-
-1.  **Internal Knowledge & Policy Assistant** --- learn retrieval, RAG,
-    structured outputs, grounding, and evaluation.
-2.  **AI Operations Triage Assistant** --- learn tool calling,
-    orchestration loops, state, human-in-the-loop controls, and agent
-    evaluation.
-
----
-
-# Project 1 --- Internal Knowledge & Policy Assistant
+# Internal Knowledge & Policy Assistant
 
 ## 1. Overview
 
