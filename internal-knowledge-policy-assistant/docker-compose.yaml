@@ -1,0 +1,41 @@
+services:
+  api:
+    build:
+      context: ./agent
+    env_file:
+      - ./agent/.env
+    environment:
+      HF_HOME: /cache/huggingface
+    ports:
+      - "8000:8000"
+    volumes:
+      - huggingface-cache:/cache/huggingface
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/docs')"
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "3000:80"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+volumes:
+  huggingface-cache:
