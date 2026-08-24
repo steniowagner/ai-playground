@@ -11,6 +11,9 @@ dependencies = [
     "pydantic>=2.13.4",
 ]
 
+[dependency-groups]
+dev = ["pytest>=9.0.2"]
+
 [project.scripts]
 assistant = "incident_triage_assistant:main"
 
