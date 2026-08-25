@@ -1,6 +1,8 @@
-from incident_triage_assistant.tools.get_tool import get_tool
+from incident_triage_assistant.llm.factory import create_llm_client
+from incident_triage_assistant.loop.agent_runner import AgentRunner
 
 
 def main() -> None:
-    tool = get_tool("get_incident")
-    print(tool({"incident_id": "INC-1043"}))
+    llm_client = create_llm_client("groq")
+    agent_runner = AgentRunner(llm_client)
+    agent_runner.run()

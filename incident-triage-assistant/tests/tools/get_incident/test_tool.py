@@ -9,6 +9,10 @@ from incident_triage_assistant.tools.get_incident.tool import (
     parse_incident,
     read_incidents,
 )
+from incident_triage_assistant.tools.tool_response import (
+    ToolErrorResponse,
+    ToolResponseSuccess,
+)
 from pydantic import ValidationError
 
 
@@ -49,13 +53,13 @@ def test_parse_incident_rejects_invalid_fixture() -> None:
 
 
 def test_find_incident_by_id_returns_match() -> None:
-    result = find_incident_by_id("INC-1044", read_incidents())
+    result = find_incident_by_id("INC-1044")
     assert result is not None
     assert result.primary_service == "notification-worker"
 
 
 def test_find_incident_by_id_returns_none_when_missing() -> None:
-    assert find_incident_by_id("INC-9999", read_incidents()) is None
+    assert find_incident_by_id("INC-9999") is None
 
 
 def test_read_incidents_returns_all_safe_fixture_records() -> None:
@@ -90,20 +94,33 @@ def test_read_incidents_rejects_invalid_top_level_fixture(
 
 
 def test_get_incident_accepts_raw_dictionary() -> None:
-    incident = get_incident({"incident_id": "INC-1043"})
-    assert incident is not None
+    response = get_incident({"incident_id": "INC-1043"})
+
+    assert isinstance(response, ToolResponseSuccess)
+    incident = response.data["incident"]
+    assert isinstance(incident, Incident)
     assert incident.incident_id == "INC-1043"
     assert incident.primary_service == "payment-adapter"
+    assert response.error is None
 
 
-def test_get_incident_returns_none_for_unknown_valid_id() -> None:
-    assert get_incident({"incident_id": "INC-9999"}) is None
+def test_get_incident_returns_not_found_for_unknown_valid_id() -> None:
+    response = get_incident({"incident_id": "INC-9999"})
+
+    assert isinstance(response, ToolErrorResponse)
+    assert response.data is None
+    assert response.error.code == "NOT_FOUND"
+    assert "INC-9999" in response.error.message
 
 
 @pytest.mark.parametrize(
     "params",
     [{"incident_id": "invalid"}, {"incident_id": "INC-1043", "extra": True}, {}],
 )
-def test_get_incident_rejects_invalid_params(params: dict[str, object]) -> None:
-    with pytest.raises(ValidationError):
-        get_incident(params)
+def test_get_incident_returns_invalid_argument_for_invalid_params(
+    params: dict[str, object],
+) -> None:
+    response = get_incident(params)
+
+    assert isinstance(response, ToolErrorResponse)
+    assert response.error.code == "INVALID_ARGUMENT"

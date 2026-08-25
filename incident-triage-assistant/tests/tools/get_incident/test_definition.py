@@ -1,5 +1,5 @@
 from incident_triage_assistant.tools.get_incident.definition import GET_INCIDENT_TOOL
-from incident_triage_assistant.tools.get_tool import get_tool
+from incident_triage_assistant.tools.run_tool import get_tool
 
 
 def test_definition_uses_registered_tool_name() -> None:

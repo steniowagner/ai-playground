@@ -2,18 +2,19 @@ import json
 from pathlib import Path
 from typing import Any
 
+from incident_triage_assistant.tools.tool_response import (
+    ToolErrorResponse,
+    ToolErrorResponseDetail,
+    ToolResponse,
+    ToolResponseSuccess,
+)
+from pydantic import ValidationError
+
 from .schema import GetIncidentParams, Incident, IncidentsJson, IncidentWithFixture
 
 INCIDENTS_FILE = (
     Path(__file__).resolve().parents[4] / "data" / "fixtures" / "incidents.json"
 )
-
-
-def find_incident_by_id(incident_id: str, incidents: list[Incident]) -> Incident | None:
-    return next(
-        (incident for incident in incidents if incident.incident_id == incident_id),
-        None,
-    )
 
 
 def parse_incident(fixture: Any) -> Incident:
@@ -36,10 +37,35 @@ def read_incidents() -> list[Incident]:
     return incidents
 
 
-def get_incident(raw_params: GetIncidentParams) -> Incident | None:
-    params = GetIncidentParams.model_validate(raw_params)
-
+def find_incident_by_id(incident_id: str) -> Incident | None:
     incidents = read_incidents()
-    incident = find_incident_by_id(params.incident_id, incidents)
+    return next(
+        (incident for incident in incidents if incident.incident_id == incident_id),
+        None,
+    )
 
-    return incident
+
+def get_incident(raw_params: dict[str, Any]) -> ToolResponse:
+    try:
+        params = GetIncidentParams.model_validate(raw_params)
+    except ValidationError:
+        return ToolErrorResponse(
+            ok=False,
+            error=ToolErrorResponseDetail(
+                code="INVALID_ARGUMENT",
+                message=f"Invalid params '{raw_params}'.",
+            ),
+        )
+
+    incident = find_incident_by_id(params.incident_id)
+
+    if not incident:
+        return ToolErrorResponse(
+            ok=False,
+            error=ToolErrorResponseDetail(
+                code="NOT_FOUND",
+                message=f"Incident '{params.incident_id}' was not found.",
+            ),
+        )
+
+    return ToolResponseSuccess(ok=True, data={"incident": incident})
