@@ -6,11 +6,11 @@ from incident_triage_assistant.tools.tool_response import (
     ToolErrorResponse,
     ToolErrorResponseDetail,
     ToolResponse,
-    ToolResponseSuccess,
+    ToolSuccessResponse,
 )
 from pydantic import ValidationError
 
-from .schema import GetIncidentParams, Incident, IncidentsJson, IncidentWithFixture
+from .schema import GetIncidentArgs, Incident, IncidentsJson, IncidentWithFixture
 
 INCIDENTS_FILE = (
     Path(__file__).resolve().parents[4] / "data" / "fixtures" / "incidents.json"
@@ -45,27 +45,27 @@ def find_incident_by_id(incident_id: str) -> Incident | None:
     )
 
 
-def get_incident(raw_params: dict[str, Any]) -> ToolResponse:
+def get_incident(raw_args: dict[str, Any]) -> ToolResponse:
     try:
-        params = GetIncidentParams.model_validate(raw_params)
+        args = GetIncidentArgs.model_validate(raw_args)
     except ValidationError:
         return ToolErrorResponse(
             ok=False,
             error=ToolErrorResponseDetail(
                 code="INVALID_ARGUMENT",
-                message=f"Invalid params '{raw_params}'.",
+                message=f"Invalid arguments '{raw_args}'.",
             ),
         )
 
-    incident = find_incident_by_id(params.incident_id)
+    incident = find_incident_by_id(args.incident_id)
 
     if not incident:
         return ToolErrorResponse(
             ok=False,
             error=ToolErrorResponseDetail(
                 code="NOT_FOUND",
-                message=f"Incident '{params.incident_id}' was not found.",
+                message=f"Incident '{args.incident_id}' was not found.",
             ),
         )
 
-    return ToolResponseSuccess(ok=True, data={"incident": incident})
+    return ToolSuccessResponse(ok=True, data={"incident": incident})

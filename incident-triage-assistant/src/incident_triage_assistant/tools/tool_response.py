@@ -21,10 +21,10 @@ class ToolErrorResponse(BaseModel):
     error: ToolErrorResponseDetail
 
 
-class ToolResponseSuccess(BaseModel):
+class ToolSuccessResponse(BaseModel):
     ok: Literal[True]
     data: dict[str, Any]
     error: None = None
 
 
-ToolResponse = ToolResponseSuccess | ToolErrorResponse
+ToolResponse = ToolSuccessResponse | ToolErrorResponse

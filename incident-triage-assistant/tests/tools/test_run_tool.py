@@ -2,7 +2,7 @@ from incident_triage_assistant.tools.get_incident.schema import Incident
 from incident_triage_assistant.tools.run_tool import get_tool, run_tool
 from incident_triage_assistant.tools.tool_response import (
     ToolErrorResponse,
-    ToolResponseSuccess,
+    ToolSuccessResponse,
 )
 
 
@@ -17,7 +17,7 @@ def test_get_tool_returns_none_for_unknown_tool() -> None:
 def test_run_tool_executes_registered_tool() -> None:
     response = run_tool("get_incident", '{"incident_id":"INC-1043"}')
 
-    assert isinstance(response, ToolResponseSuccess)
+    assert isinstance(response, ToolSuccessResponse)
     assert isinstance(response.data["incident"], Incident)
     assert response.data["incident"].incident_id == "INC-1043"
 

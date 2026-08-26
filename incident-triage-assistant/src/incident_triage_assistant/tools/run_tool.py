@@ -3,6 +3,7 @@ from collections.abc import Callable
 from typing import Any
 
 from .get_incident.tool import get_incident
+from .get_service_context.tool import get_service_context
 from .tool_response import ToolErrorResponse, ToolErrorResponseDetail, ToolResponse
 
 
@@ -10,6 +11,8 @@ def get_tool(tool_name: str) -> Callable[[dict[str, Any]], ToolResponse] | None:
     match tool_name:
         case "get_incident":
             return get_incident
+        case "get_service_context":
+            return get_service_context
         case _:
             return None
 
@@ -27,7 +30,7 @@ def run_tool(tool_name: str, json_str_args: str) -> ToolResponse:
         )
 
     try:
-        params = json.loads(json_str_args)
+        args = json.loads(json_str_args)
     except json.JSONDecodeError:
         return ToolErrorResponse(
             ok=False,
@@ -37,4 +40,4 @@ def run_tool(tool_name: str, json_str_args: str) -> ToolResponse:
             ),
         )
 
-    return run(params)
+    return run(args)

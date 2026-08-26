@@ -5,14 +5,14 @@ from incident_triage_assistant.llm.schema import (
     LLMResponse,
     ToolCallResponse,
 )
-from incident_triage_assistant.tools.get_tools_definitions import (
-    get_tools_definitions,
+from incident_triage_assistant.tools.get_tools import (
+    get_tools,
 )
 
 
 class LLMClient(ABC):
     def __init__(self) -> None:
-        self._tools = get_tools_definitions()
+        self._tools = get_tools()
 
     @abstractmethod
     def ask(self, question: str) -> LLMResponse:

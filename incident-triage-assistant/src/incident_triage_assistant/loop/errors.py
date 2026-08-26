@@ -10,7 +10,7 @@ class AgentIterationLimitError(Exception):
 
 class EmptyLLMReturn(Exception):
     def __init__(self):
-        message = "LLM returned neither tool calls nor content."
+        message = "LLM returned neither tool-calls nor content."
         super().__init__(message)
         self._message = message
 

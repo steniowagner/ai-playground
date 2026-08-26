@@ -2,7 +2,7 @@ from datetime import datetime
 
 import pytest
 from incident_triage_assistant.tools.get_incident.schema import (
-    GetIncidentParams,
+    GetIncidentArgs,
     Incident,
     IncidentAlert,
     IncidentWithFixture,
@@ -29,20 +29,20 @@ def valid_incident() -> dict[str, object]:
     }
 
 
-def test_get_incident_params_accepts_valid_incident_id() -> None:
-    params = GetIncidentParams.model_validate({"incident_id": "INC-1042"})
-    assert params.incident_id == "INC-1042"
+def test_get_incident_args_accepts_valid_incident_id() -> None:
+    args = GetIncidentArgs.model_validate({"incident_id": "INC-1042"})
+    assert args.incident_id == "INC-1042"
 
 
 @pytest.mark.parametrize("incident_id", ["INC-42", "inc-1042", "INC-ABCD", "1042", ""])
-def test_get_incident_params_rejects_invalid_id(incident_id: str) -> None:
+def test_get_incident_args_rejects_invalid_id(incident_id: str) -> None:
     with pytest.raises(ValidationError):
-        GetIncidentParams.model_validate({"incident_id": incident_id})
+        GetIncidentArgs.model_validate({"incident_id": incident_id})
 
 
-def test_get_incident_params_rejects_extra_properties() -> None:
+def test_get_incident_args_rejects_extra_properties() -> None:
     with pytest.raises(ValidationError):
-        GetIncidentParams.model_validate(
+        GetIncidentArgs.model_validate(
             {"incident_id": "INC-1042", "environment": "production"}
         )
 

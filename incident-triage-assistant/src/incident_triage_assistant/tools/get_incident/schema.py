@@ -1,10 +1,7 @@
 from datetime import datetime
-from typing import Literal
 
+from incident_triage_assistant.domain.types import Environment, IncidentStatus
 from pydantic import BaseModel, ConfigDict, Field
-
-IncidentStatus = Literal["investigating", "monitoring", "resolved"]
-Environment = Literal["production", "staging"]
 
 
 class IncidentAlert(BaseModel):
@@ -59,7 +56,7 @@ class IncidentsJson(BaseModel):
     incidents: list[IncidentWithFixture]
 
 
-class GetIncidentParams(BaseModel):
+class GetIncidentArgs(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     incident_id: str = Field(

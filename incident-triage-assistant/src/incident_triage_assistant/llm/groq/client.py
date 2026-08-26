@@ -78,7 +78,6 @@ class GroqLLMClient(LLMClient):
             tools=self._tools,
             messages=self._messages,
             reasoning_effort="none",
-            max_completion_tokens=150,
             temperature=0.2,
         )
 

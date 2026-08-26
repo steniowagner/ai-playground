@@ -9,9 +9,9 @@ def test_definition_uses_registered_tool_name() -> None:
     assert callable(get_tool(tool_name))
 
 
-def test_definition_disallows_additional_parameters() -> None:
-    parameters = GET_INCIDENT_TOOL["parameters"]
+def test_definition_disallows_additional_args() -> None:
+    tool_args = GET_INCIDENT_TOOL["args"]
 
-    assert parameters["additionalProperties"] is False
-    assert parameters["required"] == ["incident_id"]
-    assert parameters["properties"]["incident_id"]["pattern"] == "^INC-[0-9]{4}$"
+    assert tool_args["additionalProperties"] is False
+    assert tool_args["required"] == ["incident_id"]
+    assert tool_args["properties"]["incident_id"]["pattern"] == "^INC-[0-9]{4}$"

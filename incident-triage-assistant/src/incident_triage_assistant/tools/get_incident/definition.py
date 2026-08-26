@@ -1,7 +1,9 @@
-from .schema import GetIncidentParams
+from incident_triage_assistant.tools.get_tools import Tool
 
-GET_INCIDENT_TOOL = {
+from .schema import GetIncidentArgs
+
+GET_INCIDENT_TOOL: Tool = {
     "name": "get_incident",
     "description": "Get an incident by its exact ID.",
-    "parameters": GetIncidentParams.model_json_schema(),
+    "args": GetIncidentArgs.model_json_schema(),
 }

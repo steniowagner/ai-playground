@@ -12,7 +12,11 @@
       "environments": ["production", "staging"],
       "dependencies": ["catalog-api", "checkout-api"],
       "runbook_ids": ["RB-WEB-5XX"],
-      "slo": {"availability_percent": 99.95, "p95_latency_ms": 350, "error_rate_percent": 1.0}
+      "slo": {
+        "availability_percent": 99.95,
+        "p95_latency_ms": 350,
+        "error_rate_percent": 1.0
+      }
     },
     {
       "service": "catalog-api",
@@ -24,7 +28,11 @@
       "environments": ["production", "staging"],
       "dependencies": ["catalog-postgres", "catalog-redis"],
       "runbook_ids": ["RB-CATALOG-LATENCY"],
-      "slo": {"availability_percent": 99.9, "p95_latency_ms": 300, "error_rate_percent": 1.0}
+      "slo": {
+        "availability_percent": 99.9,
+        "p95_latency_ms": 300,
+        "error_rate_percent": 1.0
+      }
     },
     {
       "service": "checkout-api",
@@ -36,7 +44,11 @@
       "environments": ["production", "staging"],
       "dependencies": ["payment-adapter", "checkout-postgres"],
       "runbook_ids": ["RB-CHECKOUT-ERRORS"],
-      "slo": {"availability_percent": 99.95, "p95_latency_ms": 800, "error_rate_percent": 1.0}
+      "slo": {
+        "availability_percent": 99.95,
+        "p95_latency_ms": 800,
+        "error_rate_percent": 1.0
+      }
     },
     {
       "service": "payment-adapter",
@@ -48,7 +60,11 @@
       "environments": ["production", "staging"],
       "dependencies": ["payfast-api"],
       "runbook_ids": ["RB-PAYMENT-PROVIDER"],
-      "slo": {"availability_percent": 99.9, "p95_latency_ms": 1500, "error_rate_percent": 2.0}
+      "slo": {
+        "availability_percent": 99.9,
+        "p95_latency_ms": 1500,
+        "error_rate_percent": 2.0
+      }
     },
     {
       "service": "notification-worker",
@@ -60,7 +76,11 @@
       "environments": ["production", "staging"],
       "dependencies": ["notifications-queue", "mailjet-api"],
       "runbook_ids": ["RB-NOTIFICATION-BACKLOG"],
-      "slo": {"availability_percent": 99.5, "max_queue_depth": 1000, "max_job_age_seconds": 300}
+      "slo": {
+        "availability_percent": 99.5,
+        "max_queue_depth": 1000,
+        "max_job_age_seconds": 300
+      }
     },
     {
       "service": "inventory-worker",
@@ -72,11 +92,23 @@
       "environments": ["production", "staging"],
       "dependencies": ["inventory-queue", "inventory-postgres"],
       "runbook_ids": ["RB-INVENTORY-BACKLOG"],
-      "slo": {"availability_percent": 99.9, "max_queue_depth": 500, "max_job_age_seconds": 120}
+      "slo": {
+        "availability_percent": 99.9,
+        "max_queue_depth": 500,
+        "max_job_age_seconds": 120
+      }
     }
   ],
   "external_dependencies": [
-    {"dependency": "payfast-api", "owner": "PayFast", "status_page": "https://status.example.invalid/payfast"},
-    {"dependency": "mailjet-api", "owner": "MailJet", "status_page": "https://status.example.invalid/mailjet"}
+    {
+      "dependency": "payfast-api",
+      "owner": "PayFast",
+      "status_page": "https://status.example.invalid/payfast"
+    },
+    {
+      "dependency": "mailjet-api",
+      "owner": "MailJet",
+      "status_page": "https://status.example.invalid/mailjet"
+    }
   ]
 }

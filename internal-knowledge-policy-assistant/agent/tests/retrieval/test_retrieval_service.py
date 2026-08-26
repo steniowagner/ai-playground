@@ -54,7 +54,7 @@ def make_result(score: float = 0.8) -> SearchResult:
     )
 
 
-def test_search_embeds_query_and_forwards_retrieval_parameters() -> None:
+def test_search_embeds_query_and_forwards_retrieval_args() -> None:
     expected_results = [make_result()]
     embedder = FakeEmbedder([1.0, 0.0])
     repository = FakeRepository(expected_results)
@@ -71,7 +71,7 @@ def test_search_embeds_query_and_forwards_retrieval_parameters() -> None:
     assert repository.search_calls == [([1.0, 0.0], 3, 0.5)]
 
 
-def test_search_uses_default_parameters() -> None:
+def test_search_uses_default_args() -> None:
     embedder = FakeEmbedder([1.0, 0.0])
     repository = FakeRepository([])
     service = RetrievalService(embedder=embedder, repository=repository)

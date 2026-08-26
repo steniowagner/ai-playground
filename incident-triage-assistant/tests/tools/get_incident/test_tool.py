@@ -11,7 +11,7 @@ from incident_triage_assistant.tools.get_incident.tool import (
 )
 from incident_triage_assistant.tools.tool_response import (
     ToolErrorResponse,
-    ToolResponseSuccess,
+    ToolSuccessResponse,
 )
 from pydantic import ValidationError
 
@@ -96,7 +96,7 @@ def test_read_incidents_rejects_invalid_top_level_fixture(
 def test_get_incident_accepts_raw_dictionary() -> None:
     response = get_incident({"incident_id": "INC-1043"})
 
-    assert isinstance(response, ToolResponseSuccess)
+    assert isinstance(response, ToolSuccessResponse)
     incident = response.data["incident"]
     assert isinstance(incident, Incident)
     assert incident.incident_id == "INC-1043"
@@ -114,13 +114,13 @@ def test_get_incident_returns_not_found_for_unknown_valid_id() -> None:
 
 
 @pytest.mark.parametrize(
-    "params",
+    "args",
     [{"incident_id": "invalid"}, {"incident_id": "INC-1043", "extra": True}, {}],
 )
-def test_get_incident_returns_invalid_argument_for_invalid_params(
-    params: dict[str, object],
+def test_get_incident_returns_invalid_argument_for_invalid_args(
+    args: dict[str, object],
 ) -> None:
-    response = get_incident(params)
+    response = get_incident(args)
 
     assert isinstance(response, ToolErrorResponse)
     assert response.error.code == "INVALID_ARGUMENT"
