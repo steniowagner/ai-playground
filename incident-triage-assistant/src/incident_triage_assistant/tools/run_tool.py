@@ -3,6 +3,7 @@ from collections.abc import Callable
 from typing import Any
 
 from .get_incident.tool import get_incident
+from .get_recent_deployments.tool import get_recent_deployments
 from .get_service_context.tool import get_service_context
 from .tool_response import ToolErrorResponse, ToolErrorResponseDetail, ToolResponse
 
@@ -13,6 +14,8 @@ def get_tool(tool_name: str) -> Callable[[dict[str, Any]], ToolResponse] | None:
             return get_incident
         case "get_service_context":
             return get_service_context
+        case "get_recent_deployments":
+            return get_recent_deployments
         case _:
             return None
 

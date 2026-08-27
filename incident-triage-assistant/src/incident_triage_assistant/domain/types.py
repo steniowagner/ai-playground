@@ -12,4 +12,4 @@ class Tool(BaseModel):
 
     name: str
     description: str
-    args: dict[str, Any]
+    parameters: dict[str, Any]
