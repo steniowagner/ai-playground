@@ -5,6 +5,7 @@ from typing import Any
 from .get_incident.tool import get_incident
 from .get_recent_deployments.tool import get_recent_deployments
 from .get_service_context.tool import get_service_context
+from .query_metrics.tool import query_metrics
 from .tool_response import ToolErrorResponse, ToolErrorResponseDetail, ToolResponse
 
 
@@ -16,6 +17,8 @@ def get_tool(tool_name: str) -> Callable[[dict[str, Any]], ToolResponse] | None:
             return get_service_context
         case "get_recent_deployments":
             return get_recent_deployments
+        case "query_metrics":
+            return query_metrics
         case _:
             return None
 

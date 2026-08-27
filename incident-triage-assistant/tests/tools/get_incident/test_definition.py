@@ -10,7 +10,7 @@ def test_definition_uses_registered_tool_name() -> None:
 
 
 def test_definition_disallows_additional_args() -> None:
-    tool_args = GET_INCIDENT_TOOL["args"]
+    tool_args = GET_INCIDENT_TOOL["parameters"]
 
     assert tool_args["additionalProperties"] is False
     assert tool_args["required"] == ["incident_id"]

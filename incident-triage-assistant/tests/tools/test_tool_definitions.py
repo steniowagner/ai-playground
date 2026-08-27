@@ -9,4 +9,4 @@ def test_get_tools() -> None:
     for tool in tools:
         assert isinstance(tool.name, str)
         assert isinstance(tool.description, str)
-        assert isinstance(tool.args, object)
+        assert isinstance(tool.parameters, object)

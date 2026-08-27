@@ -1,4 +1,4 @@
-from typing import Any, Literal
+from typing import Generic, Literal, TypeVar
 
 from pydantic import BaseModel
 
@@ -8,6 +8,8 @@ ToolErrorResponseCode = Literal[
     "UNKNOWN_TOOL",
     "EXECUTION_ERROR",
 ]
+
+T = TypeVar("T")
 
 
 class ToolErrorResponseDetail(BaseModel):
@@ -21,10 +23,10 @@ class ToolErrorResponse(BaseModel):
     error: ToolErrorResponseDetail
 
 
-class ToolSuccessResponse(BaseModel):
+class ToolSuccessResponse(BaseModel, Generic[T]):
     ok: Literal[True]
-    data: dict[str, Any]
+    data: T
     error: None = None
 
 
-ToolResponse = ToolSuccessResponse | ToolErrorResponse
+ToolResponse = ToolSuccessResponse[T] | ToolErrorResponse
