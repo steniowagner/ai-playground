@@ -2,6 +2,7 @@ import json
 from collections.abc import Callable
 from typing import Any
 
+from .get_feature_flags.tool import get_feature_flags
 from .get_incident.tool import get_incident
 from .get_maintenance_windows.tool import get_maintenance_windows
 from .get_recent_deployments.tool import get_recent_deployments
@@ -28,6 +29,8 @@ def get_tool(tool_name: str) -> Callable[[dict[str, Any]], ToolResponse] | None:
             return get_runbook
         case "get_maintenance_windows":
             return get_maintenance_windows
+        case "get_feature_flags":
+            return get_feature_flags
         case _:
             return None
 
