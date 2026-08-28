@@ -3,8 +3,6 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, ValidationInfo, field_validator
 
-IncidentStatus = Literal["investigating", "monitoring", "resolved"]
-
 Environment = Literal["production", "staging"]
 
 ServiceMetric = Literal[

@@ -1,22 +1,18 @@
 from groq.types.chat import ChatCompletionMessage
-from incident_triage_assistant.llm.groq.client import GroqLLMClient
-
-
-def client_without_provider() -> GroqLLMClient:
-    client = object.__new__(GroqLLMClient)
-    client._messages = []
-    return client
+from incident_triage_assistant.llm.groq.messages_handler import GroqMessageHandler
 
 
 def test_add_user_message() -> None:
-    client = client_without_provider()
-    client._add_user_message("Investigate INC-1043")
+    handler = GroqMessageHandler()
+    handler.add_user_message("Investigate INC-1043")
 
-    assert client._messages == [{"role": "user", "content": "Investigate INC-1043"}]
+    assert handler.messages == [
+        {"role": "user", "content": "Investigate INC-1043"}
+    ]
 
 
 def test_add_assistant_tool_call_message() -> None:
-    client = client_without_provider()
+    handler = GroqMessageHandler()
     message = ChatCompletionMessage.model_validate(
         {
             "role": "assistant",
@@ -33,9 +29,9 @@ def test_add_assistant_tool_call_message() -> None:
             ],
         }
     )
-    client._add_assistant_message(message)
+    handler.add_assistant_message(message)
 
-    stored = client._messages[0]
+    stored = handler.messages[0]
     assert stored["role"] == "assistant"
     assert stored["content"] is None
     assert stored["tool_calls"][0]["id"] == "call-1"
@@ -43,10 +39,10 @@ def test_add_assistant_tool_call_message() -> None:
 
 
 def test_add_tool_result_message_preserves_call_id() -> None:
-    client = client_without_provider()
-    client._add_tool_message("call-1", '{"ok":true}')
+    handler = GroqMessageHandler()
+    handler.add_tool_message("call-1", '{"ok":true}')
 
-    assert client._messages == [
+    assert handler.messages == [
         {
             "role": "tool",
             "tool_call_id": "call-1",

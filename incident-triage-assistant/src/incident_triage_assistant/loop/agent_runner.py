@@ -8,7 +8,7 @@ from incident_triage_assistant.tools.run_tool import run_tool
 
 from .errors import AgentIterationLimitError, EmptyLLMReturn
 
-MAX_TOOL_CALL_ITERATIONS = 5
+MAX_TOOL_CALL_ITERATIONS = 50
 
 
 class AgentRunner:
