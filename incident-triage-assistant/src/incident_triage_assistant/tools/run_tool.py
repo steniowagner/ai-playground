@@ -3,6 +3,7 @@ from collections.abc import Callable
 from typing import Any
 
 from .get_incident.tool import get_incident
+from .get_maintenance_windows.tool import get_maintenance_windows
 from .get_recent_deployments.tool import get_recent_deployments
 from .get_runbook.tool import get_runbook
 from .get_service_context.tool import get_service_context
@@ -25,6 +26,8 @@ def get_tool(tool_name: str) -> Callable[[dict[str, Any]], ToolResponse] | None:
             return query_logs
         case "get_runbook":
             return get_runbook
+        case "get_maintenance_windows":
+            return get_maintenance_windows
         case _:
             return None
 
