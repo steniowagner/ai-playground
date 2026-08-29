@@ -5,8 +5,8 @@ from groq.types.chat import ChatCompletionMessage
 from incident_triage_assistant.llm.schema import (
     LLMResponse,
     LLMToolCall,
-    ToolCallResponse,
 )
+from incident_triage_assistant.tools.types import ToolCallResponse
 
 
 def parse_groq_response_to_llm_response(
@@ -19,7 +19,7 @@ def parse_groq_response_to_llm_response(
             LLMToolCall(
                 id=message_tool_call.id,
                 name=message_tool_call.function.name,
-                serialized_arguments=message_tool_call.function.arguments,
+                args_str=message_tool_call.function.arguments,
             )
             for message_tool_call in chat_completion_message.tool_calls
         ]

@@ -4,8 +4,8 @@ from groq import APIError, Groq
 from incident_triage_assistant.llm.base import LLMClient
 from incident_triage_assistant.llm.schema import (
     LLMResponse,
-    ToolCallResponse,
 )
+from incident_triage_assistant.tools.types import ToolCallResponse
 
 from .exception_handler import handle_groq_exception
 from .messages_handler import GroqMessageHandler
@@ -19,7 +19,8 @@ class GroqLLMClient(LLMClient):
     def __init__(self) -> None:
         super().__init__()
         self._tools = [
-            {"type": "function", "function": tool.model_dump()} for tool in self._tools
+            {"type": "function", "function": tool.definition.model_dump()}
+            for tool in self.tools_registry.get_registrations()
         ]
         self._message_handler = GroqMessageHandler()
         self._client = Groq()

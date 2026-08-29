@@ -1,9 +1,9 @@
-from incident_triage_assistant.tools.get_tools import Tool
+from incident_triage_assistant.tools.types import Tool
 
 from .schema import GetIncidentArgs
 
-GET_INCIDENT_TOOL: Tool = {
-    "name": "get_incident",
-    "description": "Get an incident by its exact ID.",
-    "parameters": GetIncidentArgs.model_json_schema(),
-}
+GET_INCIDENT_TOOL: Tool = Tool(
+    name="get_incident",
+    description="Retrieve the recorded details of one incident by its exact incident ID, including the affected service, environment, alert, status, timestamps, and reported symptoms. Use this as the starting point when investigating a known incident.",
+    parameters=GetIncidentArgs.model_json_schema(),
+)

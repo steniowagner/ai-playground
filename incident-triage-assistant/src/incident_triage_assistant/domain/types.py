@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Literal
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, ValidationInfo, field_validator
 
@@ -12,14 +12,6 @@ ServiceMetric = Literal[
     "cpu_percent",
     "queue_depth",
 ]
-
-
-class Tool(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
-
-    name: str
-    description: str
-    parameters: dict[str, Any]
 
 
 class QueryTimeWindow(BaseModel):

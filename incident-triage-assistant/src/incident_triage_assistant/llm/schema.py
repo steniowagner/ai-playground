@@ -10,10 +10,12 @@ class LLMToolCall(BaseModel):
 
     id: str
     name: str
-    serialized_arguments: str
+    args_str: str
 
 
 class LLMQuestion(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
     role: LLMRole
     content: str | None
 
@@ -24,10 +26,3 @@ class LLMResponse(BaseModel):
     role: LLMRole
     content: str | None
     tool_calls: list[LLMToolCall] | None
-
-
-class ToolCallResponse(BaseModel):
-    role: Literal["tool"] = "tool"
-    tool_call_id: str
-    name: str
-    content: str

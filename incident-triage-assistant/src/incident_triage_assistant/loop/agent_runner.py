@@ -2,9 +2,8 @@ from incident_triage_assistant.llm.base import LLMClient
 from incident_triage_assistant.llm.schema import (
     LLMResponse,
     LLMToolCall,
-    ToolCallResponse,
 )
-from incident_triage_assistant.tools.run_tool import run_tool
+from incident_triage_assistant.tools.types import ToolCallResponse
 
 from .errors import AgentIterationLimitError, EmptyLLMReturn
 
@@ -16,12 +15,14 @@ class AgentRunner:
         self._llm_client = llm_client
 
     def _run_tool(self, tool_call: LLMToolCall) -> ToolCallResponse:
-        run_tool_result = run_tool(tool_call.name, tool_call.serialized_arguments)
+        tool_call_result = self._llm_client.tools_registry.execute_tool(
+            tool_call.name, tool_call.args_str
+        )
 
         return self._llm_client.parse_tool_call_response(
             tool_name=tool_call.name,
             tool_call_id=tool_call.id,
-            tool_response=run_tool_result.model_dump_json(),
+            tool_response=tool_call_result.model_dump_json(),
         )
 
     def _handle_tool_calls(self, llm_response: LLMResponse) -> LLMResponse:
