@@ -4,7 +4,7 @@ from typing import Any
 from incident_triage_assistant.domain.types import (
     ServiceMetric,
 )
-from incident_triage_assistant.tools.tool_response import (
+from incident_triage_assistant.tools.types import (
     ToolErrorResponse,
     ToolErrorResponseDetail,
     ToolResponse,
@@ -94,14 +94,15 @@ def query_metrics(raw_args: dict[str, Any]) -> ToolResponse[QueryMetricsResult]:
     series = get_series(args, metrics)
     missing_metrics = get_missing_metrics(args, series)
 
-    result = QueryMetricsResult(
-        service=args.service,
-        environment=args.environment,
-        start_time=args.start_time,
-        end_time=args.end_time,
-        requested_metric_names=args.metric_names,
-        missing_metric_names=missing_metrics,
-        series=series,
+    return ToolSuccessResponse(
+        ok=True,
+        data=QueryMetricsResult(
+            service=args.service,
+            environment=args.environment,
+            start_time=args.start_time,
+            end_time=args.end_time,
+            requested_metric_names=args.metric_names,
+            missing_metric_names=missing_metrics,
+            series=series,
+        ),
     )
-
-    return ToolSuccessResponse(ok=True, data=result)

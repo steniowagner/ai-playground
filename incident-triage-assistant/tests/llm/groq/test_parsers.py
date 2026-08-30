@@ -3,7 +3,7 @@ from incident_triage_assistant.llm.groq.parsers import (
     parse_groq_response_to_llm_response,
     parse_tool_execution_response_to_groq_tool_call_response,
 )
-from incident_triage_assistant.llm.schema import ToolCallResponse
+from incident_triage_assistant.tools.types import ToolCallResponse
 
 
 def test_parse_final_assistant_response() -> None:
@@ -38,7 +38,7 @@ def test_parse_assistant_tool_call() -> None:
     assert response.tool_calls is not None
     assert response.tool_calls[0].id == "call-1"
     assert response.tool_calls[0].name == "get_incident"
-    assert response.tool_calls[0].serialized_arguments == (
+    assert response.tool_calls[0].args_str == (
         '{"incident_id":"INC-1043"}'
     )
 

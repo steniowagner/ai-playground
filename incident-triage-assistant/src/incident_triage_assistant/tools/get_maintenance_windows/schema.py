@@ -25,7 +25,7 @@ class MaintenanceWindow(BaseModel):
 class MaintenanceWindowsFixture(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    schema_version: str
+    schema_version: Literal["1.0"]
     maintenance_windows: list[MaintenanceWindow]
 
 

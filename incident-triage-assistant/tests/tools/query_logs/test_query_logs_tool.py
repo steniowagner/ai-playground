@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 from incident_triage_assistant.tools.query_logs.tool import query_logs
-from incident_triage_assistant.tools.tool_response import (
+from incident_triage_assistant.tools.types import (
     ToolErrorResponse,
     ToolSuccessResponse,
 )
@@ -157,6 +157,58 @@ def test_applies_contains_severity_and_limit_filters(
 
     assert isinstance(response, ToolSuccessResponse)
     assert [log.log_id for log in response.data.logs] == ["log-001"]
+
+
+def test_explicit_null_severity_includes_all_severities(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    logs_file = tmp_path / "logs.jsonl"
+    write_logs_file(
+        logs_file,
+        [
+            {
+                "log_id": "log-error",
+                "timestamp": "2026-08-20T10:10:00Z",
+                "service": "checkout-api",
+                "environment": "production",
+                "severity": "ERROR",
+                "trace_id": None,
+                "message": "Request failed",
+                "attributes": {},
+            },
+            {
+                "log_id": "log-info",
+                "timestamp": "2026-08-20T10:11:00Z",
+                "service": "checkout-api",
+                "environment": "production",
+                "severity": "INFO",
+                "trace_id": None,
+                "message": "Request completed",
+                "attributes": {},
+            },
+        ],
+    )
+    monkeypatch.setattr(
+        "incident_triage_assistant.tools.query_logs.tool.LOGS_FILE",
+        logs_file,
+    )
+
+    response = query_logs(
+        {
+            "service": "checkout-api",
+            "environment": "production",
+            "severity": None,
+            "start_time": "2026-08-20T10:00:00Z",
+            "end_time": "2026-08-20T10:30:00Z",
+        }
+    )
+
+    assert isinstance(response, ToolSuccessResponse)
+    assert [log.log_id for log in response.data.logs] == [
+        "log-error",
+        "log-info",
+    ]
 
 
 @pytest.mark.parametrize(

@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from incident_triage_assistant.tools.tool_response import (
+from incident_triage_assistant.tools.types import (
     ToolErrorResponse,
     ToolErrorResponseDetail,
     ToolResponse,
@@ -10,7 +10,12 @@ from incident_triage_assistant.tools.tool_response import (
 )
 from pydantic import ValidationError
 
-from .schema import GetServiceContextArgs, Service, ServicesJson
+from .schema import (
+    GetServiceContextArgs,
+    GetServiceContextResult,
+    Service,
+    ServicesFixture,
+)
 
 SERVICES_FILE = (
     Path(__file__).resolve().parents[4] / "data" / "fixtures" / "services.json"
@@ -20,7 +25,7 @@ SERVICES_FILE = (
 def read_services() -> list[Service]:
     with open(SERVICES_FILE, "r", encoding="utf-8") as f:
         raw_services_json = json.load(f)
-        services_json = ServicesJson.model_validate(raw_services_json)
+        services_json = ServicesFixture.model_validate(raw_services_json)
         return services_json.services
 
 
@@ -50,7 +55,6 @@ def get_service_context(raw_args: dict[str, Any]) -> ToolResponse:
                 code="INVALID_ARGUMENT", message=f"Invalid arguments '{raw_args}'"
             ),
         )
-        return
 
     service = find_service(args)
 
@@ -63,4 +67,4 @@ def get_service_context(raw_args: dict[str, Any]) -> ToolResponse:
             ),
         )
 
-    return ToolSuccessResponse(ok=True, data={"service": service})
+    return ToolSuccessResponse(ok=True, data=GetServiceContextResult(service=service))

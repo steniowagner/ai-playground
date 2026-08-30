@@ -10,7 +10,13 @@ from incident_triage_assistant.tools.types import (
 )
 from pydantic import ValidationError
 
-from .schema import GetIncidentArgs, Incident, IncidentsJson, IncidentWithFixture
+from .schema import (
+    GetIncidentArgs,
+    GetIncidentResult,
+    Incident,
+    IncidentsFixture,
+    IncidentWithFixture,
+)
 
 INCIDENTS_FILE = (
     Path(__file__).resolve().parents[4] / "data" / "fixtures" / "incidents.json"
@@ -29,7 +35,7 @@ def read_incidents() -> list[Incident]:
 
     with open(INCIDENTS_FILE, "r", encoding="utf-8") as f:
         raw_incidents_json = json.load(f)
-        incidents_json = IncidentsJson.model_validate(raw_incidents_json)
+        incidents_json = IncidentsFixture.model_validate(raw_incidents_json)
         raw_incidents = incidents_json.incidents
         """Parsing again so we can properly remove "fixture_truth" from the Incident object."""
         incidents = [parse_incident(incident) for incident in raw_incidents]
@@ -37,7 +43,7 @@ def read_incidents() -> list[Incident]:
     return incidents
 
 
-def find_incident_by_id(incident_id: str) -> Incident | None:
+def find_incident(incident_id: str) -> Incident | None:
     incidents = read_incidents()
     return next(
         (incident for incident in incidents if incident.incident_id == incident_id),
@@ -45,7 +51,7 @@ def find_incident_by_id(incident_id: str) -> Incident | None:
     )
 
 
-def get_incident(raw_args: dict[str, Any]) -> ToolResponse:
+def get_incident(raw_args: dict[str, Any]) -> ToolResponse[GetIncidentResult]:
     try:
         args = GetIncidentArgs.model_validate(raw_args)
     except ValidationError:
@@ -57,7 +63,7 @@ def get_incident(raw_args: dict[str, Any]) -> ToolResponse:
             ),
         )
 
-    incident = find_incident_by_id(args.incident_id)
+    incident = find_incident(args.incident_id)
 
     if not incident:
         return ToolErrorResponse(
@@ -68,4 +74,4 @@ def get_incident(raw_args: dict[str, Any]) -> ToolResponse:
             ),
         )
 
-    return ToolSuccessResponse(ok=True, data={"incident": incident})
+    return ToolSuccessResponse(ok=True, data=GetIncidentResult(incident=incident))

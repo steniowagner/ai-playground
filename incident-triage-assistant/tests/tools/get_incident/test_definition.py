@@ -1,16 +1,12 @@
 from incident_triage_assistant.tools.get_incident.definition import GET_INCIDENT_TOOL
-from incident_triage_assistant.tools.run_tool import get_tool
 
 
-def test_definition_uses_registered_tool_name() -> None:
-    tool_name = GET_INCIDENT_TOOL["name"]
-
-    assert tool_name == "get_incident"
-    assert callable(get_tool(tool_name))
+def test_definition_uses_expected_tool_name() -> None:
+    assert GET_INCIDENT_TOOL.name == "get_incident"
 
 
 def test_definition_disallows_additional_args() -> None:
-    tool_args = GET_INCIDENT_TOOL["parameters"]
+    tool_args = GET_INCIDENT_TOOL.parameters
 
     assert tool_args["additionalProperties"] is False
     assert tool_args["required"] == ["incident_id"]

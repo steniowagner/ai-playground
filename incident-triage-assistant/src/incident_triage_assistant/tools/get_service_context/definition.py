@@ -1,9 +1,9 @@
-from incident_triage_assistant.tools.get_tools import Tool
+from incident_triage_assistant.tools.types import Tool
 
 from .schema import GetServiceContextArgs
 
-GET_SERVICE_CONTEXT_TOOL: Tool = {
-    "name": "get_service_context",
-    "description": "Retrieve operational information about a service after the agent discovers the affected service from an incident.",
-    "parameters": GetServiceContextArgs.model_json_schema(),
-}
+GET_SERVICE_CONTEXT_TOOL = Tool(
+    name="get_service_context",
+    description="Retrieve operational context for one exact service and environment, including ownership, on-call information, dependencies, SLOs, and associated runbook IDs. Use this after identifying the incident's affected service.",
+    parameters=GetServiceContextArgs.model_json_schema(),
+)

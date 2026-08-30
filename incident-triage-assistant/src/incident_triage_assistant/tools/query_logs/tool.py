@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Any
 
-from incident_triage_assistant.tools.tool_response import (
+from incident_triage_assistant.tools.types import (
     ToolErrorResponse,
     ToolErrorResponseDetail,
     ToolResponse,
@@ -35,7 +35,7 @@ def filter_by_message_content(args: QueryLogsArgs, logs: list[Log]) -> list[Log]
 
 
 def filter_by_severity(args: QueryLogsArgs, logs: list[Log]) -> list[Log]:
-    if not args.severity:
+    if args.severity is None:
         return logs
 
     return [log for log in logs if log.severity in args.severity]
@@ -46,7 +46,7 @@ def filter_by_optional_filters(args: QueryLogsArgs, logs: list[Log]) -> list[Log
     filtered_logs = filter_by_severity(args, filtered_logs)
     sorted_logs = sorted(filtered_logs, key=lambda log: log.timestamp)
 
-    return sorted_logs[: args.limit]
+    return sorted_logs
 
 
 def filter_logs(args: QueryLogsArgs, all_logs: list[Log]) -> list[Log]:
@@ -74,6 +74,6 @@ def query_logs(raw_args: dict[str, Any]) -> ToolResponse[QueryLogsResult]:
         )
 
     all_logs = read_logs()
-    filtered_logs = filter_logs(args, all_logs)
+    filtered_logs = filter_logs(args, all_logs)[: args.limit]
 
     return ToolSuccessResponse(ok=True, data=QueryLogsResult(logs=filtered_logs))

@@ -27,12 +27,22 @@ class QueryLogsArgs(BaseModel):
 
     service: str
     environment: Environment
-    contains: str | None = None
+    contains: str | None = Field(
+        default=None,
+        description=(
+            "Optional case-sensitive message substring. Omit when no message filter is needed."
+        ),
+    )
     limit: int = Field(default=50, ge=1, le=50)
     severity: set[Severity] | None = Field(
         default=None,
         min_length=1,
         max_length=3,
+        description=(
+            "Optional severity allow-list. "
+            "Omit to include ERROR, WARN, and INFO logs. "
+            "Never send the string 'None'."
+        ),
     )
     start_time: AwareDatetime
     end_time: AwareDatetime

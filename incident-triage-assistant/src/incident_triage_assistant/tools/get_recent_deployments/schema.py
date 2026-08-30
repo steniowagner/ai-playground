@@ -1,9 +1,12 @@
 from datetime import datetime
+from typing import Literal
 
-from incident_triage_assistant.domain.types import Environment, QueryTimeWindow
+from incident_triage_assistant.domain.types import Environment
 from pydantic import (
+    AwareDatetime,
     BaseModel,
     ConfigDict,
+    model_validator,
 )
 
 
@@ -21,10 +24,10 @@ class Deployment(BaseModel):
     summary: str
 
 
-class DeploymentsJson(BaseModel):
+class DeploymentsFixture(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    schema_version: str
+    schema_version: Literal["1.0"]
     deployments: list[Deployment]
 
 
@@ -33,4 +36,18 @@ class GetRecentDeploymentsArgs(BaseModel):
 
     service: str
     environment: Environment
-    query_window: QueryTimeWindow | None = None
+    started_at: AwareDatetime
+    completed_at: AwareDatetime
+
+    @model_validator(mode="after")
+    def validate_time_window(self) -> "GetRecentDeploymentsArgs":
+        if self.completed_at <= self.started_at:
+            raise ValueError("'started_at' must be after 'completed_at'.")
+
+        return self
+
+
+class GetRecentDeploymentsResult(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    deployments: list[Deployment]

@@ -7,7 +7,7 @@ from incident_triage_assistant.tools.get_feature_flags.tool import (
     get_feature_flags,
     read_feature_flags,
 )
-from incident_triage_assistant.tools.tool_response import (
+from incident_triage_assistant.tools.types import (
     ToolErrorResponse,
     ToolSuccessResponse,
 )

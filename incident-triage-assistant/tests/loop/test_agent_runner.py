@@ -5,7 +5,6 @@ from incident_triage_assistant.llm.base import LLMClient
 from incident_triage_assistant.llm.schema import (
     LLMResponse,
     LLMToolCall,
-    ToolCallResponse,
 )
 from incident_triage_assistant.loop.agent_runner import (
     MAX_TOOL_CALL_ITERATIONS,
@@ -15,10 +14,13 @@ from incident_triage_assistant.loop.errors import (
     AgentIterationLimitError,
     EmptyLLMReturn,
 )
+from incident_triage_assistant.tools.tools_registry import ToolsRegistry
+from incident_triage_assistant.tools.types import ToolCallResponse
 
 
 class FakeLLMClient(LLMClient):
     def __init__(self, responses: Iterable[LLMResponse]) -> None:
+        self.tools_registry = ToolsRegistry()
         self.responses = iter(responses)
         self.questions: list[str] = []
         self.tool_results: list[list[ToolCallResponse]] = []
@@ -55,7 +57,7 @@ def tool_response() -> LLMResponse:
             LLMToolCall(
                 id="call-1",
                 name="get_incident",
-                serialized_arguments='{"incident_id":"INC-1043"}',
+                args_str='{"incident_id":"INC-1043"}',
             )
         ],
     )

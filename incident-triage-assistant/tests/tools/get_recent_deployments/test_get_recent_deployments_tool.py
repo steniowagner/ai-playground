@@ -7,7 +7,7 @@ from incident_triage_assistant.tools.get_recent_deployments.schema import Deploy
 from incident_triage_assistant.tools.get_recent_deployments.tool import (
     get_recent_deployments,
 )
-from incident_triage_assistant.tools.tool_response import (
+from incident_triage_assistant.tools.types import (
     ToolErrorResponse,
     ToolSuccessResponse,
 )
@@ -15,7 +15,13 @@ from incident_triage_assistant.tools.tool_response import (
 
 def test_return_tool_error_response_for_extra_args() -> None:
     response = get_recent_deployments(
-        {"service": "web-gateway", "environment": "production", "extra_field": True}
+        {
+            "service": "web-gateway",
+            "environment": "production",
+            "started_at": "2026-07-09T16:00:00Z",
+            "completed_at": "2026-07-09T18:00:00Z",
+            "extra_field": True,
+        }
     )
 
     assert isinstance(response, ToolErrorResponse)
@@ -27,7 +33,12 @@ def test_return_tool_error_response_for_extra_args() -> None:
 
 def test_return_tool_error_response_for_invalid_args() -> None:
     response = get_recent_deployments(
-        {"service": "web-gateway", "environment": "unknown_env"}
+        {
+            "service": "web-gateway",
+            "environment": "unknown_env",
+            "started_at": "2026-07-09T16:00:00Z",
+            "completed_at": "2026-07-09T18:00:00Z",
+        }
     )
 
     assert isinstance(response, ToolErrorResponse)
@@ -39,7 +50,7 @@ def test_return_tool_error_response_for_invalid_args() -> None:
 
 def test_return_tool_error_response_for_invalid_query_window_args() -> None:
     response = get_recent_deployments(
-        {"service": "web-gateway", "environment": "unknown_env", "query_window": {}}
+        {"service": "web-gateway", "environment": "production"}
     )
 
     assert isinstance(response, ToolErrorResponse)
@@ -53,11 +64,9 @@ def test_return_tool_error_response_invalid_started_at() -> None:
     response = get_recent_deployments(
         {
             "service": "web-gateway",
-            "environment": "unknown_env",
-            "query_window": {
-                "started_at": "not-datetime",
-                "completed_at": "2026-07-09T17:08:00Z",
-            },
+            "environment": "production",
+            "started_at": "not-datetime",
+            "completed_at": "2026-07-09T17:08:00Z",
         }
     )
 
@@ -72,11 +81,9 @@ def test_return_tool_error_response_invalid_completed_at() -> None:
     response = get_recent_deployments(
         {
             "service": "web-gateway",
-            "environment": "unknown_env",
-            "query_window": {
-                "completed_at": "not-datetime",
-                "started_at": "2026-07-09T17:08:00Z",
-            },
+            "environment": "production",
+            "completed_at": "not-datetime",
+            "started_at": "2026-07-09T17:08:00Z",
         }
     )
 
@@ -91,11 +98,9 @@ def test_return_tool_error_response_started_at_after_completed_at() -> None:
     response = get_recent_deployments(
         {
             "service": "web-gateway",
-            "environment": "unknown_env",
-            "query_window": {
-                "completed_at": "2026-07-09T17:08:00Z",
-                "started_at": "2026-07-09T17:09:00Z",
-            },
+            "environment": "production",
+            "completed_at": "2026-07-09T17:08:00Z",
+            "started_at": "2026-07-09T17:09:00Z",
         }
     )
 
@@ -143,15 +148,17 @@ def test_return_tool_success_response_finds_deployment(
         {
             "service": "checkout-api",
             "environment": "production",
+            "started_at": "2026-08-20T09:00:00Z",
+            "completed_at": "2026-08-20T11:00:00Z",
         }
     )
 
     assert isinstance(response, ToolSuccessResponse)
     assert response.ok == True
-    assert isinstance(response.data["deployments"], list)
-    assert response.data["deployments"][0].deployment_id == "dep-test-001"
+    assert isinstance(response.data.deployments, list)
+    assert response.data.deployments[0].deployment_id == "dep-test-001"
 
-    for deployment in response.data["deployments"]:
+    for deployment in response.data.deployments:
         Deployment.model_validate(deployment)
 
 
@@ -204,11 +211,13 @@ def test_return_deployments_sorted_desc(
         {
             "service": "checkout-api",
             "environment": "production",
+            "started_at": "2026-07-09T00:00:00Z",
+            "completed_at": "2026-07-11T00:00:00Z",
         }
     )
 
     completed_at = datetime.now(timezone.utc)
-    for deployment in response.data["deployments"]:
+    for deployment in response.data.deployments:
         assert deployment.completed_at <= completed_at
         completed_at = deployment.completed_at
 
@@ -272,18 +281,16 @@ def test_filters_correctly_query_window(
         {
             "service": "checkout-api",
             "environment": "production",
-            "query_window": {
-                "started_at": "2026-08-20T13:04:00Z",
-                "completed_at": "2026-08-20T17:15:00Z",
-            },
+            "started_at": "2026-08-20T13:04:00Z",
+            "completed_at": "2026-08-20T17:15:00Z",
         }
     )
 
     assert isinstance(response, ToolSuccessResponse)
     assert response.ok == True
-    assert isinstance(response.data["deployments"], list)
-    assert response.data["deployments"][0].deployment_id == "dep-test-003"
-    assert response.data["deployments"][1].deployment_id == "dep-test-002"
+    assert isinstance(response.data.deployments, list)
+    assert response.data.deployments[0].deployment_id == "dep-test-003"
+    assert response.data.deployments[1].deployment_id == "dep-test-002"
 
 
 def test_return_success_response_deployment_not_found(
@@ -323,13 +330,15 @@ def test_return_success_response_deployment_not_found(
         {
             "service": "auth-api",
             "environment": "production",
+            "started_at": "2026-08-20T09:00:00Z",
+            "completed_at": "2026-08-20T11:00:00Z",
         }
     )
 
     assert isinstance(response, ToolSuccessResponse)
     assert response.ok == True
-    assert isinstance(response.data["deployments"], list)
-    assert len(response.data["deployments"]) == 0
+    assert isinstance(response.data.deployments, list)
+    assert len(response.data.deployments) == 0
 
 
 def test_return_success_response_filter_deployment_not_found(
@@ -369,14 +378,12 @@ def test_return_success_response_filter_deployment_not_found(
         {
             "service": "checkout-api",
             "environment": "production",
-            "query_window": {
-                "started_at": "2026-08-21T13:04:00Z",
-                "completed_at": "2026-08-22T17:15:00Z",
-            },
+            "started_at": "2026-08-21T13:04:00Z",
+            "completed_at": "2026-08-22T17:15:00Z",
         }
     )
 
     assert isinstance(response, ToolSuccessResponse)
     assert response.ok == True
-    assert isinstance(response.data["deployments"], list)
-    assert len(response.data["deployments"]) == 0
+    assert isinstance(response.data.deployments, list)
+    assert len(response.data.deployments) == 0

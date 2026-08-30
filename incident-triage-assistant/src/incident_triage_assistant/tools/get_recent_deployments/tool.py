@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from incident_triage_assistant.tools.tool_response import (
+from incident_triage_assistant.tools.types import (
     ToolErrorResponse,
     ToolErrorResponseDetail,
     ToolResponse,
@@ -10,7 +10,12 @@ from incident_triage_assistant.tools.tool_response import (
 )
 from pydantic import ValidationError
 
-from .schema import Deployment, DeploymentsJson, GetRecentDeploymentsArgs
+from .schema import (
+    Deployment,
+    DeploymentsFixture,
+    GetRecentDeploymentsArgs,
+    GetRecentDeploymentsResult,
+)
 
 DEPLOYMENTS_FILE = (
     Path(__file__).resolve().parents[4] / "data" / "fixtures" / "deployments.json"
@@ -20,7 +25,7 @@ DEPLOYMENTS_FILE = (
 def read_deployments() -> list[Deployment]:
     with open(DEPLOYMENTS_FILE, "r") as f:
         raw_deployments_json = json.load(f)
-        deployments_json = DeploymentsJson.model_validate(raw_deployments_json)
+        deployments_json = DeploymentsFixture.model_validate(raw_deployments_json)
         return deployments_json.deployments
 
 
@@ -34,18 +39,20 @@ def find_deployments(args: GetRecentDeploymentsArgs) -> list[Deployment]:
         and deployment.environment == args.environment
     ]
 
-    if args.query_window:
+    if args.started_at and args.completed_at:
         return [
             deployment
             for deployment in deployments
-            if deployment.completed_at >= args.query_window.started_at
-            and deployment.completed_at <= args.query_window.completed_at
+            if deployment.completed_at >= args.started_at
+            and deployment.completed_at <= args.completed_at
         ]
 
     return deployments
 
 
-def get_recent_deployments(raw_args: dict[str, Any]) -> ToolResponse:
+def get_recent_deployments(
+    raw_args: dict[str, Any],
+) -> ToolResponse[GetRecentDeploymentsResult]:
     try:
         args = GetRecentDeploymentsArgs.model_validate(raw_args)
     except ValidationError:
@@ -57,7 +64,11 @@ def get_recent_deployments(raw_args: dict[str, Any]) -> ToolResponse:
         )
 
     deployments = sorted(
-        find_deployments(args), key=lambda x: x.completed_at, reverse=True
+        find_deployments(args),
+        key=lambda deployment: deployment.completed_at,
+        reverse=True,
     )
 
-    return ToolSuccessResponse(ok=True, data={"deployments": deployments})
+    return ToolSuccessResponse(
+        ok=True, data=GetRecentDeploymentsResult(deployments=deployments)
+    )

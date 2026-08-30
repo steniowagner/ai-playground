@@ -52,10 +52,10 @@ class IncidentWithFixture(Incident):
     fixture_truth: IncidentFixtureTruth
 
 
-class IncidentsJson(BaseModel):
+class IncidentsFixture(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    schema_version: str
+    schema_version: Literal["1.0"]
     incidents: list[IncidentWithFixture]
 
 
@@ -65,3 +65,9 @@ class GetIncidentArgs(BaseModel):
     incident_id: str = Field(
         pattern=r"^INC-[0-9]{4}$", description="Incident-id to be used in the search."
     )
+
+
+class GetIncidentResult(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    incident: Incident

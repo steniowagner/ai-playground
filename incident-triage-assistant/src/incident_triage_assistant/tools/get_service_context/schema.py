@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Literal
 
 from incident_triage_assistant.domain.types import Environment
 from pydantic import BaseModel, ConfigDict
@@ -27,10 +27,10 @@ class ExternalDependecy(BaseModel):
     status_page: str
 
 
-class ServicesJson(BaseModel):
+class ServicesFixture(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    schema_version: str
+    schema_version: Literal["1.0"]
     company: str
     services: list[Service]
     external_dependencies: list[ExternalDependecy]
@@ -41,3 +41,9 @@ class GetServiceContextArgs(BaseModel):
 
     service: str
     environment: Environment
+
+
+class GetServiceContextResult(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    service: Service

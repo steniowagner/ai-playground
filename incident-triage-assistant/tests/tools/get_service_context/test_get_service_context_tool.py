@@ -1,6 +1,6 @@
 from incident_triage_assistant.tools.get_service_context.schema import Service
 from incident_triage_assistant.tools.get_service_context.tool import get_service_context
-from incident_triage_assistant.tools.tool_response import (
+from incident_triage_assistant.tools.types import (
     ToolErrorResponse,
     ToolSuccessResponse,
 )
@@ -50,4 +50,4 @@ def test_return_existing_service_context() -> None:
     assert isinstance(response, ToolSuccessResponse)
     assert response.ok == True
     assert response.error == None
-    assert isinstance(response.data["service"], Service)
+    assert isinstance(response.data.service, Service)

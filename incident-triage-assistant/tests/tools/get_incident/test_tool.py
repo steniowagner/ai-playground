@@ -4,12 +4,12 @@ from pathlib import Path
 import pytest
 from incident_triage_assistant.tools.get_incident.schema import Incident
 from incident_triage_assistant.tools.get_incident.tool import (
-    find_incident_by_id,
+    find_incident,
     get_incident,
     parse_incident,
     read_incidents,
 )
-from incident_triage_assistant.tools.tool_response import (
+from incident_triage_assistant.tools.types import (
     ToolErrorResponse,
     ToolSuccessResponse,
 )
@@ -52,14 +52,14 @@ def test_parse_incident_rejects_invalid_fixture() -> None:
         parse_incident({"incident_id": "INC-1042"})
 
 
-def test_find_incident_by_id_returns_match() -> None:
-    result = find_incident_by_id("INC-1044")
+def test_find_incident_returns_match() -> None:
+    result = find_incident("INC-1044")
     assert result is not None
     assert result.primary_service == "notification-worker"
 
 
-def test_find_incident_by_id_returns_none_when_missing() -> None:
-    assert find_incident_by_id("INC-9999") is None
+def test_find_incident_returns_none_when_missing() -> None:
+    assert find_incident("INC-9999") is None
 
 
 def test_read_incidents_returns_all_safe_fixture_records() -> None:
@@ -97,7 +97,7 @@ def test_get_incident_accepts_raw_dictionary() -> None:
     response = get_incident({"incident_id": "INC-1043"})
 
     assert isinstance(response, ToolSuccessResponse)
-    incident = response.data["incident"]
+    incident = response.data.incident
     assert isinstance(incident, Incident)
     assert incident.incident_id == "INC-1043"
     assert incident.primary_service == "payment-adapter"
