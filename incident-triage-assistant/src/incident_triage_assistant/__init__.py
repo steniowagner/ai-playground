@@ -1,3 +1,5 @@
+from dotenv import load_dotenv
+
 from incident_triage_assistant.llm.factory import create_llm_client
 from incident_triage_assistant.loop.agent_runner import AgentRunner
 from incident_triage_assistant.repositories.deployments.json import (
@@ -18,6 +20,8 @@ from incident_triage_assistant.tools.tools_registry import ToolsRegistry
 
 
 def main() -> None:
+    load_dotenv()
+
     json_incidents_repository = JSONIncidentRepository()
     json_services_repository = JSONServicesRepository()
     json_feature_flags_repository = JSONFeatureFlagsRepository()

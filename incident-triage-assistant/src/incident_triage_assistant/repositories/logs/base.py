@@ -7,5 +7,5 @@ from .schema import FindLogsArgs
 
 class LogsRepository(ABC):
     @abstractmethod
-    def find(args: FindLogsArgs) -> list[Log]:
+    def find(self, args: FindLogsArgs) -> list[Log]:
         pass

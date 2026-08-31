@@ -42,7 +42,7 @@ class JSONFeatureFlagsRepository(FeatureFlagsRepository):
             if filter_feature_flag(feature_flag)
         ]
 
-    def find(self, args: FindFeatureFlagsArgs):
+    def find(self, args: FindFeatureFlagsArgs) -> list[FeatureFlag]:
         return sorted(
             self._find_feature_flags(args), key=lambda feature_flag: feature_flag.flag
         )

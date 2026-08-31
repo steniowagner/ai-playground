@@ -23,7 +23,7 @@ class JSONMetricsRepository(MetricsRepository):
 
         return metrics
 
-    def find(self, args: FindMetricsArgs) -> None:
+    def find(self, args: FindMetricsArgs) -> list[Metric]:
         all_metrics = self._read_metrics()
 
         metrics = [

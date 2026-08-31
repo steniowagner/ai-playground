@@ -13,6 +13,13 @@ from incident_triage_assistant.llm.groq.client import GroqLLMClient
 from incident_triage_assistant.llm.groq.messages_handler import GroqMessageHandler
 
 
+@pytest.fixture(autouse=True)
+def groq_settings(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("GROQ_RETRY_COUNT", "2")
+    monkeypatch.setenv("GROQ_MODEL", "test-model")
+    monkeypatch.setenv("GROQ_TEMPERATURE", "0.2")
+
+
 class SequencedCompletions:
     def __init__(self, *outcomes: Any) -> None:
         self._outcomes = iter(outcomes)
@@ -48,9 +55,7 @@ def client_with_outcomes(*outcomes: Any) -> tuple[GroqLLMClient, SequencedComple
     client = object.__new__(GroqLLMClient)
     client._tools = []
     client._message_handler = GroqMessageHandler()
-    client._client = SimpleNamespace(
-        chat=SimpleNamespace(completions=completions)
-    )
+    client._client = SimpleNamespace(chat=SimpleNamespace(completions=completions))
     return client, completions
 
 

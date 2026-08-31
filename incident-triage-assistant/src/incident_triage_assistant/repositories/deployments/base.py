@@ -7,5 +7,5 @@ from .schema import FindDeploymentsArgs
 
 class DeploymentsRepository(ABC):
     @abstractmethod
-    def find(args: FindDeploymentsArgs) -> list[Deployment]:
+    def find(self, args: FindDeploymentsArgs) -> list[Deployment]:
         pass

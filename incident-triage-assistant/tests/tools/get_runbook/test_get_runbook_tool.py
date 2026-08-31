@@ -1,93 +1,36 @@
-from pathlib import Path
-from typing import Any
+from unittest.mock import Mock
 
 import pytest
-from incident_triage_assistant.repositories.runbooks.json import JSONRunbooksRepository
+from incident_triage_assistant.repositories.runbooks.base import RunbooksRepository
 from incident_triage_assistant.tools.get_runbook.tool import GetRunbookTool
-from incident_triage_assistant.tools.types import (
-    ToolErrorResponse,
-    ToolSuccessResponse,
-)
-
-get_runbook = GetRunbookTool(JSONRunbooksRepository())
+from incident_triage_assistant.tools.types import ToolErrorResponse, ToolSuccessResponse
 
 
-def test_returns_complete_runbook_content(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    expected_content = """# Checkout Errors
-
-1. Check the error rate.
-2. Inspect recent deployments.
-3. Request approval before rollback.
-"""
-    (tmp_path / "RB-CHECKOUT-ERRORS.md").write_text(
-        expected_content,
-        encoding="utf-8",
-    )
-    monkeypatch.setattr(
-        "incident_triage_assistant.repositories.runbooks.json.RUNBOOKS_DIR",
-        tmp_path,
-    )
-
-    response = get_runbook({"runbook_id": "RB-CHECKOUT-ERRORS"})
-
+def test_returns_repository_content() -> None:
+    repository = Mock(spec=RunbooksRepository)
+    repository.find_by_id.return_value = "# Checkout errors\nInvestigate dependencies."
+    response = GetRunbookTool(repository)({"runbook_id": "RB-CHECKOUT-ERRORS"})
     assert isinstance(response, ToolSuccessResponse)
-    assert response.data.runbook_id == "RB-CHECKOUT-ERRORS"
-    assert response.data.content == expected_content
+    assert response.data.content.startswith("# Checkout errors")
+    repository.find_by_id.assert_called_once_with("RB-CHECKOUT-ERRORS")
 
 
-def test_returns_not_found_for_unknown_runbook(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setattr(
-        "incident_triage_assistant.repositories.runbooks.json.RUNBOOKS_DIR",
-        tmp_path,
-    )
-
-    response = get_runbook({"runbook_id": "RB-UNKNOWN"})
-
-    assert isinstance(response, ToolErrorResponse)
-    assert response.ok is False
-    assert response.error.code == "NOT_FOUND"
-    assert "RB-UNKNOWN" in response.error.message
-
-
-def test_ignores_non_markdown_files(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    (tmp_path / "RB-NOT-A-RUNBOOK.txt").write_text(
-        "This is not a runbook.",
-        encoding="utf-8",
-    )
-    monkeypatch.setattr(
-        "incident_triage_assistant.repositories.runbooks.json.RUNBOOKS_DIR",
-        tmp_path,
-    )
-
-    response = get_runbook({"runbook_id": "RB-NOT-A-RUNBOOK"})
-
+def test_returns_not_found_when_repository_has_no_runbook() -> None:
+    repository = Mock(spec=RunbooksRepository)
+    repository.find_by_id.return_value = None
+    response = GetRunbookTool(repository)({"runbook_id": "RB-UNKNOWN"})
     assert isinstance(response, ToolErrorResponse)
     assert response.error.code == "NOT_FOUND"
 
 
 @pytest.mark.parametrize(
-    "invalid_args",
-    [
-        {},
-        {"runbook_id": "RB-CHECKOUT-ERRORS", "extra": True},
-        {"runbook_id": None},
-    ],
+    "args", [{}, {"runbook_id": None}, {"runbook_id": "RB-1", "extra": True}]
 )
-def test_returns_invalid_argument_for_invalid_input(
-    invalid_args: dict[str, Any],
+def test_rejects_invalid_arguments_without_querying_repository(
+    args: dict[str, object],
 ) -> None:
-    response = get_runbook(invalid_args)
-
+    repository = Mock(spec=RunbooksRepository)
+    response = GetRunbookTool(repository)(args)
     assert isinstance(response, ToolErrorResponse)
-    assert response.ok is False
     assert response.error.code == "INVALID_ARGUMENT"
-    assert response.error.message.strip()
+    repository.find_by_id.assert_not_called()

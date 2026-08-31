@@ -63,7 +63,7 @@ class ToolsRegistry:
             ToolRegistration(
                 definition=GET_MAINTENANCE_WINDOW_TOOL,
                 handler=GetMaintenanceWindowsTool(
-                    repoistory=maintenance_windows_repository
+                    repository=maintenance_windows_repository
                 ),
             ),
             ToolRegistration(

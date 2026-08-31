@@ -21,8 +21,8 @@ from .schema import (
 
 
 class GetMaintenanceWindowsTool:
-    def __init__(self, repoistory: MaintenanceWindowsRepository) -> None:
-        self._repoistory = repoistory
+    def __init__(self, repository: MaintenanceWindowsRepository) -> None:
+        self._repository = repository
 
     def __call__(
         self,
@@ -38,7 +38,7 @@ class GetMaintenanceWindowsTool:
                 ),
             )
 
-        maintenance_windows = self._repoistory.find(
+        maintenance_windows = self._repository.find(
             FindMaintenanceWindowsArgs(
                 service=args.service,
                 environment=args.environment,

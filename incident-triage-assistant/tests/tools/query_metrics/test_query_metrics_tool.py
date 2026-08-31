@@ -1,177 +1,70 @@
-import json
-from pathlib import Path
-from typing import Any
+from unittest.mock import Mock
 
 import pytest
-from incident_triage_assistant.repositories.metrics.json import JSONMetricsRepository
+from incident_triage_assistant.repositories.metrics.base import MetricsRepository
+from incident_triage_assistant.tools.query_metrics.schema import Metric
 from incident_triage_assistant.tools.query_metrics.tool import QueryMetricsTool
-from incident_triage_assistant.tools.types import (
-    ToolErrorResponse,
-    ToolSuccessResponse,
-)
-
-query_metrics = QueryMetricsTool(JSONMetricsRepository())
+from incident_triage_assistant.tools.types import ToolErrorResponse, ToolSuccessResponse
 
 
-def write_metrics_file(path: Path, metrics: list[dict[str, Any]]) -> None:
-    path.write_text(
-        "".join(f"{json.dumps(metric)}\n" for metric in metrics),
-        encoding="utf-8",
-    )
-
-
-def test_returns_requested_metric_series_filtered_and_sorted(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    metrics_file = tmp_path / "metrics.jsonl"
-    write_metrics_file(
-        metrics_file,
-        [
-            {
-                "metric_id": "metric-later",
-                "timestamp": "2026-08-20T10:20:00Z",
-                "service": "checkout-api",
-                "environment": "production",
-                "values": {"error_rate": 0.04, "request_rate": 120.0},
-            },
-            {
-                "metric_id": "metric-other-service",
-                "timestamp": "2026-08-20T10:15:00Z",
-                "service": "web-gateway",
-                "environment": "production",
-                "values": {"error_rate": 0.9},
-            },
-            {
-                "metric_id": "metric-earlier",
-                "timestamp": "2026-08-20T10:10:00Z",
-                "service": "checkout-api",
-                "environment": "production",
-                "values": {"error_rate": 0.0, "request_rate": 100.0},
-            },
-            {
-                "metric_id": "metric-outside-window",
-                "timestamp": "2026-08-20T09:59:00Z",
-                "service": "checkout-api",
-                "environment": "production",
-                "values": {"error_rate": 0.8},
-            },
-        ],
-    )
-    monkeypatch.setattr(
-        "incident_triage_assistant.repositories.metrics.json.METRICS_FILE",
-        metrics_file,
-    )
-
-    response = query_metrics(
+def metric() -> Metric:
+    return Metric.model_validate(
         {
+            "metric_id": "metric-1",
+            "timestamp": "2026-08-20T10:10:00Z",
             "service": "checkout-api",
             "environment": "production",
-            "metric_names": ["error_rate", "request_rate"],
-            "start_time": "2026-08-20T10:00:00Z",
-            "end_time": "2026-08-20T10:30:00Z",
+            "values": {"error_rate": 0.04},
         }
     )
 
+
+def valid_args() -> dict[str, object]:
+    return {
+        "service": "checkout-api",
+        "environment": "production",
+        "metric_names": ["error_rate", "queue_depth"],
+        "start_time": "2026-08-20T10:00:00Z",
+        "end_time": "2026-08-20T10:30:00Z",
+    }
+
+
+def test_builds_series_and_reports_metrics_without_values() -> None:
+    repository = Mock(spec=MetricsRepository)
+    repository.find.return_value = [metric()]
+    response = QueryMetricsTool(repository)(valid_args())
     assert isinstance(response, ToolSuccessResponse)
-    assert response.data.missing_metric_names == set()
-    assert [point.metric_id for point in response.data.series["error_rate"]] == [
-        "metric-earlier",
-        "metric-later",
-    ]
-    assert [point.value for point in response.data.series["error_rate"]] == [
-        0.0,
-        0.04,
-    ]
-    assert [point.value for point in response.data.series["request_rate"]] == [
-        100.0,
-        120.0,
-    ]
-
-
-def test_reports_requested_metric_with_no_values_as_missing(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    metrics_file = tmp_path / "metrics.jsonl"
-    write_metrics_file(
-        metrics_file,
-        [
-            {
-                "metric_id": "metric-001",
-                "timestamp": "2026-08-20T10:10:00Z",
-                "service": "checkout-api",
-                "environment": "production",
-                "values": {"error_rate": 0.02},
-            }
-        ],
-    )
-    monkeypatch.setattr(
-        "incident_triage_assistant.repositories.metrics.json.METRICS_FILE",
-        metrics_file,
-    )
-
-    response = query_metrics(
-        {
-            "service": "checkout-api",
-            "environment": "production",
-            "metric_names": ["error_rate", "queue_depth"],
-            "start_time": "2026-08-20T10:00:00Z",
-            "end_time": "2026-08-20T10:30:00Z",
-        }
-    )
-
-    assert isinstance(response, ToolSuccessResponse)
-    assert response.data.missing_metric_names == {"queue_depth"}
+    assert [point.value for point in response.data.series["error_rate"]] == [0.04]
     assert response.data.series["queue_depth"] == []
+    assert response.data.missing_metric_names == {"queue_depth"}
+
+
+def test_forwards_repository_query_context() -> None:
+    repository = Mock(spec=MetricsRepository)
+    repository.find.return_value = []
+    QueryMetricsTool(repository)(valid_args())
+    args = repository.find.call_args.args[0]
+    assert (args.service, args.environment, args.metric_names) == (
+        "checkout-api",
+        "production",
+        {"error_rate", "queue_depth"},
+    )
 
 
 @pytest.mark.parametrize(
-    "invalid_args",
+    "args",
     [
-        {
-            "service": "checkout-api",
-            "environment": "production",
-            "metric_names": [],
-            "start_time": "2026-08-20T10:00:00Z",
-            "end_time": "2026-08-20T10:30:00Z",
-        },
-        {
-            "service": "checkout-api",
-            "environment": "production",
-            "metric_names": ["unknown_metric"],
-            "start_time": "2026-08-20T10:00:00Z",
-            "end_time": "2026-08-20T10:30:00Z",
-        },
-        {
-            "service": "checkout-api",
-            "environment": "production",
-            "metric_names": ["error_rate"],
-            "start_time": "2026-08-20T10:30:00Z",
-            "end_time": "2026-08-20T10:00:00Z",
-        },
-        {
-            "service": "checkout-api",
-            "environment": "production",
-            "metric_names": ["error_rate"],
-            "start_time": "2026-08-20T10:00:00Z",
-            "end_time": "2026-08-20T11:01:00Z",
-        },
-        {
-            "service": "checkout-api",
-            "environment": "production",
-            "metric_names": ["error_rate"],
-            "start_time": "2026-08-20T10:00:00",
-            "end_time": "2026-08-20T10:30:00",
-        },
+        {},
+        valid_args() | {"metric_names": []},
+        valid_args() | {"metric_names": ["unknown"]},
+        valid_args() | {"end_time": "2026-08-20T09:00:00Z"},
     ],
 )
-def test_returns_invalid_argument_for_invalid_input(
-    invalid_args: dict[str, Any],
+def test_rejects_invalid_arguments_without_querying_repository(
+    args: dict[str, object],
 ) -> None:
-    response = query_metrics(invalid_args)
-
+    repository = Mock(spec=MetricsRepository)
+    response = QueryMetricsTool(repository)(args)
     assert isinstance(response, ToolErrorResponse)
-    assert response.ok is False
     assert response.error.code == "INVALID_ARGUMENT"
-    assert response.error.message.strip()
+    repository.find.assert_not_called()

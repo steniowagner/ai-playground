@@ -1,3 +1,4 @@
+import os
 from typing import Any
 
 from groq import APIError, Groq
@@ -16,8 +17,6 @@ from .parsers import (
     parse_tool_execution_response_to_groq_tool_call_response,
 )
 
-MAX_TOOL_GENERATION_ATTEMPTS = 2
-
 
 class GroqLLMClient(LLMClient):
     def __init__(self, tools_definitions: list[ToolRegistration]) -> None:
@@ -29,14 +28,15 @@ class GroqLLMClient(LLMClient):
         self._client = Groq()
 
     def _ask_to_groq(self) -> LLMResponse:
-        for attempt in range(MAX_TOOL_GENERATION_ATTEMPTS):
+        max_tool_generation_attempts = int(os.getenv("GROQ_RETRY_COUNT"))
+        for attempt in range(max_tool_generation_attempts):
             try:
                 completion = self._client.chat.completions.create(
-                    model="qwen/qwen3.6-27b",
+                    model=os.getenv("GROQ_MODEL"),
                     tools=self._tools,
                     messages=self._message_handler.messages,
                     reasoning_effort="none",
-                    temperature=0.2,
+                    temperature=float(os.getenv("GROQ_TEMPERATURE")),
                 )
 
                 groq_message = completion.choices[0].message
@@ -50,7 +50,7 @@ class GroqLLMClient(LLMClient):
 
                 should_retry = (
                     isinstance(internal_error, LLMToolGenerationError)
-                    and attempt < MAX_TOOL_GENERATION_ATTEMPTS - 1
+                    and attempt < max_tool_generation_attempts - 1
                 )
 
                 if should_retry:

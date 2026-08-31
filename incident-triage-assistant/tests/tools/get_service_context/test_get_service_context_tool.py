@@ -1,56 +1,63 @@
-from incident_triage_assistant.repositories.services.json import JSONServicesRepository
+from unittest.mock import Mock
+
+import pytest
+from incident_triage_assistant.repositories.services.base import ServicesRepository
 from incident_triage_assistant.tools.get_service_context.schema import Service
-from incident_triage_assistant.tools.get_service_context.tool import GetServiceContextTool
-from incident_triage_assistant.tools.types import (
-    ToolErrorResponse,
-    ToolSuccessResponse,
+from incident_triage_assistant.tools.get_service_context.tool import (
+    GetServiceContextTool,
 )
+from incident_triage_assistant.tools.types import ToolErrorResponse, ToolSuccessResponse
 
-get_service_context = GetServiceContextTool(JSONServicesRepository())
 
-
-def test_return_tool_error_response_for_extra_args() -> None:
-    response = get_service_context(
-        {"service": "web-gateway", "environment": "production", "extra_field": True}
+def service() -> Service:
+    return Service(
+        service="catalog-api",
+        display_name="Catalog",
+        description="Catalog API",
+        tier=1,
+        owner_team="catalog",
+        on_call="catalog-oncall",
+        environments=["production"],
+        dependencies=[],
+        runbook_ids=[],
+        slo={"availability": 99.9},
     )
 
-    assert isinstance(response, ToolErrorResponse)
-    assert response.ok == False
-    assert response.error.code == "INVALID_ARGUMENT"
-    assert type(response.error.message) == str
-    assert bool(response.error.message.strip()) == True
 
-
-def test_return_tool_error_response_for_invalid_args() -> None:
-    response = get_service_context(
-        {"service": "web-gateway", "environment": "unknown_env"}
-    )
-
-    assert isinstance(response, ToolErrorResponse)
-    assert response.ok == False
-    assert response.error.code == "INVALID_ARGUMENT"
-    assert type(response.error.message) == str
-    assert bool(response.error.message.strip()) == True
-
-
-def test_return_tool_error_response_not_found_service_context() -> None:
-    response = get_service_context(
-        {"service": "unknown-service", "environment": "production"}
-    )
-
-    assert isinstance(response, ToolErrorResponse)
-    assert response.ok == False
-    assert response.error.code == "NOT_FOUND"
-    assert type(response.error.message) == str
-    assert bool(response.error.message.strip()) == True
-
-
-def test_return_existing_service_context() -> None:
-    response = get_service_context(
+def test_returns_service_from_repository() -> None:
+    repository = Mock(spec=ServicesRepository)
+    repository.find.return_value = service()
+    response = GetServiceContextTool(repository)(
         {"service": "catalog-api", "environment": "production"}
     )
-
     assert isinstance(response, ToolSuccessResponse)
-    assert response.ok == True
-    assert response.error == None
-    assert isinstance(response.data.service, Service)
+    assert response.data.service == service()
+    repository.find.assert_called_once_with("catalog-api", "production")
+
+
+def test_returns_not_found_when_repository_has_no_service() -> None:
+    repository = Mock(spec=ServicesRepository)
+    repository.find.return_value = None
+    response = GetServiceContextTool(repository)(
+        {"service": "unknown", "environment": "production"}
+    )
+    assert isinstance(response, ToolErrorResponse)
+    assert response.error.code == "NOT_FOUND"
+
+
+@pytest.mark.parametrize(
+    "args",
+    [
+        {},
+        {"service": "catalog-api", "environment": "unknown"},
+        {"service": "catalog-api", "environment": "production", "extra": True},
+    ],
+)
+def test_rejects_invalid_arguments_without_querying_repository(
+    args: dict[str, object],
+) -> None:
+    repository = Mock(spec=ServicesRepository)
+    response = GetServiceContextTool(repository)(args)
+    assert isinstance(response, ToolErrorResponse)
+    assert response.error.code == "INVALID_ARGUMENT"
+    repository.find.assert_not_called()
