@@ -1,7 +1,7 @@
 [project]
 name = "incident-triage-assistant"
 version = "0.1.0"
-description = "Add your description here"
+description = "A from-scratch, tool-using AI operations incident triage assistant"
 readme = "README.md"
 authors = [
     { name = "Stenio Wagner", email = "stenio.wagner1@gmail.com" }
