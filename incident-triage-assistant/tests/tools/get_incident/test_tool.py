@@ -2,18 +2,20 @@ import json
 from pathlib import Path
 
 import pytest
+from incident_triage_assistant.repositories.incidents.json import JSONIncidentRepository
 from incident_triage_assistant.tools.get_incident.schema import Incident
-from incident_triage_assistant.tools.get_incident.tool import (
-    find_incident,
-    get_incident,
-    parse_incident,
-    read_incidents,
-)
+from incident_triage_assistant.tools.get_incident.tool import GetIncidentTool
 from incident_triage_assistant.tools.types import (
     ToolErrorResponse,
     ToolSuccessResponse,
 )
 from pydantic import ValidationError
+
+repository = JSONIncidentRepository()
+get_incident = GetIncidentTool(repository)
+find_incident = repository.find_by_id
+parse_incident = repository._parse_incident
+read_incidents = repository._read_incidents
 
 
 def raw_fixture() -> dict[str, object]:
@@ -87,7 +89,7 @@ def test_read_incidents_rejects_invalid_top_level_fixture(
         encoding="utf-8",
     )
     monkeypatch.setattr(
-        "incident_triage_assistant.tools.get_incident.tool.INCIDENTS_FILE", path
+        "incident_triage_assistant.repositories.incidents.json.INCIDENTS_FILE", path
     )
     with pytest.raises(ValidationError):
         read_incidents()

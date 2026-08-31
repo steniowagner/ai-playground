@@ -3,14 +3,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
+from incident_triage_assistant.repositories.deployments.json import JSONDeploymentsRepository
 from incident_triage_assistant.tools.get_recent_deployments.schema import Deployment
-from incident_triage_assistant.tools.get_recent_deployments.tool import (
-    get_recent_deployments,
-)
+from incident_triage_assistant.tools.get_recent_deployments.tool import GetRecentDeploymentsTool
 from incident_triage_assistant.tools.types import (
     ToolErrorResponse,
     ToolSuccessResponse,
 )
+
+get_recent_deployments = GetRecentDeploymentsTool(JSONDeploymentsRepository())
 
 
 def test_return_tool_error_response_for_extra_args() -> None:
@@ -140,7 +141,7 @@ def test_return_tool_success_response_finds_deployment(
     )
 
     monkeypatch.setattr(
-        "incident_triage_assistant.tools.get_recent_deployments.tool.DEPLOYMENTS_FILE",
+        "incident_triage_assistant.repositories.deployments.json.DEPLOYMENTS_FILE",
         deployments_file,
     )
 
@@ -203,7 +204,7 @@ def test_return_deployments_sorted_desc(
     )
 
     monkeypatch.setattr(
-        "incident_triage_assistant.tools.get_recent_deployments.tool.DEPLOYMENTS_FILE",
+        "incident_triage_assistant.repositories.deployments.json.DEPLOYMENTS_FILE",
         deployments_file,
     )
 
@@ -273,7 +274,7 @@ def test_filters_correctly_query_window(
     )
 
     monkeypatch.setattr(
-        "incident_triage_assistant.tools.get_recent_deployments.tool.DEPLOYMENTS_FILE",
+        "incident_triage_assistant.repositories.deployments.json.DEPLOYMENTS_FILE",
         deployments_file,
     )
 
@@ -322,7 +323,7 @@ def test_return_success_response_deployment_not_found(
     )
 
     monkeypatch.setattr(
-        "incident_triage_assistant.tools.get_recent_deployments.tool.DEPLOYMENTS_FILE",
+        "incident_triage_assistant.repositories.deployments.json.DEPLOYMENTS_FILE",
         deployments_file,
     )
 
@@ -370,7 +371,7 @@ def test_return_success_response_filter_deployment_not_found(
     )
 
     monkeypatch.setattr(
-        "incident_triage_assistant.tools.get_recent_deployments.tool.DEPLOYMENTS_FILE",
+        "incident_triage_assistant.repositories.deployments.json.DEPLOYMENTS_FILE",
         deployments_file,
     )
 

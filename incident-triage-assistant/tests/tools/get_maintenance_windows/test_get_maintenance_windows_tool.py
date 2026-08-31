@@ -3,15 +3,20 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from incident_triage_assistant.tools.get_maintenance_windows.tool import (
-    get_maintenance_windows,
-    read_maintenance_windows,
-)
+from incident_triage_assistant.repositories.maintenance_windows.json import JSONMaintenanceWindowsRepository
+from incident_triage_assistant.tools.get_maintenance_windows.tool import GetMaintenanceWindowsTool
 from incident_triage_assistant.tools.types import (
     ToolErrorResponse,
     ToolSuccessResponse,
 )
 from pydantic import ValidationError
+
+repository = JSONMaintenanceWindowsRepository()
+get_maintenance_windows = GetMaintenanceWindowsTool(repository)
+
+
+def read_maintenance_windows():
+    return repository._read_maintenance_windows()
 
 
 def write_maintenance_windows_file(
@@ -84,7 +89,7 @@ def test_returns_overlapping_windows_for_service_sorted_by_start_time(
         ],
     )
     monkeypatch.setattr(
-        "incident_triage_assistant.tools.get_maintenance_windows.tool.MAINTENANCE_WINDOWS_FILE",
+        "incident_triage_assistant.repositories.maintenance_windows.json.MAINTENANCE_WINDOWS_FILE",
         maintenance_file,
     )
 
@@ -111,7 +116,7 @@ def test_returns_empty_success_when_no_windows_match(
     maintenance_file = tmp_path / "maintenance_windows.json"
     write_maintenance_windows_file(maintenance_file, [])
     monkeypatch.setattr(
-        "incident_triage_assistant.tools.get_maintenance_windows.tool.MAINTENANCE_WINDOWS_FILE",
+        "incident_triage_assistant.repositories.maintenance_windows.json.MAINTENANCE_WINDOWS_FILE",
         maintenance_file,
     )
 
@@ -144,7 +149,7 @@ def test_rejects_invalid_fixture_root(
         encoding="utf-8",
     )
     monkeypatch.setattr(
-        "incident_triage_assistant.tools.get_maintenance_windows.tool.MAINTENANCE_WINDOWS_FILE",
+        "incident_triage_assistant.repositories.maintenance_windows.json.MAINTENANCE_WINDOWS_FILE",
         maintenance_file,
     )
 

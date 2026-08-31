@@ -5,8 +5,8 @@ from incident_triage_assistant.tools.get_incident.schema import (
     GetIncidentArgs,
     Incident,
     IncidentAlert,
-    IncidentWithFixture,
 )
+from incident_triage_assistant.repositories.incidents.schema import IncidentWithFixture
 from pydantic import ValidationError
 
 

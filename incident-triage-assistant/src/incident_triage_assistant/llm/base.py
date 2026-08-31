@@ -4,14 +4,10 @@ from typing import Any
 from incident_triage_assistant.llm.schema import (
     LLMResponse,
 )
-from incident_triage_assistant.tools.tools_registry import ToolsRegistry
 from incident_triage_assistant.tools.types import ToolCallResponse
 
 
 class LLMClient(ABC):
-    def __init__(self) -> None:
-        self.tools_registry = ToolsRegistry()
-
     @abstractmethod
     def ask(self, question: str) -> LLMResponse:
         pass

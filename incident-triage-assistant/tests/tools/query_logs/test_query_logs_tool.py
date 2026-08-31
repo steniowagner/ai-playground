@@ -3,11 +3,14 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from incident_triage_assistant.tools.query_logs.tool import query_logs
+from incident_triage_assistant.repositories.logs.json import JSONLogsRepository
+from incident_triage_assistant.tools.query_logs.tool import QueryLogsTool
 from incident_triage_assistant.tools.types import (
     ToolErrorResponse,
     ToolSuccessResponse,
 )
+
+query_logs = QueryLogsTool(JSONLogsRepository())
 
 
 def write_logs_file(path: Path, logs: list[dict[str, Any]]) -> None:
@@ -68,7 +71,7 @@ def test_returns_logs_filtered_by_context_and_sorted(
         ],
     )
     monkeypatch.setattr(
-        "incident_triage_assistant.tools.query_logs.tool.LOGS_FILE",
+        "incident_triage_assistant.repositories.logs.json.LOGS_FILE",
         logs_file,
     )
 
@@ -139,7 +142,7 @@ def test_applies_contains_severity_and_limit_filters(
         ],
     )
     monkeypatch.setattr(
-        "incident_triage_assistant.tools.query_logs.tool.LOGS_FILE",
+        "incident_triage_assistant.repositories.logs.json.LOGS_FILE",
         logs_file,
     )
 
@@ -190,7 +193,7 @@ def test_explicit_null_severity_includes_all_severities(
         ],
     )
     monkeypatch.setattr(
-        "incident_triage_assistant.tools.query_logs.tool.LOGS_FILE",
+        "incident_triage_assistant.repositories.logs.json.LOGS_FILE",
         logs_file,
     )
 

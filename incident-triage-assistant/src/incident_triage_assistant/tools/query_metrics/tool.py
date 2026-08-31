@@ -1,9 +1,10 @@
-from pathlib import Path
 from typing import Any
 
 from incident_triage_assistant.domain.types import (
     ServiceMetric,
 )
+from incident_triage_assistant.repositories.metrics.base import MetricsRepository
+from incident_triage_assistant.repositories.metrics.schema import FindMetricsArgs
 from incident_triage_assistant.tools.types import (
     ToolErrorResponse,
     ToolErrorResponseDetail,
@@ -14,95 +15,74 @@ from pydantic import ValidationError
 
 from .schema import Metric, MetricSeries, QueryMetricsArgs, QueryMetricsResult
 
-METRICS_FILE = (
-    Path(__file__).resolve().parents[4] / "data" / "fixtures" / "metrics.jsonl"
-)
 
+class QueryMetricsTool:
+    def __init__(self, repository: MetricsRepository) -> None:
+        self._repository = repository
 
-def read_metrics() -> list[Metric]:
-    metrics = []
+    def _get_series(
+        self, args: QueryMetricsArgs, metrics: list[Metric]
+    ) -> MetricSeries:
+        series = {}
+        for metric_name in args.metric_names:
+            series[metric_name] = []
 
-    with open(METRICS_FILE, "r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if line:
-                metric = Metric.model_validate_json(line)
-                metrics.append(metric)
+        for metric_name in args.metric_names:
+            for metric in metrics:
+                metric_value = getattr(metric.values, metric_name)
+                if metric_value is not None:
+                    series[metric_name].append(
+                        {
+                            "metric_id": metric.metric_id,
+                            "timestamp": metric.timestamp,
+                            "value": metric_value,
+                        }
+                    )
 
-    return metrics
+        return series
 
+    def _get_missing_metrics(
+        self, args: QueryMetricsArgs, series: MetricSeries
+    ) -> set[ServiceMetric]:
+        missing_metrics = set()
+        for metric_name in args.metric_names:
+            if len(series[metric_name]) == 0:
+                missing_metrics.add(metric_name)
 
-def get_series(args: QueryMetricsArgs, metrics: list[Metric]) -> MetricSeries:
-    series = {}
-    for metric_name in args.metric_names:
-        series[metric_name] = []
+        return missing_metrics
 
-    for metric_name in args.metric_names:
-        for metric in metrics:
-            metric_value = getattr(metric.values, metric_name)
-            if metric_value is not None:
-                series[metric_name].append(
-                    {
-                        "metric_id": metric.metric_id,
-                        "timestamp": metric.timestamp,
-                        "value": metric_value,
-                    }
-                )
+    def __call__(self, raw_args: dict[str, Any]) -> ToolResponse[QueryMetricsResult]:
+        try:
+            args = QueryMetricsArgs.model_validate(raw_args)
+        except ValidationError:
+            return ToolErrorResponse(
+                ok=False,
+                error=ToolErrorResponseDetail(
+                    code="INVALID_ARGUMENT", message=f"Invalid arguments '{raw_args}'"
+                ),
+            )
 
-    return series
+        metrics = self._repository.find(
+            FindMetricsArgs(
+                service=args.service,
+                environment=args.environment,
+                metric_names=args.metric_names,
+                start_time=args.start_time,
+                end_time=args.end_time,
+            )
+        )
+        series = self._get_series(args, metrics)
+        missing_metrics = self._get_missing_metrics(args, series)
 
-
-def get_missing_metrics(
-    args: QueryMetricsArgs, series: MetricSeries
-) -> set[ServiceMetric]:
-    missing_metrics = set()
-    for metric_name in args.metric_names:
-        if len(series[metric_name]) == 0:
-            missing_metrics.add(metric_name)
-
-    return missing_metrics
-
-
-def find_metrics(args: QueryMetricsArgs) -> list[Metric]:
-    all_metrics = read_metrics()
-
-    metrics = [
-        metric
-        for metric in all_metrics
-        if metric.service == args.service
-        and metric.environment == args.environment
-        and args.start_time <= metric.timestamp
-        and metric.timestamp <= args.end_time
-    ]
-
-    # This is a time-series, that's why the sorting is ASC
-    return sorted(metrics, key=lambda x: x.timestamp)
-
-
-def query_metrics(raw_args: dict[str, Any]) -> ToolResponse[QueryMetricsResult]:
-    try:
-        args = QueryMetricsArgs.model_validate(raw_args)
-    except ValidationError:
-        return ToolErrorResponse(
-            ok=False,
-            error=ToolErrorResponseDetail(
-                code="INVALID_ARGUMENT", message=f"Invalid arguments '{raw_args}'"
+        return ToolSuccessResponse(
+            ok=True,
+            data=QueryMetricsResult(
+                service=args.service,
+                environment=args.environment,
+                start_time=args.start_time,
+                end_time=args.end_time,
+                requested_metric_names=args.metric_names,
+                missing_metric_names=missing_metrics,
+                series=series,
             ),
         )
-
-    metrics = find_metrics(args)
-    series = get_series(args, metrics)
-    missing_metrics = get_missing_metrics(args, series)
-
-    return ToolSuccessResponse(
-        ok=True,
-        data=QueryMetricsResult(
-            service=args.service,
-            environment=args.environment,
-            start_time=args.start_time,
-            end_time=args.end_time,
-            requested_metric_names=args.metric_names,
-            missing_metric_names=missing_metrics,
-            series=series,
-        ),
-    )

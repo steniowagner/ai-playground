@@ -22,13 +22,6 @@ class MaintenanceWindow(BaseModel):
     status: MaintenanceStatus
 
 
-class MaintenanceWindowsFixture(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
-
-    schema_version: Literal["1.0"]
-    maintenance_windows: list[MaintenanceWindow]
-
-
 class GetMaintenanceWindowsArgs(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 

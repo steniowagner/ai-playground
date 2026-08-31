@@ -14,13 +14,26 @@ from incident_triage_assistant.loop.errors import (
     AgentIterationLimitError,
     EmptyLLMReturn,
 )
-from incident_triage_assistant.tools.tools_registry import ToolsRegistry
-from incident_triage_assistant.tools.types import ToolCallResponse
+from incident_triage_assistant.tools.types import (
+    ToolCallResponse,
+    ToolErrorResponse,
+    ToolErrorResponseDetail,
+)
+
+
+class FakeToolsRegistry:
+    def execute_tool(self, tool_name: str, raw_args: str):
+        return ToolErrorResponse(
+            ok=False,
+            error=ToolErrorResponseDetail(
+                code="NOT_FOUND",
+                message=f"No fixture for {tool_name} with {raw_args}",
+            ),
+        )
 
 
 class FakeLLMClient(LLMClient):
     def __init__(self, responses: Iterable[LLMResponse]) -> None:
-        self.tools_registry = ToolsRegistry()
         self.responses = iter(responses)
         self.questions: list[str] = []
         self.tool_results: list[list[ToolCallResponse]] = []
@@ -65,7 +78,7 @@ def tool_response() -> LLMResponse:
 
 def test_iterate_returns_immediate_final_content() -> None:
     client = FakeLLMClient([final_response()])
-    answer = AgentRunner(client)._iterate("Question")
+    answer = AgentRunner(client, FakeToolsRegistry())._iterate("Question")
 
     assert answer == "Final answer"
     assert client.questions == ["Question"]
@@ -73,7 +86,7 @@ def test_iterate_returns_immediate_final_content() -> None:
 
 def test_iterate_runs_tool_then_returns_final_content() -> None:
     client = FakeLLMClient([tool_response(), final_response("Incident found")])
-    answer = AgentRunner(client)._iterate("Investigate INC-1043")
+    answer = AgentRunner(client, FakeToolsRegistry())._iterate("Investigate INC-1043")
 
     assert answer == "Incident found"
     assert len(client.tool_results) == 1
@@ -86,13 +99,13 @@ def test_iterate_rejects_empty_response() -> None:
     )
 
     with pytest.raises(EmptyLLMReturn):
-        AgentRunner(client)._iterate("Question")
+        AgentRunner(client, FakeToolsRegistry())._iterate("Question")
 
 
 def test_iterate_stops_before_tool_round_beyond_limit() -> None:
     client = FakeLLMClient([tool_response()] * (MAX_TOOL_CALL_ITERATIONS + 1))
 
     with pytest.raises(AgentIterationLimitError):
-        AgentRunner(client)._iterate("Question")
+        AgentRunner(client, FakeToolsRegistry())._iterate("Question")
 
     assert len(client.tool_results) == MAX_TOOL_CALL_ITERATIONS

@@ -2,11 +2,14 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from incident_triage_assistant.tools.get_runbook.tool import get_runbook
+from incident_triage_assistant.repositories.runbooks.json import JSONRunbooksRepository
+from incident_triage_assistant.tools.get_runbook.tool import GetRunbookTool
 from incident_triage_assistant.tools.types import (
     ToolErrorResponse,
     ToolSuccessResponse,
 )
+
+get_runbook = GetRunbookTool(JSONRunbooksRepository())
 
 
 def test_returns_complete_runbook_content(
@@ -24,7 +27,7 @@ def test_returns_complete_runbook_content(
         encoding="utf-8",
     )
     monkeypatch.setattr(
-        "incident_triage_assistant.tools.get_runbook.tool.RUNBOOKS_DIR",
+        "incident_triage_assistant.repositories.runbooks.json.RUNBOOKS_DIR",
         tmp_path,
     )
 
@@ -40,7 +43,7 @@ def test_returns_not_found_for_unknown_runbook(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(
-        "incident_triage_assistant.tools.get_runbook.tool.RUNBOOKS_DIR",
+        "incident_triage_assistant.repositories.runbooks.json.RUNBOOKS_DIR",
         tmp_path,
     )
 
@@ -61,7 +64,7 @@ def test_ignores_non_markdown_files(
         encoding="utf-8",
     )
     monkeypatch.setattr(
-        "incident_triage_assistant.tools.get_runbook.tool.RUNBOOKS_DIR",
+        "incident_triage_assistant.repositories.runbooks.json.RUNBOOKS_DIR",
         tmp_path,
     )
 

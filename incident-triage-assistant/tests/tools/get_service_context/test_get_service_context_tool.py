@@ -1,9 +1,12 @@
+from incident_triage_assistant.repositories.services.json import JSONServicesRepository
 from incident_triage_assistant.tools.get_service_context.schema import Service
-from incident_triage_assistant.tools.get_service_context.tool import get_service_context
+from incident_triage_assistant.tools.get_service_context.tool import GetServiceContextTool
 from incident_triage_assistant.tools.types import (
     ToolErrorResponse,
     ToolSuccessResponse,
 )
+
+get_service_context = GetServiceContextTool(JSONServicesRepository())
 
 
 def test_return_tool_error_response_for_extra_args() -> None:

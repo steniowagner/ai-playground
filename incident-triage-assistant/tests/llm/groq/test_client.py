@@ -1,48 +1,96 @@
 from types import SimpleNamespace
-from typing import Never
+from typing import Any
 
 import groq
 import httpx
 import pytest
-from incident_triage_assistant.llm.exceptions import LLMToolGenerationError
+from groq.types.chat import ChatCompletionMessage
+from incident_triage_assistant.llm.exceptions import (
+    LLMConfigurationError,
+    LLMToolGenerationError,
+)
 from incident_triage_assistant.llm.groq.client import GroqLLMClient
 from incident_triage_assistant.llm.groq.messages_handler import GroqMessageHandler
 
 
-class FailingCompletions:
-    def __init__(self, error: groq.APIError) -> None:
-        self.error = error
+class SequencedCompletions:
+    def __init__(self, *outcomes: Any) -> None:
+        self._outcomes = iter(outcomes)
+        self.call_count = 0
 
-    def create(self, **_: object) -> Never:
-        raise self.error
-
-
-def client_with_error(error: groq.APIError) -> GroqLLMClient:
-    client = object.__new__(GroqLLMClient)
-    client._tools = []
-    client._message_handler = GroqMessageHandler()
-    client._client = SimpleNamespace(
-        chat=SimpleNamespace(completions=FailingCompletions(error))
-    )
-    return client
+    def create(self, **_: object) -> Any:
+        self.call_count += 1
+        outcome = next(self._outcomes)
+        if isinstance(outcome, Exception):
+            raise outcome
+        return outcome
 
 
-def test_client_translates_and_chains_groq_error() -> None:
+def provider_error(code: str) -> groq.BadRequestError:
     request = httpx.Request(
         "POST",
         "https://api.groq.com/openai/v1/chat/completions",
     )
-    provider_error = groq.BadRequestError(
-        "Tool generation failed",
+    return groq.BadRequestError(
+        "Bad request",
         response=httpx.Response(400, request=request),
-        body={"error": {"code": "tool_use_failed"}},
+        body={"error": {"code": code}},
     )
-    client = client_with_error(provider_error)
+
+
+def completion(content: str) -> SimpleNamespace:
+    message = ChatCompletionMessage(role="assistant", content=content)
+    return SimpleNamespace(choices=[SimpleNamespace(message=message)])
+
+
+def client_with_outcomes(*outcomes: Any) -> tuple[GroqLLMClient, SequencedCompletions]:
+    completions = SequencedCompletions(*outcomes)
+    client = object.__new__(GroqLLMClient)
+    client._tools = []
+    client._message_handler = GroqMessageHandler()
+    client._client = SimpleNamespace(
+        chat=SimpleNamespace(completions=completions)
+    )
+    return client, completions
+
+
+def test_retries_tool_generation_error_once_then_returns_success() -> None:
+    client, completions = client_with_outcomes(
+        provider_error("tool_use_failed"),
+        completion("Investigation complete"),
+    )
+
+    response = client.ask("Investigate INC-1042")
+
+    assert completions.call_count == 2
+    assert response.content == "Investigation complete"
+    assert client._message_handler.messages == [
+        {"role": "user", "content": "Investigate INC-1042"},
+        {"role": "assistant", "content": "Investigation complete"},
+    ]
+
+
+def test_raises_after_tool_generation_retry_is_exhausted() -> None:
+    first_error = provider_error("tool_use_failed")
+    final_error = provider_error("tool_use_failed")
+    client, completions = client_with_outcomes(first_error, final_error)
 
     with pytest.raises(LLMToolGenerationError) as raised:
         client.ask("Investigate INC-1042")
 
-    assert raised.value.__cause__ is provider_error
+    assert completions.call_count == 2
+    assert raised.value.__cause__ is final_error
     assert client._message_handler.messages == [
         {"role": "user", "content": "Investigate INC-1042"}
     ]
+
+
+def test_does_not_retry_non_tool_generation_error() -> None:
+    error = provider_error("invalid_request_error")
+    client, completions = client_with_outcomes(error)
+
+    with pytest.raises(LLMConfigurationError) as raised:
+        client.ask("Investigate INC-1042")
+
+    assert completions.call_count == 1
+    assert raised.value.__cause__ is error

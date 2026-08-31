@@ -3,6 +3,7 @@ from incident_triage_assistant.llm.schema import (
     LLMResponse,
     LLMToolCall,
 )
+from incident_triage_assistant.tools.tools_registry import ToolsRegistry
 from incident_triage_assistant.tools.types import ToolCallResponse
 
 from .errors import AgentIterationLimitError, EmptyLLMReturn
@@ -11,11 +12,12 @@ MAX_TOOL_CALL_ITERATIONS = 50
 
 
 class AgentRunner:
-    def __init__(self, llm_client: LLMClient) -> None:
+    def __init__(self, llm_client: LLMClient, tools_registry: ToolsRegistry) -> None:
+        self._tools_registry = tools_registry
         self._llm_client = llm_client
 
     def _run_tool(self, tool_call: LLMToolCall) -> ToolCallResponse:
-        tool_call_result = self._llm_client.tools_registry.execute_tool(
+        tool_call_result = self._tools_registry.execute_tool(
             tool_call.name, tool_call.args_str
         )
 

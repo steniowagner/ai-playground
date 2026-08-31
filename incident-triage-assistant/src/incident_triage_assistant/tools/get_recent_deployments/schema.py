@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Literal
 
 from incident_triage_assistant.domain.types import Environment
 from pydantic import (
@@ -22,13 +21,6 @@ class Deployment(BaseModel):
     completed_at: datetime
     status: str
     summary: str
-
-
-class DeploymentsFixture(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
-
-    schema_version: Literal["1.0"]
-    deployments: list[Deployment]
 
 
 class GetRecentDeploymentsArgs(BaseModel):

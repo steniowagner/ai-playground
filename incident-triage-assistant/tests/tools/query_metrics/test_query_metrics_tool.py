@@ -3,11 +3,14 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from incident_triage_assistant.tools.query_metrics.tool import query_metrics
+from incident_triage_assistant.repositories.metrics.json import JSONMetricsRepository
+from incident_triage_assistant.tools.query_metrics.tool import QueryMetricsTool
 from incident_triage_assistant.tools.types import (
     ToolErrorResponse,
     ToolSuccessResponse,
 )
+
+query_metrics = QueryMetricsTool(JSONMetricsRepository())
 
 
 def write_metrics_file(path: Path, metrics: list[dict[str, Any]]) -> None:
@@ -56,7 +59,7 @@ def test_returns_requested_metric_series_filtered_and_sorted(
         ],
     )
     monkeypatch.setattr(
-        "incident_triage_assistant.tools.query_metrics.tool.METRICS_FILE",
+        "incident_triage_assistant.repositories.metrics.json.METRICS_FILE",
         metrics_file,
     )
 
@@ -104,7 +107,7 @@ def test_reports_requested_metric_with_no_values_as_missing(
         ],
     )
     monkeypatch.setattr(
-        "incident_triage_assistant.tools.query_metrics.tool.METRICS_FILE",
+        "incident_triage_assistant.repositories.metrics.json.METRICS_FILE",
         metrics_file,
     )
 
