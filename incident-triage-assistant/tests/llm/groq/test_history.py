@@ -1,5 +1,12 @@
 from groq.types.chat import ChatCompletionMessage
 from incident_triage_assistant.llm.groq.messages_handler import GroqMessageHandler
+from incident_triage_assistant.llm.prompts import DEFAULT_SYSTEM_PROMPT
+
+
+def test_starts_with_system_prompt() -> None:
+    handler = GroqMessageHandler()
+
+    assert handler.messages == [{"role": "system", "content": DEFAULT_SYSTEM_PROMPT}]
 
 
 def test_add_user_message() -> None:
@@ -7,7 +14,8 @@ def test_add_user_message() -> None:
     handler.add_user_message("Investigate INC-1043")
 
     assert handler.messages == [
-        {"role": "user", "content": "Investigate INC-1043"}
+        {"role": "system", "content": DEFAULT_SYSTEM_PROMPT},
+        {"role": "user", "content": "Investigate INC-1043"},
     ]
 
 
@@ -31,7 +39,7 @@ def test_add_assistant_tool_call_message() -> None:
     )
     handler.add_assistant_message(message)
 
-    stored = handler.messages[0]
+    stored = handler.messages[1]
     assert stored["role"] == "assistant"
     assert stored["content"] is None
     assert stored["tool_calls"][0]["id"] == "call-1"
@@ -43,9 +51,10 @@ def test_add_tool_result_message_preserves_call_id() -> None:
     handler.add_tool_message("call-1", '{"ok":true}')
 
     assert handler.messages == [
+        {"role": "system", "content": DEFAULT_SYSTEM_PROMPT},
         {
             "role": "tool",
             "tool_call_id": "call-1",
             "content": '{"ok":true}',
-        }
+        },
     ]

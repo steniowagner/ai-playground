@@ -1,18 +1,19 @@
+import json
 from collections.abc import Iterable
 
 import pytest
+from incident_triage_assistant.investigation.schema import InvestigationResult
 from incident_triage_assistant.llm.base import LLMClient
-from incident_triage_assistant.llm.schema import (
-    LLMResponse,
-    LLMToolCall,
-)
+from incident_triage_assistant.llm.schema import LLMResponse, LLMToolCall
 from incident_triage_assistant.loop.agent_runner import (
+    MAX_INVALID_RESULT_ATTEMPTS,
     MAX_TOOL_CALL_ITERATIONS,
     AgentRunner,
 )
 from incident_triage_assistant.loop.errors import (
     AgentIterationLimitError,
     EmptyLLMReturn,
+    InvalidInvestigationResultError,
 )
 from incident_triage_assistant.tools.types import (
     ToolCallResponse,
@@ -37,6 +38,7 @@ class FakeLLMClient(LLMClient):
         self.responses = iter(responses)
         self.questions: list[str] = []
         self.tool_results: list[list[ToolCallResponse]] = []
+        self.validation_feedback: list[str] = []
 
     def ask(self, question: str) -> LLMResponse:
         self.questions.append(question)
@@ -46,6 +48,10 @@ class FakeLLMClient(LLMClient):
         self, results: list[ToolCallResponse]
     ) -> LLMResponse:
         self.tool_results.append(results)
+        return next(self.responses)
+
+    def continue_after_invalid_result(self, validation_feedback: str) -> LLMResponse:
+        self.validation_feedback.append(validation_feedback)
         return next(self.responses)
 
     def parse_tool_call_response(
@@ -58,8 +64,32 @@ class FakeLLMClient(LLMClient):
         )
 
 
-def final_response(content: str = "Final answer") -> LLMResponse:
-    return LLMResponse(role="assistant", content=content, tool_calls=None)
+def valid_result_json() -> str:
+    return json.dumps(
+        {
+            "incident_id": "INC-1043",
+            "summary": "Payment failures correlate with a recent deployment.",
+            "severity": "SEV2",
+            "evidence": [
+                {
+                    "source": "get_incident",
+                    "observation": "The incident affects payment-adapter in production.",
+                }
+            ],
+            "likely_causes": [],
+            "recommended_actions": [],
+            "confidence": "medium",
+            "requires_human_approval": False,
+        }
+    )
+
+
+def final_response(content: str | None = None) -> LLMResponse:
+    return LLMResponse(
+        role="assistant",
+        content=content if content is not None else valid_result_json(),
+        tool_calls=None,
+    )
 
 
 def tool_response() -> LLMResponse:
@@ -76,21 +106,44 @@ def tool_response() -> LLMResponse:
     )
 
 
-def test_iterate_returns_immediate_final_content() -> None:
+def test_iterate_returns_validated_investigation_result() -> None:
     client = FakeLLMClient([final_response()])
+
     answer = AgentRunner(client, FakeToolsRegistry())._iterate("Question")
 
-    assert answer == "Final answer"
+    assert isinstance(answer, InvestigationResult)
+    assert answer.incident_id == "INC-1043"
     assert client.questions == ["Question"]
 
 
-def test_iterate_runs_tool_then_returns_final_content() -> None:
-    client = FakeLLMClient([tool_response(), final_response("Incident found")])
+def test_iterate_runs_tool_then_returns_investigation_result() -> None:
+    client = FakeLLMClient([tool_response(), final_response()])
+
     answer = AgentRunner(client, FakeToolsRegistry())._iterate("Investigate INC-1043")
 
-    assert answer == "Incident found"
+    assert answer.incident_id == "INC-1043"
     assert len(client.tool_results) == 1
     assert client.tool_results[0][0].tool_call_id == "call-1"
+
+
+def test_iterate_corrects_invalid_result_then_returns_valid_result() -> None:
+    client = FakeLLMClient([final_response("not JSON"), final_response()])
+
+    answer = AgentRunner(client, FakeToolsRegistry())._iterate("Investigate INC-1043")
+
+    assert answer.incident_id == "INC-1043"
+    assert len(client.validation_feedback) == 1
+    assert "Invalid JSON" in client.validation_feedback[0]
+
+
+def test_iterate_raises_after_invalid_result_attempts_are_exhausted() -> None:
+    client = FakeLLMClient([final_response("not JSON")] * MAX_INVALID_RESULT_ATTEMPTS)
+
+    with pytest.raises(InvalidInvestigationResultError) as raised:
+        AgentRunner(client, FakeToolsRegistry())._iterate("Investigate INC-1043")
+
+    assert raised.value.__cause__ is not None
+    assert len(client.validation_feedback) == MAX_INVALID_RESULT_ATTEMPTS - 1
 
 
 def test_iterate_rejects_empty_response() -> None:

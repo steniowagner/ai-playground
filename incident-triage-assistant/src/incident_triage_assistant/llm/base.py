@@ -19,6 +19,13 @@ class LLMClient(ABC):
         pass
 
     @abstractmethod
+    def continue_after_invalid_result(
+        self,
+        validation_feedback: str,
+    ) -> LLMResponse:
+        pass
+
+    @abstractmethod
     def parse_tool_call_response(
         self, tool_call_id: str, tool_name: str, tool_response: Any
     ) -> ToolCallResponse:

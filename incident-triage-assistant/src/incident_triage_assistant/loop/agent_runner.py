@@ -1,3 +1,4 @@
+from incident_triage_assistant.investigation.schema import InvestigationResult
 from incident_triage_assistant.llm.base import LLMClient
 from incident_triage_assistant.llm.exceptions import (
     LLMError,
@@ -8,10 +9,16 @@ from incident_triage_assistant.llm.schema import (
 )
 from incident_triage_assistant.tools.tools_registry import ToolsRegistry
 from incident_triage_assistant.tools.types import ToolCallResponse
+from pydantic import ValidationError
 
-from .errors import AgentIterationLimitError, EmptyLLMReturn
+from .errors import (
+    AgentIterationLimitError,
+    EmptyLLMReturn,
+    InvalidInvestigationResultError,
+)
 
-MAX_TOOL_CALL_ITERATIONS = 50
+MAX_TOOL_CALL_ITERATIONS = 15
+MAX_INVALID_RESULT_ATTEMPTS = 2
 
 
 class AgentRunner:
@@ -37,9 +44,11 @@ class AgentRunner:
 
         return self._llm_client.continue_with_tool_results(tools_calls_responses)
 
-    def _iterate(self, question: str) -> str:
+    def _iterate(self, question: str) -> InvestigationResult:
         response = self._llm_client.ask(question)
+
         tool_call_iterations = 0
+        invalid_result_attempts = 0
 
         while True:
             if response.tool_calls:
@@ -51,7 +60,26 @@ class AgentRunner:
                 continue
 
             if response.content:
-                return response.content
+                try:
+                    return InvestigationResult.model_validate_json(response.content)
+                except ValidationError as error:
+                    invalid_result_attempts += 1
+                    feedback = str(error)
+
+                    if invalid_result_attempts >= MAX_INVALID_RESULT_ATTEMPTS:
+                        raise InvalidInvestigationResultError() from error
+
+                    if any(item["loc"] == ("evidence",) for item in error.errors()):
+                        feedback += (
+                            "\nNo evidence was provided. Do not return final JSON. "
+                            "Continue the investigation by calling the appropriate tools."
+                        )
+
+                    response = self._llm_client.continue_after_invalid_result(
+                        feedback,
+                    )
+
+                    continue
 
             raise EmptyLLMReturn()
 
@@ -67,8 +95,9 @@ class AgentRunner:
 
             try:
                 answer = self._iterate(question)
-                print(f"\n{answer}")
+                print(f"\n{answer.model_dump_json(indent=2)}")
             except (
+                InvalidInvestigationResultError,
                 AgentIterationLimitError,
                 EmptyLLMReturn,
                 LLMError,

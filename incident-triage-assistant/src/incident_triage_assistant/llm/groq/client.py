@@ -4,6 +4,10 @@ from typing import Any
 from groq import APIError, Groq
 from incident_triage_assistant.llm.base import LLMClient
 from incident_triage_assistant.llm.exceptions import LLMToolGenerationError
+from incident_triage_assistant.llm.prompts import (
+    CORRECTIVE_MESSAGE_PROMPT,
+    RETRY_TOOL_FAILED_PROMPT,
+)
 from incident_triage_assistant.llm.schema import (
     LLMResponse,
 )
@@ -63,12 +67,7 @@ class GroqLLMClient(LLMClient):
                 if should_retry:
                     retry_message = {
                         "role": "user",
-                        "content": (
-                            "The previous tool call failed schema validation. "
-                            "Generate it again and strictly follow the tool's JSON schema. "
-                            "Use JSON null instead of the string 'None', arrays where arrays "
-                            "are required, and the declared type for every field."
-                        ),
+                        "content": RETRY_TOOL_FAILED_PROMPT,
                     }
                     continue
 
@@ -86,6 +85,16 @@ class GroqLLMClient(LLMClient):
             self._message_handler.add_tool_message(
                 tool_call_id=result.tool_call_id, content=result.content
             )
+
+        return self._ask_to_groq()
+
+    def continue_after_invalid_result(
+        self,
+        validation_feedback: str,
+    ) -> LLMResponse:
+        self._message_handler.add_user_message(
+            f"{CORRECTIVE_MESSAGE_PROMPT}\n\nValidation feedback:\n{validation_feedback}"
+        )
 
         return self._ask_to_groq()
 

@@ -5,11 +5,14 @@ from groq.types.chat import (
     ChatCompletionToolMessageParam,
     ChatCompletionUserMessageParam,
 )
+from incident_triage_assistant.llm.prompts import DEFAULT_SYSTEM_PROMPT
 
 
 class GroqMessageHandler:
     def __init__(self) -> None:
-        self._messages: list[ChatCompletionMessageParam] = []
+        self._messages: list[ChatCompletionMessageParam] = [
+            {"role": "system", "content": DEFAULT_SYSTEM_PROMPT}
+        ]
 
     @property
     def messages(self) -> list[ChatCompletionMessageParam]:
