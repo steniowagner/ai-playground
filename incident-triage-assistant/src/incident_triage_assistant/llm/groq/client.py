@@ -29,12 +29,19 @@ class GroqLLMClient(LLMClient):
 
     def _ask_to_groq(self) -> LLMResponse:
         max_tool_generation_attempts = int(os.getenv("GROQ_RETRY_COUNT"))
+        retry_message = None
+
         for attempt in range(max_tool_generation_attempts):
+            messages = self._message_handler.messages
+
+            if retry_message is not None:
+                messages = [*messages, retry_message]
+
             try:
                 completion = self._client.chat.completions.create(
                     model=os.getenv("GROQ_MODEL"),
                     tools=self._tools,
-                    messages=self._message_handler.messages,
+                    messages=messages,
                     reasoning_effort="none",
                     temperature=float(os.getenv("GROQ_TEMPERATURE")),
                 )
@@ -45,8 +52,8 @@ class GroqLLMClient(LLMClient):
 
                 return parse_groq_response_to_llm_response(groq_message)
 
-            except APIError as e:
-                internal_error = handle_groq_exception(e)
+            except APIError as error:
+                internal_error = handle_groq_exception(error)
 
                 should_retry = (
                     isinstance(internal_error, LLMToolGenerationError)
@@ -54,9 +61,18 @@ class GroqLLMClient(LLMClient):
                 )
 
                 if should_retry:
+                    retry_message = {
+                        "role": "user",
+                        "content": (
+                            "The previous tool call failed schema validation. "
+                            "Generate it again and strictly follow the tool's JSON schema. "
+                            "Use JSON null instead of the string 'None', arrays where arrays "
+                            "are required, and the declared type for every field."
+                        ),
+                    }
                     continue
 
-                raise internal_error from e
+                raise internal_error from error
 
     def ask(self, question: str) -> LLMResponse:
         self._message_handler.add_user_message(question)

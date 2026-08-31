@@ -1,4 +1,7 @@
 from incident_triage_assistant.llm.base import LLMClient
+from incident_triage_assistant.llm.exceptions import (
+    LLMError,
+)
 from incident_triage_assistant.llm.schema import (
     LLMResponse,
     LLMToolCall,
@@ -65,5 +68,9 @@ class AgentRunner:
             try:
                 answer = self._iterate(question)
                 print(f"\n{answer}")
-            except (AgentIterationLimitError, EmptyLLMReturn) as error:
+            except (
+                AgentIterationLimitError,
+                EmptyLLMReturn,
+                LLMError,
+            ) as error:
                 print(f"Unable to complete the investigation: {error}")
