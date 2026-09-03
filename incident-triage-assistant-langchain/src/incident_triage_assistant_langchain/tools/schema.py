@@ -1,6 +1,6 @@
-from typing import Generic, Literal, TypeVar
+from typing import Any, Generic, Literal, TypeVar
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 ToolErrorResponseCode = Literal[
     "NOT_FOUND",
@@ -13,6 +13,9 @@ ToolErrorResponseCode = Literal[
 class ToolErrorResponseDetail(BaseModel):
     code: ToolErrorResponseCode
     message: str
+    retryable: bool = False
+    input: dict[str, Any] = Field(default_factory=dict)
+    suggested_action: str | None = None
 
 
 class ToolErrorResponse(BaseModel):
