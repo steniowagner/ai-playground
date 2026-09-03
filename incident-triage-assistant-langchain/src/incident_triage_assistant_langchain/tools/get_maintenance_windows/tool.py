@@ -31,6 +31,35 @@ class GetMaintenanceWindowsTool(BaseTool):
     parameters: type[BaseModel] = GetMaintenanceWindowsArgs
     repository: MaintenanceWindowsRepository
 
+    def _run(
+        self,
+        service: str,
+        environment: Environment,
+        start_time: AwareDatetime,
+        end_time: AwareDatetime,
+    ) -> ToolResponse[GetMaintenanceWindowsResult]:
+        try:
+            maintenance_windows = self.repository.find(
+                FindMaintenanceWindowsArgs(
+                    service=service,
+                    environment=environment,
+                    start_time=start_time,
+                    end_time=end_time,
+                )
+            )
+        except RepositoryException:
+            return self._handle_error(
+                service=service,
+                environment=environment,
+                start_time=start_time,
+                end_time=end_time,
+            )
+
+        return ToolSuccessResponse(
+            ok=True,
+            data=GetMaintenanceWindowsResult(maintenance_windows=maintenance_windows),
+        )
+
     def _handle_error(
         self,
         service: str,
@@ -59,35 +88,6 @@ class GetMaintenanceWindowsTool(BaseTool):
                 message="Failed to retrieve maintenance windows due an internal error.",
                 retryable=True,
                 input=tool_input,
-                suggested_action="Retry this request once. If it fails again, continue the investigation without maintenance-window evidence.",
+                suggested_action="Retry this request once. If it fails again, continue the investigation without maintenance-window evidence and let the user know about the error.",
             ),
-        )
-
-    def _run(
-        self,
-        service: str,
-        environment: Environment,
-        start_time: AwareDatetime,
-        end_time: AwareDatetime,
-    ) -> ToolResponse[GetMaintenanceWindowsResult]:
-        try:
-            maintenance_windows = self.repository.find(
-                FindMaintenanceWindowsArgs(
-                    service=service,
-                    environment=environment,
-                    start_time=start_time,
-                    end_time=end_time,
-                )
-            )
-        except RepositoryException:
-            return self._handle_error(
-                service=service,
-                environment=environment,
-                start_time=start_time,
-                end_time=end_time,
-            )
-
-        return ToolSuccessResponse(
-            ok=True,
-            data=GetMaintenanceWindowsResult(maintenance_windows=maintenance_windows),
         )

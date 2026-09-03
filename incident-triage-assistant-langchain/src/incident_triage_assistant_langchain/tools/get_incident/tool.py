@@ -1,3 +1,8 @@
+import logging
+
+from incident_triage_assistant_langchain.repositories.exceptions import (
+    RepositoryException,
+)
 from incident_triage_assistant_langchain.repositories.incidents.base import (
     IncidentRepository,
 )
@@ -20,7 +25,10 @@ class GetIncidentTool(BaseTool):
     repository: IncidentRepository
 
     def _run(self, incident_id: str) -> ToolResponse[GetIncidentResult]:
-        incident = self.repository.find_by_id(incident_id)
+        try:
+            incident = self.repository.find_by_id(incident_id)
+        except RepositoryException:
+            return self._handle_error(incident_id)
 
         if not incident:
             return ToolErrorResponse(
@@ -32,3 +40,26 @@ class GetIncidentTool(BaseTool):
             )
 
         return ToolSuccessResponse(ok=True, data=GetIncidentResult(incident=incident))
+
+    def _handle_error(self, incident_id: str) -> ToolErrorResponse:
+        logger = logging.getLogger(__name__)
+
+        tool_input = {
+            "incident_id": incident_id,
+        }
+
+        logger.exception(
+            "Failed to retrieve incident.",
+            extra=tool_input,
+        )
+
+        return ToolErrorResponse(
+            ok=False,
+            error=ToolErrorResponseDetail(
+                code="EXECUTION_ERROR",
+                message="Failed to retrieve incident due an internal error.",
+                retryable=True,
+                input=tool_input,
+                suggested_action="Retry this request once. If it fails again, stop the investigation and let the user knows that it was due this error.",
+            ),
+        )
