@@ -72,8 +72,8 @@ class GetMaintenanceWindowsTool(BaseTool):
         tool_input = {
             "service": service,
             "environment": environment,
-            "start_time": start_time.isoformat(),
-            "end_time": end_time.isoformat(),
+            "start_time": start_time,
+            "end_time": end_time,
         }
 
         logger.exception(
