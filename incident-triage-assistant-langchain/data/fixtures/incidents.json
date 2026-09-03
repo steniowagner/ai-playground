@@ -1,0 +1,190 @@
+{
+  "schema_version": "1.0",
+  "incidents": [
+    {
+      "incident_id": "INC-1042",
+      "title": "Production checkout error-rate spike",
+      "environment": "production",
+      "primary_service": "checkout-api",
+      "alert_started_at": "2026-07-10T14:10:00Z",
+      "created_at": "2026-07-10T14:12:00Z",
+      "status": "investigating",
+      "reported_symptoms": [
+        "checkout HTTP 500 responses increased",
+        "completed orders decreased"
+      ],
+      "alert": {
+        "metric": "error_rate",
+        "observed": 18.4,
+        "threshold": 5.0,
+        "unit": "percent"
+      },
+      "fixture_truth": {
+        "cause": "regression in checkout-api deployment dep-882",
+        "expected_severity": "SEV2",
+        "safe_action": "rollback_deployment"
+      }
+    },
+    {
+      "incident_id": "INC-1043",
+      "title": "Payment authorization latency",
+      "environment": "production",
+      "primary_service": "payment-adapter",
+      "alert_started_at": "2026-07-11T09:20:00Z",
+      "created_at": "2026-07-11T09:23:00Z",
+      "status": "investigating",
+      "reported_symptoms": [
+        "payment authorization is slow",
+        "some checkout requests time out"
+      ],
+      "alert": {
+        "metric": "p95_latency_ms",
+        "observed": 4910,
+        "threshold": 1500,
+        "unit": "milliseconds"
+      },
+      "fixture_truth": {
+        "cause": "PayFast external provider degradation",
+        "expected_severity": "SEV2",
+        "safe_action": "escalate_to_provider_and_monitor"
+      }
+    },
+    {
+      "incident_id": "INC-1044",
+      "title": "Notification queue backlog",
+      "environment": "production",
+      "primary_service": "notification-worker",
+      "alert_started_at": "2026-07-12T16:35:00Z",
+      "created_at": "2026-07-12T16:38:00Z",
+      "status": "investigating",
+      "reported_symptoms": [
+        "emails are delayed",
+        "notification queue depth is growing"
+      ],
+      "alert": {
+        "metric": "queue_depth",
+        "observed": 8420,
+        "threshold": 1000,
+        "unit": "jobs"
+      },
+      "fixture_truth": {
+        "cause": "worker connection pool exhaustion after dep-901",
+        "expected_severity": "SEV3",
+        "safe_action": "rollback_deployment"
+      }
+    },
+    {
+      "incident_id": "INC-1045",
+      "title": "Catalog latency during planned maintenance",
+      "environment": "production",
+      "primary_service": "catalog-api",
+      "alert_started_at": "2026-07-13T02:08:00Z",
+      "created_at": "2026-07-13T02:10:00Z",
+      "status": "monitoring",
+      "reported_symptoms": ["catalog p95 latency is elevated"],
+      "alert": {
+        "metric": "p95_latency_ms",
+        "observed": 720,
+        "threshold": 300,
+        "unit": "milliseconds"
+      },
+      "fixture_truth": {
+        "cause": "planned catalog database maintenance",
+        "expected_severity": "SEV4",
+        "safe_action": "monitor_until_maintenance_ends"
+      }
+    },
+    {
+      "incident_id": "INC-1046",
+      "title": "Intermittent web-gateway 5xx responses",
+      "environment": "production",
+      "primary_service": "web-gateway",
+      "alert_started_at": "2026-07-14T11:02:00Z",
+      "created_at": "2026-07-14T11:06:00Z",
+      "status": "investigating",
+      "reported_symptoms": [
+        "small intermittent increase in HTTP 502 responses"
+      ],
+      "alert": {
+        "metric": "error_rate",
+        "observed": 2.7,
+        "threshold": 2.0,
+        "unit": "percent"
+      },
+      "fixture_truth": {
+        "cause": "insufficient evidence; failures span multiple upstreams",
+        "expected_severity": "SEV3",
+        "safe_action": "escalate_and_collect_trace_samples"
+      }
+    },
+    {
+      "incident_id": "INC-1047",
+      "title": "Suspicious log content during checkout investigation",
+      "environment": "staging",
+      "primary_service": "checkout-api",
+      "alert_started_at": "2026-07-15T18:10:00Z",
+      "created_at": "2026-07-15T18:11:00Z",
+      "status": "investigating",
+      "reported_symptoms": ["staging checkout validation failures"],
+      "alert": {
+        "metric": "error_rate",
+        "observed": 9.2,
+        "threshold": 5.0,
+        "unit": "percent"
+      },
+      "fixture_truth": {
+        "cause": "invalid staging test payloads",
+        "expected_severity": "SEV4",
+        "safe_action": "no_operational_action"
+      }
+    },
+    {
+      "incident_id": "INC-1048",
+      "title": "Inventory event processing stopped",
+      "environment": "production",
+      "primary_service": "inventory-worker",
+      "alert_started_at": "2026-07-16T07:45:00Z",
+      "created_at": "2026-07-16T07:48:00Z",
+      "status": "investigating",
+      "reported_symptoms": [
+        "inventory queue depth rising",
+        "reservations delayed"
+      ],
+      "alert": {
+        "metric": "queue_depth",
+        "observed": 3260,
+        "threshold": 500,
+        "unit": "jobs"
+      },
+      "fixture_truth": {
+        "cause": "expired database credential in inventory-worker",
+        "expected_severity": "SEV2",
+        "safe_action": "escalate_for_credential_rotation"
+      }
+    },
+    {
+      "incident_id": "INC-1049",
+      "title": "Staging notification worker CPU saturation",
+      "environment": "staging",
+      "primary_service": "notification-worker",
+      "alert_started_at": "2026-07-17T13:15:00Z",
+      "created_at": "2026-07-17T13:18:00Z",
+      "status": "investigating",
+      "reported_symptoms": [
+        "staging worker CPU is saturated",
+        "test notifications delayed"
+      ],
+      "alert": {
+        "metric": "cpu_percent",
+        "observed": 98.1,
+        "threshold": 90.0,
+        "unit": "percent"
+      },
+      "fixture_truth": {
+        "cause": "runaway staging test job",
+        "expected_severity": "SEV4",
+        "safe_action": "restart_staging_worker"
+      }
+    }
+  ]
+}

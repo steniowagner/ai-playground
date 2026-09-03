@@ -1,0 +1,114 @@
+{
+  "schema_version": "1.0",
+  "company": "Northstar Commerce",
+  "services": [
+    {
+      "service": "web-gateway",
+      "display_name": "Web Gateway",
+      "description": "Public HTTP entry point for the marketplace.",
+      "tier": 1,
+      "owner_team": "edge-platform",
+      "on_call": "edge-platform-primary",
+      "environments": ["production", "staging"],
+      "dependencies": ["catalog-api", "checkout-api"],
+      "runbook_ids": ["RB-WEB-5XX"],
+      "slo": {
+        "availability_percent": 99.95,
+        "p95_latency_ms": 350,
+        "error_rate_percent": 1.0
+      }
+    },
+    {
+      "service": "catalog-api",
+      "display_name": "Catalog API",
+      "description": "Product search and product-detail service.",
+      "tier": 1,
+      "owner_team": "catalog",
+      "on_call": "catalog-primary",
+      "environments": ["production", "staging"],
+      "dependencies": ["catalog-postgres", "catalog-redis"],
+      "runbook_ids": ["RB-CATALOG-LATENCY"],
+      "slo": {
+        "availability_percent": 99.9,
+        "p95_latency_ms": 300,
+        "error_rate_percent": 1.0
+      }
+    },
+    {
+      "service": "checkout-api",
+      "display_name": "Checkout API",
+      "description": "Coordinates cart validation, payment authorization, and order creation.",
+      "tier": 1,
+      "owner_team": "payments",
+      "on_call": "payments-primary",
+      "environments": ["production", "staging"],
+      "dependencies": ["payment-adapter", "checkout-postgres"],
+      "runbook_ids": ["RB-CHECKOUT-ERRORS"],
+      "slo": {
+        "availability_percent": 99.95,
+        "p95_latency_ms": 800,
+        "error_rate_percent": 1.0
+      }
+    },
+    {
+      "service": "payment-adapter",
+      "display_name": "Payment Adapter",
+      "description": "Normalizes calls to the external PayFast payment provider.",
+      "tier": 1,
+      "owner_team": "payments",
+      "on_call": "payments-primary",
+      "environments": ["production", "staging"],
+      "dependencies": ["payfast-api"],
+      "runbook_ids": ["RB-PAYMENT-PROVIDER"],
+      "slo": {
+        "availability_percent": 99.9,
+        "p95_latency_ms": 1500,
+        "error_rate_percent": 2.0
+      }
+    },
+    {
+      "service": "notification-worker",
+      "display_name": "Notification Worker",
+      "description": "Consumes notification jobs and sends email and webhooks.",
+      "tier": 2,
+      "owner_team": "customer-comms",
+      "on_call": "customer-comms-primary",
+      "environments": ["production", "staging"],
+      "dependencies": ["notifications-queue", "mailjet-api"],
+      "runbook_ids": ["RB-NOTIFICATION-BACKLOG"],
+      "slo": {
+        "availability_percent": 99.5,
+        "max_queue_depth": 1000,
+        "max_job_age_seconds": 300
+      }
+    },
+    {
+      "service": "inventory-worker",
+      "display_name": "Inventory Worker",
+      "description": "Consumes order events and reserves inventory.",
+      "tier": 1,
+      "owner_team": "fulfilment",
+      "on_call": "fulfilment-primary",
+      "environments": ["production", "staging"],
+      "dependencies": ["inventory-queue", "inventory-postgres"],
+      "runbook_ids": ["RB-INVENTORY-BACKLOG"],
+      "slo": {
+        "availability_percent": 99.9,
+        "max_queue_depth": 500,
+        "max_job_age_seconds": 120
+      }
+    }
+  ],
+  "external_dependencies": [
+    {
+      "dependency": "payfast-api",
+      "owner": "PayFast",
+      "status_page": "https://status.example.invalid/payfast"
+    },
+    {
+      "dependency": "mailjet-api",
+      "owner": "MailJet",
+      "status_page": "https://status.example.invalid/mailjet"
+    }
+  ]
+}
