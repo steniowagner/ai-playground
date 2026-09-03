@@ -25,7 +25,7 @@ from .schema import (
 class GetServiceContextTool(BaseTool):
     name: str = "get_service_context"
     description: str = "Retrieve operational context for one exact service and environment, including ownership, on-call information, dependencies, SLOs, and associated runbook IDs. Use this after identifying the incident's affected service."
-    parameters: type[BaseModel] = GetServiceContextArgs
+    args_schema: type[BaseModel] = GetServiceContextArgs
     repository: ServicesRepository
 
     def _run(
