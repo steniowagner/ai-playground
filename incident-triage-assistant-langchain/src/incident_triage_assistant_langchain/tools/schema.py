@@ -30,4 +30,4 @@ class ToolSuccessResponse(BaseModel, Generic[T]):
     error: None = None
 
 
-ToolResponse = ToolSuccessResponse[T] | ToolErrorResponse
+type ToolResponse[ResponseT] = ToolSuccessResponse[ResponseT] | ToolErrorResponse

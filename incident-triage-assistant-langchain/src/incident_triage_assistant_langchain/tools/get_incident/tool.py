@@ -4,6 +4,7 @@ from incident_triage_assistant_langchain.repositories.incidents.base import (
 from incident_triage_assistant_langchain.tools.schema import (
     ToolErrorResponse,
     ToolErrorResponseDetail,
+    ToolResponse,
     ToolSuccessResponse,
 )
 from langchain_core.tools import BaseTool
@@ -18,7 +19,7 @@ class GetIncidentTool(BaseTool):
     args_schema: type[BaseModel] = GetIncidentArgs
     repository: IncidentRepository
 
-    def _run(self, incident_id: str) -> ToolSuccessResponse:
+    def _run(self, incident_id: str) -> ToolResponse[GetIncidentResult]:
         incident = self.repository.find_by_id(incident_id)
 
         if not incident:

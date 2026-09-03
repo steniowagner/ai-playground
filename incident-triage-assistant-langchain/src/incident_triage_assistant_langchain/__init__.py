@@ -25,7 +25,6 @@ def main() -> None:
     )
 
     tools = bootstrap_tools()
-
     mapping_tools = {tool.get_name(): tool for tool in tools}
     model_with_tools = model.bind_tools(tools)
 
@@ -46,7 +45,7 @@ def main() -> None:
 
     messages = [
         HumanMessage(
-            content="What is the incident INC-1042? No need to go deep in an investigation, just tell me on a surface."
+            content="List your available tools. For each tool, provide their descriptions and expected params."
         )
     ]
     messages = agent.invoke({"messages": messages})
