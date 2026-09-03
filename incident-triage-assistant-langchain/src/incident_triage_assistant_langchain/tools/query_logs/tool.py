@@ -82,7 +82,7 @@ class QueryLogsTool(BaseTool):
         }
 
         logger.exception(
-            "Failed to retrieve service.",
+            "Failed to query logs.",
             extra=tool_input,
         )
 

@@ -13,6 +13,9 @@ from incident_triage_assistant_langchain.repositories.logs.json import (
 from incident_triage_assistant_langchain.repositories.maintenance_windows.json import (
     JSONMaintenanceWindowsRepository,
 )
+from incident_triage_assistant_langchain.repositories.metrics.json import (
+    JSONMetricsRepository,
+)
 from incident_triage_assistant_langchain.repositories.runbooks.json import (
     JSONRunbooksRepository,
 )
@@ -28,6 +31,7 @@ from .get_recent_deployments.tool import GetRecentDeploymentsTool
 from .get_runbook.tool import GetRunbookTool
 from .get_service_context.tool import GetServiceContextTool
 from .query_logs.tool import QueryLogsTool
+from .query_metrics.tool import QueryMetricsTool
 
 
 def bootstrap_tools() -> list[BaseTool]:
@@ -38,6 +42,7 @@ def bootstrap_tools() -> list[BaseTool]:
     json_runbooks_repository = JSONRunbooksRepository()
     json_service_repository = JSONServicesRepository()
     json_logs_repository = JSONLogsRepository()
+    json_metrics_repository = JSONMetricsRepository()
 
     tools = [
         GetIncidentTool(repository=json_incidents_repository),
@@ -47,6 +52,7 @@ def bootstrap_tools() -> list[BaseTool]:
         GetRunbookTool(repository=json_runbooks_repository),
         GetServiceContextTool(repository=json_service_repository),
         QueryLogsTool(repository=json_logs_repository),
+        QueryMetricsTool(repository=json_metrics_repository),
     ]
 
     return tools
