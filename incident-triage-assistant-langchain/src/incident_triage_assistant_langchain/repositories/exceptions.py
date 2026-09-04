@@ -1,2 +1,10 @@
 class RepositoryException(Exception):
-    """Base exception for expected repository failures."""
+    retryable = False
+
+
+class RepositoryUnavailable(RepositoryException):
+    retryable = True
+
+
+class RepositoryDataError(RepositoryException):
+    retryable = False

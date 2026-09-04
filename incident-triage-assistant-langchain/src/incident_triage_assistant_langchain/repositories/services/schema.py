@@ -1,5 +1,6 @@
 from typing import Literal
 
+from incident_triage_assistant_langchain.domain.types import Environment
 from incident_triage_assistant_langchain.tools.get_service_context.schema import (
     ExternalDependecy,
     Service,
@@ -14,3 +15,10 @@ class ServicesFixture(BaseModel):
     company: str
     services: list[Service]
     external_dependencies: list[ExternalDependecy]
+
+
+class FindServiceArgs(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    service: str
+    environment: Environment

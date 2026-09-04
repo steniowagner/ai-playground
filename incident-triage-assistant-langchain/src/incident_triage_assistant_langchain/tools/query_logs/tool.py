@@ -34,65 +34,49 @@ class QueryLogsTool(BaseTool):
         start_time: AwareDatetime,
         end_time: AwareDatetime,
     ) -> ToolResponse[QueryLogsResult]:
+        args = QueryLogsArgs(
+            service=service,
+            environment=environment,
+            contains=contains,
+            limit=limit,
+            severity=severity,
+            start_time=start_time,
+            end_time=end_time,
+        )
         try:
-            logs = self._repository.find(
-                FindLogsArgs(
-                    service=service,
-                    environment=environment,
-                    contains=contains,
-                    limit=limit,
-                    severity=severity,
-                    start_time=start_time,
-                    end_time=end_time,
-                )
-            )
-        except RepositoryException:
-            self._handle_error(
-                service=service,
-                environment=environment,
-                contains=contains,
-                limit=limit,
-                severity=severity,
-                start_time=start_time,
-                end_time=end_time,
-            )
+            logs = self.repository.find(FindLogsArgs(**args.model_dump()))
+        except RepositoryException as exc:
+            return self._handle_error(args=args, exception=exc)
 
         return ToolSuccessResponse(ok=True, data=QueryLogsResult(logs=logs))
 
     def _handle_error(
-        self,
-        service: str,
-        environment: Environment,
-        contains: str | None,
-        limit: int,
-        severity: set[Severity] | None,
-        start_time: AwareDatetime,
-        end_time: AwareDatetime,
+        self, args: QueryLogsArgs, exception: RepositoryException
     ) -> ToolErrorResponse:
         logger = logging.getLogger(__name__)
 
-        tool_input = {
-            "service": service,
-            "environment": environment,
-            "contains": contains,
-            "limit": limit,
-            "severity": severity,
-            "start_time": start_time,
-            "end_time": end_time,
-        }
-
         logger.exception(
             "Failed to query logs.",
-            extra=tool_input,
+            extra={
+                "tool_name": self.name,
+                "tool_input": args.model_dump(mode="json"),
+                "repository_error": type(exception).__name__,
+            },
+        )
+
+        suggested_action = (
+            "Retry this request once. If it fails again, continue without log evidence and report the limitation."
+            if exception.retryable
+            else "Do not retry. Continue without log evidence and report the limitation."
         )
 
         return ToolErrorResponse(
             ok=False,
             error=ToolErrorResponseDetail(
                 code="EXECUTION_ERROR",
-                message="Failed to query logs due an internal error.",
-                retryable=True,
-                input=tool_input,
-                suggested_action="Retry this request once. If it fails again, stop the investigation and let the user knows that it was due this error.",
+                message="Failed to query logs due to an internal error.",
+                retryable=exception.retryable,
+                input=args.model_dump(mode="json"),
+                suggested_action=suggested_action,
             ),
         )

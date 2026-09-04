@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from incident_triage_assistant_langchain.domain.types import Environment
 from pydantic import (
     AwareDatetime,
@@ -17,8 +15,8 @@ class Deployment(BaseModel):
     environment: Environment
     version: str
     commit: str
-    started_at: datetime
-    completed_at: datetime
+    started_at: AwareDatetime
+    completed_at: AwareDatetime
     status: str
     summary: str
 
@@ -34,7 +32,7 @@ class GetRecentDeploymentsArgs(BaseModel):
     @model_validator(mode="after")
     def validate_time_window(self) -> "GetRecentDeploymentsArgs":
         if self.completed_at <= self.started_at:
-            raise ValueError("'started_at' must be after 'completed_at'.")
+            raise ValueError("'completed_at' must be after 'started_at'.")
 
         return self
 

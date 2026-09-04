@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Literal
 
 from incident_triage_assistant_langchain.domain.types import (
@@ -31,7 +31,7 @@ class Metric(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     metric_id: str
-    timestamp: datetime
+    timestamp: AwareDatetime
     service: str
     environment: Environment
     values: MetricValues
@@ -65,7 +65,7 @@ class MetricPoint(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     metric_id: str
-    timestamp: datetime
+    timestamp: AwareDatetime
     value: int | float
 
 
@@ -77,8 +77,8 @@ class QueryMetricsResult(BaseModel):
 
     service: str
     environment: Environment
-    start_time: datetime
-    end_time: datetime
+    start_time: AwareDatetime
+    end_time: AwareDatetime
     requested_metric_names: set[ServiceMetric] = Field(..., min_length=1, max_length=5)
     missing_metric_names: set[ServiceMetric]
     series: MetricSeries

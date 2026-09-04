@@ -1,6 +1,6 @@
 import json
 
-from incident_triage_assistant_langchain.domain.types import InvestigationResult
+from incident_triage_assistant_langchain.investigation.schema import InvestigationResult
 
 investigation_result_schema = json.dumps(
     InvestigationResult.model_json_schema(),

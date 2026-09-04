@@ -6,6 +6,9 @@ from incident_triage_assistant_langchain.repositories.exceptions import (
 from incident_triage_assistant_langchain.repositories.runbooks.base import (
     RunbooksRepository,
 )
+from incident_triage_assistant_langchain.repositories.runbooks.schema import (
+    FindRunbookByIdArgs,
+)
 from incident_triage_assistant_langchain.tools.schema import (
     ToolErrorResponse,
     ToolErrorResponseDetail,
@@ -25,17 +28,24 @@ class GetRunbookTool(BaseTool):
     repository: RunbooksRepository
 
     def _run(self, runbook_id: str) -> ToolResponse[GetRunbookResult]:
+        args = GetRunbookArgs(runbook_id=runbook_id)
+
         try:
-            runbook = self.repository.find_by_id(runbook_id)
-        except RepositoryException:
-            return self._handle_error(runbook_id)
+            runbook = self.repository.find_by_id(
+                FindRunbookByIdArgs(**args.model_dump())
+            )
+        except RepositoryException as exc:
+            return self._handle_error(args=args, exception=exc)
 
         if runbook is None:
             return ToolErrorResponse(
                 ok=False,
                 error=ToolErrorResponseDetail(
                     code="NOT_FOUND",
-                    message=f"Runbook '{runbook_id}' not found.",
+                    message=f"Runbook '{args.runbook_id}' not found.",
+                    retryable=False,
+                    input=args.model_dump(mode="json"),
+                    suggested_action="Verify the runbook ID before trying another lookup.",
                 ),
             )
 
@@ -44,25 +54,33 @@ class GetRunbookTool(BaseTool):
             data=GetRunbookResult(runbook_id=runbook_id, content=runbook),
         )
 
-    def _handle_error(self, runbook_id: str) -> ToolErrorResponse:
+    def _handle_error(
+        self, args: GetRunbookArgs, exception: RepositoryException
+    ) -> ToolErrorResponse:
         logger = logging.getLogger(__name__)
-
-        tool_input = {
-            "runbook_id": runbook_id,
-        }
 
         logger.exception(
             "Failed to retrieve runbook.",
-            extra=tool_input,
+            extra={
+                "tool_name": self.name,
+                "tool_input": args.model_dump(mode="json"),
+                "repository_error": type(exception).__name__,
+            },
+        )
+
+        suggested_action = (
+            "Retry this request once. If it fails again, continue without runbook evidence and report the limitation."
+            if exception.retryable
+            else "Do not retry. Continue without runbook evidence and report the limitation."
         )
 
         return ToolErrorResponse(
             ok=False,
             error=ToolErrorResponseDetail(
                 code="EXECUTION_ERROR",
-                message="Failed to retrieve runbook due an internal error.",
-                retryable=True,
-                input=tool_input,
-                suggested_action="Retry this request once. If it fails again, stop the investigation and let the user knows that it was due this error.",
+                message="Failed to retrieve runbook due to an internal error.",
+                retryable=exception.retryable,
+                input=args.model_dump(mode="json"),
+                suggested_action=suggested_action,
             ),
         )

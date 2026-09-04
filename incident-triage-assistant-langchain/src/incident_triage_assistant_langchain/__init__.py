@@ -1,9 +1,8 @@
-import os
 from functools import partial
 
 from dotenv import load_dotenv
 from langchain.messages import HumanMessage
-from langchain_groq import ChatGroq
+from langchain_anthropic import ChatAnthropic
 from langgraph.graph import END, START, StateGraph
 
 from incident_triage_assistant_langchain.conditions.should_continue import (
@@ -20,8 +19,8 @@ from .tools.bootstrap_tools import bootstrap_tools
 def main() -> None:
     load_dotenv()
 
-    model = ChatGroq(
-        model=os.getenv("GROQ_MODEL"), temperature=os.getenv("GROQ_TEMPERATURE")
+    model = ChatAnthropic(
+        model="claude-haiku-4-5-20251001",
     )
 
     tools = bootstrap_tools()
@@ -43,11 +42,7 @@ def main() -> None:
 
     agent = graph.compile()
 
-    messages = [
-        HumanMessage(
-            content="List your available tools. For each tool, provide their descriptions and expected params."
-        )
-    ]
+    messages = [HumanMessage(content="Investigate the incident INC-1042")]
     messages = agent.invoke({"messages": messages})
 
     for message in messages["messages"]:

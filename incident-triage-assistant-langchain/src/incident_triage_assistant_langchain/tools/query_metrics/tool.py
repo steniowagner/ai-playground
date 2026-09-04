@@ -68,34 +68,33 @@ class QueryMetricsTool(BaseTool):
         return missing_metrics
 
     def _handle_error(
-        self,
-        args: QueryMetricsArgs,
+        self, args: QueryMetricsArgs, exception: RepositoryException
     ) -> ToolErrorResponse:
         logger = logging.getLogger(__name__)
 
-        tool_input = {
-            "service": args.service,
-            "environment": args.environment,
-            "contains": args.contains,
-            "limit": args.limit,
-            "severity": args.severity,
-            "start_time": args.start_time,
-            "end_time": args.end_time,
-        }
-
         logger.exception(
             "Failed to query metrics.",
-            extra=tool_input,
+            extra={
+                "tool_name": self.name,
+                "tool_input": args.model_dump(mode="json"),
+                "repository_error": type(exception).__name__,
+            },
+        )
+
+        suggested_action = (
+            "Retry this request once. If it fails again, continue without metric evidence and report the limitation."
+            if exception.retryable
+            else "Do not retry. Continue without metric evidence and report the limitation."
         )
 
         return ToolErrorResponse(
             ok=False,
             error=ToolErrorResponseDetail(
                 code="EXECUTION_ERROR",
-                message="Failed to query metrics due an internal error.",
-                retryable=True,
-                input=tool_input,
-                suggested_action="Retry this request once. If it fails again, stop the investigation and let the user knows that it was due this error.",
+                message="Failed to query metrics due to an internal error.",
+                retryable=exception.retryable,
+                input=args.model_dump(mode="json"),
+                suggested_action=suggested_action,
             ),
         )
 
@@ -107,31 +106,21 @@ class QueryMetricsTool(BaseTool):
         start_time: AwareDatetime,
         end_time: AwareDatetime,
     ) -> ToolResponse[QueryMetricsResult]:
-        try:
-            metrics = self.repository.find(
-                FindMetricsArgs(
-                    service=service,
-                    environment=environment,
-                    metric_names=metric_names,
-                    start_time=start_time,
-                    end_time=end_time,
-                )
-            )
-        except RepositoryException:
-            return self._handle_error()
-
-        query_metrics_args = QueryMetricsArgs(
+        args = QueryMetricsArgs(
             service=service,
             environment=environment,
+            metric_names=metric_names,
             start_time=start_time,
             end_time=end_time,
-            requested_metric_names=metric_names,
         )
 
-        series = self._get_series(args=query_metrics_args, metrics=metrics)
-        missing_metrics = self._get_missing_metrics(
-            args=query_metrics_args, series=series
-        )
+        try:
+            metrics = self.repository.find(FindMetricsArgs(**args.model_dump()))
+        except RepositoryException as exc:
+            return self._handle_error(args=args, exception=exc)
+
+        series = self._get_series(args=args, metrics=metrics)
+        missing_metrics = self._get_missing_metrics(args=args, series=series)
 
         return ToolSuccessResponse(
             ok=True,

@@ -1,6 +1,6 @@
 from typing import Any, Generic, Literal, TypeVar
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 ToolErrorResponseCode = Literal[
     "NOT_FOUND",
@@ -11,6 +11,8 @@ ToolErrorResponseCode = Literal[
 
 
 class ToolErrorResponseDetail(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     code: ToolErrorResponseCode
     message: str
     retryable: bool = False
@@ -19,6 +21,8 @@ class ToolErrorResponseDetail(BaseModel):
 
 
 class ToolErrorResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     ok: Literal[False]
     data: None = None
     error: ToolErrorResponseDetail
@@ -28,6 +32,8 @@ T = TypeVar("T")
 
 
 class ToolSuccessResponse(BaseModel, Generic[T]):
+    model_config = ConfigDict(extra="forbid")
+
     ok: Literal[True]
     data: T
     error: None = None

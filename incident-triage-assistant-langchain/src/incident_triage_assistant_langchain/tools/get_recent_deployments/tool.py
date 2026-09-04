@@ -38,55 +38,49 @@ class GetRecentDeploymentsTool(BaseTool):
         started_at: AwareDatetime,
         completed_at: AwareDatetime,
     ) -> ToolResponse[GetRecentDeploymentsResult]:
+        args = GetRecentDeploymentsArgs(
+            service=service,
+            environment=environment,
+            started_at=started_at,
+            completed_at=completed_at,
+        )
+
         try:
-            deployments = self.repository.find(
-                FindDeploymentsArgs(
-                    service=service,
-                    environment=environment,
-                    started_at=started_at,
-                    completed_at=completed_at,
-                )
-            )
-        except RepositoryException:
-            return self._handle_error(
-                service=service,
-                environment=environment,
-                started_at=started_at,
-                completed_at=completed_at,
-            )
+            deployments = self.repository.find(FindDeploymentsArgs(**args.model_dump()))
+        except RepositoryException as exc:
+            return self._handle_error(args=args, exception=exc)
 
         return ToolSuccessResponse(
             ok=True, data=GetRecentDeploymentsResult(deployments=deployments)
         )
 
     def _handle_error(
-        self,
-        service: str,
-        environment: Environment,
-        start_time: AwareDatetime,
-        end_time: AwareDatetime,
+        self, args: GetRecentDeploymentsArgs, exception: RepositoryException
     ) -> ToolErrorResponse:
         logger = logging.getLogger(__name__)
 
-        tool_input = {
-            "service": service,
-            "environment": environment,
-            "start_time": start_time,
-            "end_time": end_time,
-        }
-
         logger.exception(
             "Failed to retrieve recent deployments.",
-            extra=tool_input,
+            extra={
+                "tool_name": self.name,
+                "tool_input": args.model_dump(mode="json"),
+                "repository_error": type(exception).__name__,
+            },
+        )
+
+        suggested_action = (
+            "Retry this request once. If it fails again, continue without recent-deployment evidence and report the limitation."
+            if exception.retryable
+            else "Do not retry. Continue without recent-deployment evidence and report the limitation."
         )
 
         return ToolErrorResponse(
             ok=False,
             error=ToolErrorResponseDetail(
                 code="EXECUTION_ERROR",
-                message="Failed to retrieve recent deployments due an internal error.",
-                retryable=True,
-                input=tool_input,
-                suggested_action="Retry this request once. If it fails again, continue the investigation without recent-deployments evidence and let the user know about the error.",
+                message="Failed to retrieve recent deployments due to an internal error.",
+                retryable=exception.retryable,
+                input=args.model_dump(mode="json"),
+                suggested_action=suggested_action,
             ),
         )

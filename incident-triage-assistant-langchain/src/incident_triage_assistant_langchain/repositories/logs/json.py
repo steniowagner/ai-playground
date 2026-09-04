@@ -1,7 +1,9 @@
 from pathlib import Path
 
 from incident_triage_assistant_langchain.tools.query_logs.schema import Log
+from pydantic import ValidationError
 
+from ..exceptions import RepositoryDataError, RepositoryUnavailable
 from .base import LogsRepository
 from .schema import FindLogsArgs
 
@@ -9,15 +11,28 @@ LOGS_FILE = Path(__file__).resolve().parents[4] / "data" / "fixtures" / "logs.js
 
 
 class JSONLogsRepository(LogsRepository):
-    def _read_logs(self) -> list[Log]:
-        logs = []
+    def _parse_fixture(self, fixture_str: str) -> Log:
+        try:
+            return Log.model_validate_json(fixture_str)
+        except ValidationError as exc:
+            raise RepositoryDataError("Log repository data is invalid.") from exc
 
-        with open(LOGS_FILE, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if line:
-                    log = Log.model_validate_json(line)
-                    logs.append(log)
+    def _read_logs(self) -> list[Log]:
+        logs: list[Log] = []
+
+        try:
+            with open(LOGS_FILE, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line:
+                        log = self._parse_fixture(line)
+                        logs.append(log)
+        except UnicodeDecodeError as exc:
+            raise RepositoryDataError(
+                "Logs repository contains invalid text data."
+            ) from exc
+        except OSError as exc:
+            raise RepositoryUnavailable("Logs repository is unavailable.") from exc
 
         return logs
 

@@ -32,48 +32,50 @@ class GetFeatureFlagsTool(BaseTool):
     repository: FeatureFlagsRepository
 
     def _run(
-        self, service: str, environment: Environment, flag_name: str | None
+        self, service: str, environment: Environment, flag_name: str | None = None
     ) -> ToolResponse[GetFeatureFlagsResult]:
+        args = GetFeatureFlagsArgs(
+            service=service, environment=environment, flag_name=flag_name
+        )
+
         try:
             feature_flags = self.repository.find(
-                FindFeatureFlagsArgs(
-                    service=service,
-                    environment=environment,
-                    flag_name=flag_name,
-                )
+                FindFeatureFlagsArgs(**args.model_dump())
             )
-        except RepositoryException:
-            return self._handle_error(
-                service=service, environment=environment, flag_name=flag_name
-            )
+        except RepositoryException as exc:
+            return self._handle_error(args=args, exception=exc)
 
         return ToolSuccessResponse(
             ok=True, data=GetFeatureFlagsResult(feature_flags=feature_flags)
         )
 
     def _handle_error(
-        self, service: str, environment: Environment, flag_name: str | None
+        self, args: GetFeatureFlagsArgs, exception: RepositoryException
     ) -> ToolErrorResponse:
         logger = logging.getLogger(__name__)
 
-        tool_input = {
-            "service": service,
-            "environment": environment,
-            "flag_name": flag_name,
-        }
-
         logger.exception(
             "Failed to retrieve feature-flags.",
-            extra=tool_input,
+            extra={
+                "tool_name": self.name,
+                "tool_input": args.model_dump(mode="json"),
+                "repository_error": type(exception).__name__,
+            },
+        )
+
+        suggested_action = (
+            "Retry this request once. If it fails again, continue without feature-flag evidence and report the limitation."
+            if exception.retryable
+            else "Do not retry. Continue without feature-flag evidence and report the limitation."
         )
 
         return ToolErrorResponse(
             ok=False,
             error=ToolErrorResponseDetail(
                 code="EXECUTION_ERROR",
-                message="Failed to retrieve feature-flag due an internal error.",
-                retryable=True,
-                input=tool_input,
-                suggested_action="Retry this request once. If it fails again, stop the investigation and let the user know about the error.",
+                message="Failed to retrieve feature-flag due to an internal error.",
+                retryable=exception.retryable,
+                input=args.model_dump(mode="json"),
+                suggested_action=suggested_action,
             ),
         )

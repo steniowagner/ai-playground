@@ -38,22 +38,19 @@ class GetMaintenanceWindowsTool(BaseTool):
         start_time: AwareDatetime,
         end_time: AwareDatetime,
     ) -> ToolResponse[GetMaintenanceWindowsResult]:
+        args = GetMaintenanceWindowsArgs(
+            service=service,
+            environment=environment,
+            start_time=start_time,
+            end_time=end_time,
+        )
+
         try:
             maintenance_windows = self.repository.find(
-                FindMaintenanceWindowsArgs(
-                    service=service,
-                    environment=environment,
-                    start_time=start_time,
-                    end_time=end_time,
-                )
+                FindMaintenanceWindowsArgs(**args.model_dump())
             )
-        except RepositoryException:
-            return self._handle_error(
-                service=service,
-                environment=environment,
-                start_time=start_time,
-                end_time=end_time,
-            )
+        except RepositoryException as exc:
+            return self._handle_error(args=args, exception=exc)
 
         return ToolSuccessResponse(
             ok=True,
@@ -61,33 +58,32 @@ class GetMaintenanceWindowsTool(BaseTool):
         )
 
     def _handle_error(
-        self,
-        service: str,
-        environment: Environment,
-        start_time: AwareDatetime,
-        end_time: AwareDatetime,
+        self, args: GetMaintenanceWindowsArgs, exception: RepositoryException
     ) -> ToolErrorResponse:
         logger = logging.getLogger(__name__)
 
-        tool_input = {
-            "service": service,
-            "environment": environment,
-            "start_time": start_time,
-            "end_time": end_time,
-        }
-
         logger.exception(
             "Failed to retrieve maintenance windows.",
-            extra=tool_input,
+            extra={
+                "tool_name": self.name,
+                "tool_input": args.model_dump(mode="json"),
+                "repository_error": type(exception).__name__,
+            },
+        )
+
+        suggested_action = (
+            "Retry this request once. If it fails again, continue without maintenance-window evidence and report the limitation."
+            if exception.retryable
+            else "Do not retry. Continue without maintenance-window evidence and report the limitation."
         )
 
         return ToolErrorResponse(
             ok=False,
             error=ToolErrorResponseDetail(
                 code="EXECUTION_ERROR",
-                message="Failed to retrieve maintenance windows due an internal error.",
-                retryable=True,
-                input=tool_input,
-                suggested_action="Retry this request once. If it fails again, continue the investigation without maintenance-window evidence and let the user know about the error.",
+                message="Failed to retrieve maintenance windows due to an internal error.",
+                retryable=exception.retryable,
+                input=args.model_dump(mode="json"),
+                suggested_action=suggested_action,
             ),
         )
