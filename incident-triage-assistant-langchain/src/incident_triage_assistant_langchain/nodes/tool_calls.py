@@ -31,8 +31,8 @@ def make_tool_invocation_error(tool_call: ToolCall) -> ToolMessage:
             code="INVALID_ARGUMENT",
             message=f"Invalid arguments for the tool {tool_call['name']}.",
             retryable=False,
-            input={"tool_name": tool_call["name"], "args": tool_call["args"]},
-            suggested_action="Use the correct args.",
+            input=tool_call["args"],
+            suggested_action="Do not retry with the same arguments. Correct the arguments using the tool's input schema, then make a new request.",
         ),
     )
 
@@ -43,19 +43,20 @@ def tool_calls_node(state: State, *, tools: dict[str, BaseTool]) -> dict:
     tool_calls_results = []
 
     for tool_call in state.messages[-1].tool_calls:
-        tool_name = tool_call["name"]
-        tool = tools.get(tool_name)
+        tool = tools.get(tool_call["name"], None)
         if tool is None:
             error = make_tool_not_found_error(tool_call)
             tool_calls_results.append(error)
             continue
 
         try:
-            result = tool.invoke(tool_call["args"])
+            if tool.args_schema is not None:
+                tool.args_schema.model_validate(tool_call["args"])
         except ValidationError:
-            error = make_tool_invocation_error(tool_call)
-            tool_calls_results.append(error)
+            tool_calls_results.append(make_tool_invocation_error(tool_call))
             continue
+
+        result = tool.invoke(tool_call["args"])
 
         tool_calls_results.append(
             ToolMessage(content=result.model_dump_json(), tool_call_id=tool_call["id"])
