@@ -89,3 +89,12 @@ class InvestigationResult(BaseModel):
             raise ValueError("The result describes an incomplete investigation.")
 
         return self
+
+
+class InvestigationFailure(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    incident_id: str = Field(pattern=r"^INC-[0-9]{4}$")
+    error_code: Literal["NOT_FOUND", "EXECUTION_ERROR"]
+    summary: str = Field(min_length=1)
+    retryable: Literal[False] = False
