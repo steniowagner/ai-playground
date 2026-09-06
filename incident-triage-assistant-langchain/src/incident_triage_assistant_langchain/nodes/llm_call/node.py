@@ -1,4 +1,3 @@
-from incident_triage_assistant_langchain.prompts import SYSTEM_PROMPT
 from incident_triage_assistant_langchain.state import State
 from langchain.messages import SystemMessage
 from langchain_core.language_models import (
@@ -9,14 +8,14 @@ from langchain_core.messages import (
 )
 from langchain_core.runnables import Runnable
 
+from .prompts import SYSTEM_PROMPT
+
 
 def llm_call_node(
-    state: State, *, model_with_tools: Runnable[LanguageModelInput, AIMessage]
+    state: State, *, model: Runnable[LanguageModelInput, AIMessage]
 ) -> dict:
     return {
         "messages": [
-            model_with_tools.invoke(
-                [SystemMessage(content=SYSTEM_PROMPT)] + state.messages
-            )
+            model.invoke([SystemMessage(content=SYSTEM_PROMPT)] + state.messages)
         ]
     }

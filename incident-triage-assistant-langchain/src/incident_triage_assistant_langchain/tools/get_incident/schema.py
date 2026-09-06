@@ -1,7 +1,10 @@
 from datetime import datetime
 from typing import Literal
 
-from incident_triage_assistant_langchain.domain.types import Environment
+from incident_triage_assistant_langchain.domain.types import (
+    Environment,
+    IncidentSeverity,
+)
 from pydantic import BaseModel, ConfigDict, Field
 
 IncidentStatus = Literal["investigating", "monitoring", "resolved"]
@@ -26,6 +29,7 @@ class Incident(BaseModel):
     alert_started_at: datetime
     created_at: datetime
     status: IncidentStatus
+    severity: IncidentSeverity
     reported_symptoms: list[str]
     alert: IncidentAlert
 

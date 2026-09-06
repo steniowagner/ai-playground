@@ -1,11 +1,10 @@
 import json
 
-from pydantic import TypeAdapter
-
 from incident_triage_assistant_langchain.investigation.schema import (
     InvestigationFailure,
     InvestigationResult,
 )
+from pydantic import TypeAdapter
 
 investigation_response_schema = json.dumps(
     TypeAdapter(InvestigationResult | InvestigationFailure).json_schema(),

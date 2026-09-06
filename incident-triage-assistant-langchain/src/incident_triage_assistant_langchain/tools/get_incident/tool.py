@@ -20,7 +20,7 @@ from .schema import GetIncidentArgs, GetIncidentResult
 
 class GetIncidentTool(BaseTool):
     name: str = "get_incident"
-    description: str = "Retrieve the recorded details of one incident by its exact incident ID, including the affected service, environment, alert, status, timestamps, and reported symptoms. Use this as the starting point when investigating a known incident."
+    description: str = "Retrieve the recorded details of one incident by its exact incident ID, including its authoritative severity, affected service, environment, alert, status, timestamps, and reported symptoms. Use this as the starting point when investigating a known incident."
     args_schema: type[BaseModel] = GetIncidentArgs
     repository: IncidentRepository
 

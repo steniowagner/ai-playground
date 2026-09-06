@@ -1,5 +1,6 @@
 from typing import Literal
 
+from incident_triage_assistant_langchain.domain.types import IncidentSeverity
 from incident_triage_assistant_langchain.tools.get_incident.schema import Incident
 from pydantic import BaseModel, ConfigDict
 
@@ -8,7 +9,7 @@ class IncidentFixtureTruth(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     cause: str
-    expected_severity: str
+    expected_severity: IncidentSeverity
     safe_action: str
 
 

@@ -26,8 +26,7 @@ def tool_calls_node(state: State, *, tools: dict[str, BaseTool]) -> dict:
 
         tool = tools.get(tool_call["name"], None)
         if tool is None:
-            error = make_tool_not_found_error(tool_call)
-            tool_call_results.append(error)
+            tool_call_results.append(make_tool_not_found_error(tool_call))
             continue
 
         try:

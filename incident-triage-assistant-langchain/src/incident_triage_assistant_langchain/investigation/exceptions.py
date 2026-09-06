@@ -1,0 +1,2 @@
+class InvalidInvestigationResponse(Exception):
+    pass

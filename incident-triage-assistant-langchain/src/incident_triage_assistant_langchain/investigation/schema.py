@@ -1,8 +1,14 @@
-from typing import Literal
+from typing import Literal, TypeAlias
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from incident_triage_assistant_langchain.domain.types import IncidentSeverity
 
-IncidentSeverity = Literal["SEV1", "SEV2", "SEV3", "SEV4"]
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    TypeAdapter,
+    model_validator,
+)
 
 ConfidenceLevel = Literal["low", "medium", "high"]
 
@@ -98,3 +104,14 @@ class InvestigationFailure(BaseModel):
     error_code: Literal["NOT_FOUND", "EXECUTION_ERROR"]
     summary: str = Field(min_length=1)
     retryable: Literal[False] = False
+
+
+InvestigationOutcome: TypeAlias = InvestigationResult | InvestigationFailure
+
+INVESTIGATION_RESPONSE_ADAPTER = TypeAdapter(InvestigationOutcome)
+
+
+class InvestigationResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    outcome: InvestigationOutcome

@@ -9,6 +9,7 @@
       "alert_started_at": "2026-07-10T14:10:00Z",
       "created_at": "2026-07-10T14:12:00Z",
       "status": "investigating",
+      "severity": "SEV2",
       "reported_symptoms": [
         "checkout HTTP 500 responses increased",
         "completed orders decreased"
@@ -33,6 +34,7 @@
       "alert_started_at": "2026-07-11T09:20:00Z",
       "created_at": "2026-07-11T09:23:00Z",
       "status": "investigating",
+      "severity": "SEV2",
       "reported_symptoms": [
         "payment authorization is slow",
         "some checkout requests time out"
@@ -57,6 +59,7 @@
       "alert_started_at": "2026-07-12T16:35:00Z",
       "created_at": "2026-07-12T16:38:00Z",
       "status": "investigating",
+      "severity": "SEV3",
       "reported_symptoms": [
         "emails are delayed",
         "notification queue depth is growing"
@@ -81,6 +84,7 @@
       "alert_started_at": "2026-07-13T02:08:00Z",
       "created_at": "2026-07-13T02:10:00Z",
       "status": "monitoring",
+      "severity": "SEV4",
       "reported_symptoms": ["catalog p95 latency is elevated"],
       "alert": {
         "metric": "p95_latency_ms",
@@ -102,6 +106,7 @@
       "alert_started_at": "2026-07-14T11:02:00Z",
       "created_at": "2026-07-14T11:06:00Z",
       "status": "investigating",
+      "severity": "SEV3",
       "reported_symptoms": [
         "small intermittent increase in HTTP 502 responses"
       ],
@@ -125,6 +130,7 @@
       "alert_started_at": "2026-07-15T18:10:00Z",
       "created_at": "2026-07-15T18:11:00Z",
       "status": "investigating",
+      "severity": "SEV4",
       "reported_symptoms": ["staging checkout validation failures"],
       "alert": {
         "metric": "error_rate",
@@ -146,6 +152,7 @@
       "alert_started_at": "2026-07-16T07:45:00Z",
       "created_at": "2026-07-16T07:48:00Z",
       "status": "investigating",
+      "severity": "SEV2",
       "reported_symptoms": [
         "inventory queue depth rising",
         "reservations delayed"
@@ -170,6 +177,7 @@
       "alert_started_at": "2026-07-17T13:15:00Z",
       "created_at": "2026-07-17T13:18:00Z",
       "status": "investigating",
+      "severity": "SEV4",
       "reported_symptoms": [
         "staging worker CPU is saturated",
         "test notifications delayed"
