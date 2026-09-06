@@ -7,6 +7,7 @@ ToolErrorResponseCode = Literal[
     "INVALID_ARGUMENT",
     "UNKNOWN_TOOL",
     "EXECUTION_ERROR",
+    "RETRY_NOT_ALLOWED",
 ]
 
 
