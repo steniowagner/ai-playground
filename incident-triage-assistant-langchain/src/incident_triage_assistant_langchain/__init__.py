@@ -10,7 +10,9 @@ from incident_triage_assistant_langchain.conditions.should_continue import (
 )
 from incident_triage_assistant_langchain.nodes.llm_call import llm_call_node
 from incident_triage_assistant_langchain.nodes.schema import Nodes
-from incident_triage_assistant_langchain.nodes.tool_calls import tool_calls_node
+from incident_triage_assistant_langchain.nodes.tool_calls.node import (
+    tool_calls_node,
+)
 
 from .state import State
 from .tools.bootstrap_tools import bootstrap_tools
