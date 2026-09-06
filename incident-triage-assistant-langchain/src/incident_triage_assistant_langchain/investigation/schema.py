@@ -1,7 +1,6 @@
 from typing import Literal, TypeAlias
 
 from incident_triage_assistant_langchain.domain.types import IncidentSeverity
-
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -43,17 +42,40 @@ class InvestigationEvidence(BaseModel):
 class LikelyCause(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    cause: str = Field(min_length=1)
-    supporting_evidence: list[str] = Field(min_length=1)
+    cause: str = Field(
+        min_length=1,
+        description="A likely explanation inferred from the collected evidence.",
+    )
+    supporting_evidence: list[str] = Field(
+        min_length=1,
+        description=(
+            "Concise references to observations in the evidence array that support "
+            "this cause; do not introduce facts absent from those observations."
+        ),
+    )
 
 
 class RecommendedAction(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    action: str = Field(min_length=1)
-    rationale: str = Field(min_length=1)
-    requires_approval: bool
-    approval_action: ApprovalAction | None = None
+    action: str = Field(
+        min_length=1,
+        description="A proposed next action; never describe it as already executed.",
+    )
+    rationale: str = Field(
+        min_length=1,
+        description="Why the collected evidence supports this proposed action.",
+    )
+    requires_approval: bool = Field(
+        description="Whether this action requires human approval before execution."
+    )
+    approval_action: ApprovalAction | None = Field(
+        default=None,
+        description=(
+            "The controlled action requiring approval, or null when approval is not "
+            "required."
+        ),
+    )
 
     @model_validator(mode="after")
     def validate_approval(self) -> "RecommendedAction":
@@ -71,14 +93,46 @@ class RecommendedAction(BaseModel):
 class InvestigationResult(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    incident_id: str = Field(pattern=r"^INC-[0-9]{4}$")
-    summary: str = Field(min_length=1)
-    severity: IncidentSeverity
-    evidence: list[InvestigationEvidence] = Field(min_length=1)
-    likely_causes: list[LikelyCause]
-    recommended_actions: list[RecommendedAction]
-    confidence: ConfidenceLevel
-    requires_human_approval: bool
+    incident_id: str = Field(
+        pattern=r"^INC-[0-9]{4}$",
+        description="Incident ID copied exactly from the successful get_incident result.",
+    )
+    summary: str = Field(
+        min_length=1,
+        description=(
+            "Concise completed assessment, including material evidence limitations."
+        ),
+    )
+    severity: IncidentSeverity = Field(
+        description=(
+            "Authoritative severity copied exactly from the successful get_incident "
+            "result; never infer, upgrade, or downgrade it."
+        )
+    )
+    evidence: list[InvestigationEvidence] = Field(
+        min_length=1,
+        description=(
+            "Material observations from successful tool results only; never include "
+            "tool errors or unavailable results."
+        ),
+    )
+    likely_causes: list[LikelyCause] = Field(
+        description="Evidence-supported likely causes, or an empty list when none are defensible."
+    )
+    recommended_actions: list[RecommendedAction] = Field(
+        description="Evidence-supported proposed actions, or an empty list."
+    )
+    confidence: ConfidenceLevel = Field(
+        description=(
+            "Confidence based on the quality, consistency, and completeness of the "
+            "available evidence."
+        )
+    )
+    requires_human_approval: bool = Field(
+        description=(
+            "True exactly when at least one recommended action requires human approval."
+        )
+    )
 
     @model_validator(mode="after")
     def validate_completed_investigation(self) -> "InvestigationResult":
@@ -94,16 +148,36 @@ class InvestigationResult(BaseModel):
         if any(phrase in normalized_summary for phrase in incomplete_phrases):
             raise ValueError("The result describes an incomplete investigation.")
 
+        approval_required = any(
+            action.requires_approval for action in self.recommended_actions
+        )
+        if self.requires_human_approval != approval_required:
+            raise ValueError(
+                "'requires_human_approval' must match whether any recommended action "
+                "requires approval."
+            )
+
         return self
 
 
 class InvestigationFailure(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    incident_id: str = Field(pattern=r"^INC-[0-9]{4}$")
-    error_code: Literal["NOT_FOUND", "EXECUTION_ERROR"]
-    summary: str = Field(min_length=1)
-    retryable: Literal[False] = False
+    incident_id: str = Field(
+        pattern=r"^INC-[0-9]{4}$",
+        description="The incident ID from the user's investigation request.",
+    )
+    error_code: Literal["NOT_FOUND", "EXECUTION_ERROR"] = Field(
+        description="Why the authoritative incident record could not be retrieved."
+    )
+    summary: str = Field(
+        min_length=1,
+        description="A concise safe explanation that the investigation could not proceed.",
+    )
+    retryable: Literal[False] = Field(
+        default=False,
+        description="Always false because all permitted incident lookup retries are exhausted.",
+    )
 
 
 InvestigationOutcome: TypeAlias = InvestigationResult | InvestigationFailure
@@ -114,4 +188,6 @@ INVESTIGATION_RESPONSE_ADAPTER = TypeAdapter(InvestigationOutcome)
 class InvestigationResponse(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    outcome: InvestigationOutcome
+    outcome: InvestigationOutcome = Field(
+        description="A completed investigation when the incident was retrieved, otherwise an investigation failure."
+    )

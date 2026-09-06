@@ -14,10 +14,12 @@ def finalize_investigation_node(
     *,
     model: Runnable[LanguageModelInput, InvestigationResponse],
 ) -> dict:
+    evidence_messages = state.messages[:-1]
+
     structured_response = model.invoke(
         [
             SystemMessage(content=FINALIZER_SYSTEM_PROMPT),
-            *state.messages,
+            *evidence_messages,
             HumanMessage(content=FINALIZER_HUMAN_PROMPT),
         ]
     )
