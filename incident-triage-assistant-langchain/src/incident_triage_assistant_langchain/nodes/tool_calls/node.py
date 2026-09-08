@@ -1,5 +1,6 @@
 from incident_triage_assistant_langchain.state import State
 from langchain.messages import (
+    AIMessage,
     ToolMessage,
 )
 from langchain_core.tools import BaseTool
@@ -16,9 +17,14 @@ from .utils import (
 
 
 def tool_calls_node(state: State, *, tools: dict[str, BaseTool]) -> dict:
+    last_message = state.messages[-1]
+
+    if not isinstance(last_message, AIMessage) or not last_message.tool_calls:
+        return {"messages": []}
+
     tool_call_results: list[ToolMessage] = []
 
-    for tool_call in state.messages[-1].tool_calls:
+    for tool_call in last_message.tool_calls:
         messages = [*state.messages, *tool_call_results]
         if not should_allow_tool_call(messages, tool_call):
             tool_call_results.append(make_repeated_tool_call_error(tool_call))
@@ -41,6 +47,7 @@ def tool_calls_node(state: State, *, tools: dict[str, BaseTool]) -> dict:
         tool_call_results.append(
             ToolMessage(
                 content=result.model_dump_json(),
+                name=tool_call["name"],
                 tool_call_id=tool_call["id"],
             )
         )

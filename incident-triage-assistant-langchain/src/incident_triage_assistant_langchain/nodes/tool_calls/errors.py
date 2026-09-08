@@ -20,7 +20,11 @@ def make_tool_not_found_error(tool_call: ToolCall) -> ToolMessage:
         ),
     )
 
-    return ToolMessage(content=error.model_dump_json(), tool_call_id=tool_call["id"])
+    return ToolMessage(
+        content=error.model_dump_json(),
+        name=tool_call["name"],
+        tool_call_id=tool_call["id"],
+    )
 
 
 def make_tool_invocation_error(tool_call: ToolCall) -> ToolMessage:
@@ -35,7 +39,11 @@ def make_tool_invocation_error(tool_call: ToolCall) -> ToolMessage:
         ),
     )
 
-    return ToolMessage(content=error.model_dump_json(), tool_call_id=tool_call["id"])
+    return ToolMessage(
+        content=error.model_dump_json(),
+        name=tool_call["name"],
+        tool_call_id=tool_call["id"],
+    )
 
 
 def make_repeated_tool_call_error(tool_call: ToolCall) -> ToolMessage:
@@ -52,5 +60,6 @@ def make_repeated_tool_call_error(tool_call: ToolCall) -> ToolMessage:
 
     return ToolMessage(
         content=response.model_dump_json(),
+        name=tool_call["name"],
         tool_call_id=tool_call["id"],
     )

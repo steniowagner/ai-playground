@@ -7,6 +7,7 @@ from langchain_core.language_models import LanguageModelInput
 from langchain_core.runnables import Runnable
 
 from .prompts import FINALIZER_HUMAN_PROMPT, FINALIZER_SYSTEM_PROMPT
+from .utils import build_evidence_transcript
 
 
 def finalize_investigation_node(
@@ -14,13 +15,12 @@ def finalize_investigation_node(
     *,
     model: Runnable[LanguageModelInput, InvestigationResponse],
 ) -> dict:
-    evidence_messages = state.messages[:-1]
+    evidence_transcript = build_evidence_transcript(state.messages)
 
     structured_response = model.invoke(
         [
             SystemMessage(content=FINALIZER_SYSTEM_PROMPT),
-            *evidence_messages,
-            HumanMessage(content=FINALIZER_HUMAN_PROMPT),
+            HumanMessage(content=f"{evidence_transcript}\n\n{FINALIZER_HUMAN_PROMPT}"),
         ]
     )
 

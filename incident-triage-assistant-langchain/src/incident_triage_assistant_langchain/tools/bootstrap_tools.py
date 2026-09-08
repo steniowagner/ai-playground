@@ -24,6 +24,7 @@ from incident_triage_assistant_langchain.repositories.services.json import (
 )
 from langchain_core.tools import BaseTool
 
+from .complete_investigation.tool import CompleteInvestigationTool
 from .get_feature_flags.tool import GetFeatureFlagsTool
 from .get_incident.tool import GetIncidentTool
 from .get_maintenance_windows.tool import GetMaintenanceWindowsTool
@@ -53,6 +54,7 @@ def bootstrap_tools() -> list[BaseTool]:
         GetServiceContextTool(repository=json_service_repository),
         QueryLogsTool(repository=json_logs_repository),
         QueryMetricsTool(repository=json_metrics_repository),
+        CompleteInvestigationTool(),
     ]
 
     return tools

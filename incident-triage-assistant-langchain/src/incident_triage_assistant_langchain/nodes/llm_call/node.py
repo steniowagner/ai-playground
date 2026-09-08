@@ -16,6 +16,6 @@ def llm_call_node(
 ) -> dict:
     return {
         "messages": [
-            model.invoke([SystemMessage(content=SYSTEM_PROMPT)] + state.messages)
+            model.invoke([SystemMessage(content=SYSTEM_PROMPT), *state.messages])
         ]
     }
