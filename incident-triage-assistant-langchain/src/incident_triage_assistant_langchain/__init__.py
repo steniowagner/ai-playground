@@ -5,7 +5,6 @@ from langchain.messages import HumanMessage
 from langchain_anthropic import ChatAnthropic
 from langchain_core.runnables import RunnableConfig
 from langgraph.checkpoint.memory import InMemorySaver
-from langgraph.errors import GraphRecursionError
 from langgraph.graph import END, START, StateGraph
 
 from incident_triage_assistant_langchain.conditions.after_llm_call import (
@@ -31,11 +30,37 @@ from .tools.bootstrap_tools import bootstrap_tools
 
 MODEL_NAME = "claude-haiku-4-5-20251001"
 
-RECURSION_LIMIT = 25
+
+def split_stream_chunk(message_chunk) -> tuple[str, str]:
+    content = message_chunk.content
+
+    if isinstance(content, str):
+        return "", content
+
+    thinking_parts: list[str] = []
+    answer_parts: list[str] = []
+
+    for block in content:
+        if not isinstance(block, dict):
+            continue
+
+        block_type = block.get("type")
+
+        if block_type in ("thinking", "reasoning"):
+            thinking_parts.append(block.get("thinking") or block.get("reasoning") or "")
+        if block_type == "text":
+            answer_parts.append(block.get("text", ""))
+
+    return "".join(thinking_parts), "".join(answer_parts)
 
 
 def build_graph():
-    model = ChatAnthropic(model=MODEL_NAME)
+    model = ChatAnthropic(
+        model=MODEL_NAME,
+        timeout=None,
+        stop=None,
+        thinking={"type": "enabled", "budget_tokens": 5000},
+    )
 
     tools = bootstrap_tools()
 
@@ -75,15 +100,6 @@ def build_graph():
     return graph.compile(checkpointer=InMemorySaver())
 
 
-def render_turn(result: dict) -> str:
-    final_result = result.get("final_result")
-
-    if final_result is not None:
-        return final_result.model_dump_json(indent=2)
-
-    return result["messages"][-1].text
-
-
 def main() -> None:
     load_dotenv()
 
@@ -91,7 +107,6 @@ def main() -> None:
 
     config: RunnableConfig = {
         "configurable": {"thread_id": "cli-session"},
-        "recursion_limit": RECURSION_LIMIT,
     }
 
     while True:
@@ -106,19 +121,38 @@ def main() -> None:
         if user_input.lower() == "exit":
             return
 
-        try:
-            result = graph_agent.invoke(
-                # final_result is checkpointed, so it is cleared on every turn.
-                # Otherwise an ordinary follow-up would still surface the
-                # previous investigation's report.
-                {"messages": [HumanMessage(content=user_input)], "final_result": None},
-                config=config,
-            )
-        except GraphRecursionError:
-            print(
-                "The investigation exceeded its step limit and was stopped. "
-                "Try a narrower question."
-            )
-            continue
+        final_result = None
 
-        print(render_turn(result))
+        for mode, payload in graph_agent.stream(
+            input={
+                "messages": [HumanMessage(content=user_input)],
+                "final_result": None,
+            },
+            config=config,
+            stream_mode=["messages", "updates"],
+        ):
+            if mode == "messages":
+                message_chunk, metadata = payload
+
+                node = metadata.get("langgraph_node")
+                if node not in (
+                    Nodes.LLM_CALL,
+                    Nodes.FINALIZER,
+                ):
+                    continue
+
+                thinking, answer = split_stream_chunk(message_chunk)
+                if thinking:
+                    print(f"[Thinking] {thinking}", end="", flush=True)
+                    print()
+                if answer:
+                    print(f"[Answer] {answer}", end="", flush=True)
+                    print()
+
+            elif mode == "updates":
+                for node_name, update in payload.items():
+                    if node_name == Nodes.FINALIZER:
+                        final_result = update.get("final_result")
+
+        if final_result is not None:
+            print(final_result.model_dump_json(indent=2))
