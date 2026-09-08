@@ -1,3 +1,4 @@
+import json
 from functools import partial
 
 from dotenv import load_dotenv
@@ -13,6 +14,7 @@ from incident_triage_assistant_langchain.conditions.after_llm_call import (
 from incident_triage_assistant_langchain.conditions.after_tool_call import (
     after_tool_call,
 )
+from incident_triage_assistant_langchain.graph.events import StreamEvents
 from incident_triage_assistant_langchain.investigation.schema import (
     InvestigationResponse,
 )
@@ -129,7 +131,7 @@ def main() -> None:
                 "final_result": None,
             },
             config=config,
-            stream_mode=["messages", "updates"],
+            stream_mode=["messages", "updates", "custom"],
         ):
             if mode == "messages":
                 message_chunk, metadata = payload
@@ -149,10 +151,28 @@ def main() -> None:
                     print(f"[Answer] {answer}", end="", flush=True)
                     print()
 
-            elif mode == "updates":
+            if mode == "updates":
                 for node_name, update in payload.items():
                     if node_name == Nodes.FINALIZER:
                         final_result = update.get("final_result")
+
+            if mode == "custom":
+                event = payload.get("event")
+
+                if event == StreamEvents.TOOL_STARTED:
+                    args = json.dumps(payload["args"], sort_keys=True)
+                    print(
+                        f"{payload['tool']} {args}",
+                        flush=True,
+                    )
+                elif event == StreamEvents.TOOL_FINISHED:
+                    mark = "ok" if payload["ok"] else payload["code"]
+                    print(f"      → {mark}", flush=True)
+                elif event in (StreamEvents.TOOL_FAIELD, StreamEvents.TOOL_SKIPPED):
+                    print(
+                        f"      → {payload.get('code') or payload['reason']}",
+                        flush=True,
+                    )
 
         if final_result is not None:
             print(final_result.model_dump_json(indent=2))
