@@ -24,8 +24,6 @@ For InvestigationResult:
   limits the conclusion.
 - Recommend only actions supported by the evidence.
 - Never claim or imply that a recommended action has already been executed.
-- Set requires_human_approval to true exactly when at least one recommended action
-  requires approval.
 
 For InvestigationFailure:
 - Use it only when get_incident returned NOT_FOUND, returned a non-retryable

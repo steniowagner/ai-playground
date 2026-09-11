@@ -24,4 +24,8 @@ def finalize_investigation_node(
         ]
     )
 
-    return {"final_result": structured_response.outcome}
+    return {
+        "final_result": structured_response.outcome,
+        "pending_approvals": [],
+        "approved_decisions": [],
+    }

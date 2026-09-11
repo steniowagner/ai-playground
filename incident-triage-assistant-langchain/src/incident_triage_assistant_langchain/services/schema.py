@@ -1,0 +1,40 @@
+from typing import Any, Generic, Literal, TypeVar
+
+from pydantic import BaseModel, ConfigDict, Field
+
+ServiceErrorResponseCode = Literal[
+    "INVALID_ARGUMENT",
+    "UNKNOWN_TOOL",
+    "EXECUTION_ERROR",
+]
+
+T = TypeVar("T")
+
+
+class ServiceErrorResponseDetail(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    code: ServiceErrorResponseCode
+    message: str
+    input: dict[str, Any] = Field(default_factory=dict)
+
+
+class ServiceErrorResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    ok: Literal[False]
+    data: None = None
+    error: ServiceErrorResponseDetail
+
+
+class ServiceSuccessResponse(BaseModel, Generic[T]):
+    model_config = ConfigDict(extra="forbid")
+
+    ok: Literal[True]
+    data: T
+    error: None = None
+
+
+type ServiceResponse[ResponseT] = (
+    ServiceSuccessResponse[ResponseT] | ServiceErrorResponse
+)
