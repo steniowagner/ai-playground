@@ -1,5 +1,5 @@
-from incident_triage_assistant_langchain.graph.events import StreamEvents
-from incident_triage_assistant_langchain.state import State
+from incident_triage_assistant_langchain.graph.state import State
+from incident_triage_assistant_langchain.graph.stream.schema import StreamEvents
 from langchain.messages import (
     AIMessage,
     ToolMessage,
@@ -53,7 +53,7 @@ def tool_calls_node(state: State, *, tools: dict[str, BaseTool]) -> dict:
         if tool is None:
             write_stream_event(
                 {
-                    "event": StreamEvents.TOOL_FAIELD,
+                    "event": StreamEvents.TOOL_FAILED,
                     "tool": tool_call["name"],
                     "args": tool_call["args"],
                     "code": "unknown_tool",
@@ -68,7 +68,7 @@ def tool_calls_node(state: State, *, tools: dict[str, BaseTool]) -> dict:
         except ValidationError:
             write_stream_event(
                 {
-                    "event": StreamEvents.TOOL_FAIELD,
+                    "event": StreamEvents.TOOL_FAILED,
                     "tool": tool_call["name"],
                     "args": tool_call["args"],
                     "code": "invalid_arguments",

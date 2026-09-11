@@ -1,9 +1,5 @@
 from typing import Annotated
 
-from langchain.messages import AnyMessage
-from langgraph.graph.message import add_messages
-from pydantic import BaseModel, Field
-
 from incident_triage_assistant_langchain.investigation.schema import (
     InvestigationFailure,
     InvestigationResult,
@@ -14,6 +10,9 @@ from incident_triage_assistant_langchain.nodes.prepare_approvals.schema import (
 from incident_triage_assistant_langchain.nodes.request_approvals.schema import (
     ApprovalDecision,
 )
+from langchain.messages import AnyMessage
+from langgraph.graph.message import add_messages
+from pydantic import BaseModel, Field
 
 
 class State(BaseModel):

@@ -5,7 +5,7 @@ from .schema import EscalateIncidentServiceArgs
 
 class EscalateIncidentService(Service[EscalateIncidentServiceArgs]):
     def execute(self, args: EscalateIncidentServiceArgs) -> ServiceResponse:
-        self.logger.info(
+        self.logger.warning(
             f"Escalating incident. Args: {args.model_dump_json()}",
         )
 

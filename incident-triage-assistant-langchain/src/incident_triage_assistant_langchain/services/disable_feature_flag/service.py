@@ -5,7 +5,7 @@ from .schema import DisableFeatureFlagServiceArgs
 
 class DisableFeatureFlagService(Service[DisableFeatureFlagServiceArgs]):
     def execute(self, args: DisableFeatureFlagServiceArgs) -> ServiceResponse:
-        self.logger.info(
+        self.logger.warning(
             f"Disabling feature-flag. Args: {args.model_dump_json()}",
         )
 

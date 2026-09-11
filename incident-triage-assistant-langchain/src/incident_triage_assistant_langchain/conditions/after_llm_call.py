@@ -1,7 +1,7 @@
 from typing import Literal
 
+from incident_triage_assistant_langchain.graph.state import State
 from incident_triage_assistant_langchain.nodes.schema import Nodes
-from incident_triage_assistant_langchain.state import State
 from langchain.messages import AIMessage
 from langgraph.graph import END
 

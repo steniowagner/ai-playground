@@ -5,7 +5,7 @@ from .schema import RestartServiceArgs
 
 class RestartServiceTool(Service[RestartServiceArgs]):
     def execute(self, args: RestartServiceArgs) -> ServiceResponse:
-        self.logger.info(
+        self.logger.warning(
             f"Restarting service. Args: {args.model_dump_json()}",
         )
 

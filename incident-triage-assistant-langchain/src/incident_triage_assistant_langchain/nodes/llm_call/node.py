@@ -1,4 +1,4 @@
-from incident_triage_assistant_langchain.state import State
+from incident_triage_assistant_langchain.graph.state import State
 from langchain.messages import SystemMessage
 from langchain_core.language_models import (
     LanguageModelInput,
