@@ -1,8 +1,11 @@
 from abc import ABC, abstractmethod
+from enum import Enum
 from typing import Annotated, Any, Literal, TypeAlias
 from uuid import UUID
 
-from incident_triage_assistant_langchain.investigation.schema import InvestigationResult
+from incident_triage_assistant_langchain.domain.investigation.schema import (
+    InvestigationResult,
+)
 from langgraph.types import Command
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -99,3 +102,10 @@ class ParseGraphEventArgs(BaseModel):
     mode: str
     payload: Any
     thread_id: str
+
+
+class CustomStreamEvents(str, Enum):
+    TOOL_STARTED = "tool_started"
+    TOOL_SKIPPED = "tool_skipped"
+    TOOL_FAILED = "tool_failed"
+    TOOL_FINISHED = "tool_finished"

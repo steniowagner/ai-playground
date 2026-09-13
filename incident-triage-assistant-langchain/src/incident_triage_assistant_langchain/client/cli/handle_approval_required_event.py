@@ -6,7 +6,7 @@ from incident_triage_assistant_langchain.graph.event_stream.schema import (
     ExecutingProposalEvent,
     ProposalExecutionFinishedEvent,
 )
-from incident_triage_assistant_langchain.nodes.request_approvals.schema import (
+from incident_triage_assistant_langchain.graph.nodes.request_approvals.schema import (
     ApprovalDecision,
 )
 
@@ -23,7 +23,7 @@ def ask_for_approval(
     print("The investigation proposed the following actions:\n")
 
     for index, action in enumerate(actions, start=1):
-        print(f"\n[Action {index}]\n")
+        print(f"[Action {index}]\n")
         print(f"Kind: {action['kind']}")
         print(f"Proposal-id: {action['proposal_id']}")
         print(f"Incident: {action['incident_id']}")
@@ -71,12 +71,19 @@ def handle_proposal_execution_event(
         if isinstance(event, ExecutingProposalEvent)
         else "Proposal Execution Finished"
     )
-    print(f"\n[{entry_message}]\n")
+    print(f"[{entry_message}]\n")
 
     print(f"Kind: {event.kind}")
     print(f"Proposal-id: {event.proposal_id}")
     print(f"Incident: {event.incident_id}")
-
+    print("Arguments:")
+    print(
+        json.dumps(
+            event.arguments,
+            indent=2,
+            sort_keys=True,
+        )
+    )
     if event.result is not None:
         print(f"Finished Successfully? {'Yes' if event.result['ok'] else 'No'}")
         print("Result:")
@@ -87,16 +94,6 @@ def handle_proposal_execution_event(
                 sort_keys=True,
             )
         )
-
-    print("Arguments:")
-    print(
-        json.dumps(
-            event.arguments,
-            indent=2,
-            sort_keys=True,
-        )
-    )
-    print("\n")
 
 
 async def handle_approval_required_event(args: HandleApprovalRequiredEventArgs) -> None:

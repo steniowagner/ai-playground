@@ -1,7 +1,7 @@
-from incident_triage_assistant_langchain.graph.state import State
-from incident_triage_assistant_langchain.nodes.prepare_approvals.schema import (
+from incident_triage_assistant_langchain.graph.nodes.prepare_approvals.schema import (
     PendingApproval,
 )
+from incident_triage_assistant_langchain.graph.state import State
 from langgraph.types import interrupt
 
 from .schema import ApprovalDecision, ApprovalResponse

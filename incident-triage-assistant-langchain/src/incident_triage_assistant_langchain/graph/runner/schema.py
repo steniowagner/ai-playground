@@ -1,6 +1,6 @@
 from typing import Any, Literal, TypeAlias
 
-from incident_triage_assistant_langchain.investigation.schema import (
+from incident_triage_assistant_langchain.domain.investigation.schema import (
     InvestigationOutcome,
 )
 from langgraph.types import Command

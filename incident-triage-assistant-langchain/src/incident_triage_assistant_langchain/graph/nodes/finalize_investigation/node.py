@@ -1,7 +1,7 @@
-from incident_triage_assistant_langchain.graph.state import State
-from incident_triage_assistant_langchain.investigation.schema import (
+from incident_triage_assistant_langchain.domain.investigation.schema import (
     InvestigationResponse,
 )
+from incident_triage_assistant_langchain.graph.state import State
 from langchain.messages import HumanMessage, SystemMessage
 from langchain_core.language_models import LanguageModelInput
 from langchain_core.runnables import Runnable

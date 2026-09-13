@@ -1,6 +1,6 @@
 import json
 
-from incident_triage_assistant_langchain.nodes.tool_calls.utils import (
+from incident_triage_assistant_langchain.graph.nodes.tool_calls.utils import (
     find_messages_since_last_human_message,
 )
 from incident_triage_assistant_langchain.tools.complete_investigation.tool import (

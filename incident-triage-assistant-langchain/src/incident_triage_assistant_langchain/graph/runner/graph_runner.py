@@ -1,6 +1,6 @@
 from collections.abc import AsyncIterator
 
-from incident_triage_assistant_langchain.nodes.request_approvals.schema import (
+from incident_triage_assistant_langchain.graph.nodes.request_approvals.schema import (
     ApprovalDecision,
 )
 from langchain.messages import HumanMessage

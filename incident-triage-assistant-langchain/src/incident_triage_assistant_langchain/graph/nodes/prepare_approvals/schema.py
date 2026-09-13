@@ -1,7 +1,9 @@
 from typing import Literal
 from uuid import UUID
 
-from incident_triage_assistant_langchain.investigation.schema import ExecutableProposal
+from incident_triage_assistant_langchain.domain.investigation.schema import (
+    ExecutableProposal,
+)
 from incident_triage_assistant_langchain.services.schema import ServiceResponse
 from pydantic import BaseModel, ConfigDict
 

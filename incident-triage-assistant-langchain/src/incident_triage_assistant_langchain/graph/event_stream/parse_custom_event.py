@@ -1,4 +1,6 @@
-from incident_triage_assistant_langchain.graph.stream.schema import StreamEvents
+from incident_triage_assistant_langchain.graph.event_stream.schema import (
+    CustomStreamEvents,
+)
 
 from .schema import (
     Event,
@@ -12,14 +14,14 @@ from .schema import (
 
 def parse_custom_event(payload: dict, base_event: Event) -> GraphEvent | None:
     match payload["event"]:
-        case StreamEvents.TOOL_STARTED:
+        case CustomStreamEvents.TOOL_STARTED:
             return ToolStartedEvent(
                 **base_event.model_dump(),
                 arguments=payload.get("args"),
                 tool=payload.get("tool"),
             )
 
-        case StreamEvents.TOOL_FINISHED:
+        case CustomStreamEvents.TOOL_FINISHED:
             return ToolFinishedEvent(
                 **base_event.model_dump(),
                 arguments=payload.get("args"),
@@ -27,7 +29,7 @@ def parse_custom_event(payload: dict, base_event: Event) -> GraphEvent | None:
                 ok=payload.get("ok"),
             )
 
-        case StreamEvents.TOOL_FAILED:
+        case CustomStreamEvents.TOOL_FAILED:
             return ToolFailedEvent(
                 **base_event.model_dump(),
                 arguments=payload.get("args"),
@@ -35,7 +37,7 @@ def parse_custom_event(payload: dict, base_event: Event) -> GraphEvent | None:
                 error_code=payload.get("code"),
             )
 
-        case StreamEvents.TOOL_SKIPPED:
+        case CustomStreamEvents.TOOL_SKIPPED:
             return ToolSkippedEvent(
                 **base_event.model_dump(),
                 arguments=payload.get("args"),

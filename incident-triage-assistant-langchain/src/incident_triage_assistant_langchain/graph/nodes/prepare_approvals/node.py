@@ -1,10 +1,10 @@
 from uuid import uuid4
 
-from incident_triage_assistant_langchain.graph.state import State
-from incident_triage_assistant_langchain.investigation.schema import (
+from incident_triage_assistant_langchain.domain.investigation.schema import (
     ExecutableProposal,
     InvestigationResult,
 )
+from incident_triage_assistant_langchain.graph.state import State
 
 from .schema import PendingApproval
 

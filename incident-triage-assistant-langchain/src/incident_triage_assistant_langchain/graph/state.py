@@ -1,13 +1,13 @@
 from typing import Annotated
 
-from incident_triage_assistant_langchain.investigation.schema import (
+from incident_triage_assistant_langchain.domain.investigation.schema import (
     InvestigationFailure,
     InvestigationResult,
 )
-from incident_triage_assistant_langchain.nodes.prepare_approvals.schema import (
+from incident_triage_assistant_langchain.graph.nodes.prepare_approvals.schema import (
     PendingApproval,
 )
-from incident_triage_assistant_langchain.nodes.request_approvals.schema import (
+from incident_triage_assistant_langchain.graph.nodes.request_approvals.schema import (
     ApprovalDecision,
 )
 from langchain.messages import AnyMessage

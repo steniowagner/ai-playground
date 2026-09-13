@@ -1,8 +1,10 @@
-from incident_triage_assistant_langchain.graph.state import State
-from incident_triage_assistant_langchain.investigation.schema import ExecutableProposal
-from incident_triage_assistant_langchain.nodes.prepare_approvals.schema import (
+from incident_triage_assistant_langchain.domain.investigation.schema import (
+    ExecutableProposal,
+)
+from incident_triage_assistant_langchain.graph.nodes.prepare_approvals.schema import (
     PendingApproval,
 )
+from incident_triage_assistant_langchain.graph.state import State
 from incident_triage_assistant_langchain.services.bootstrap_services import (
     ServiceRegistry,
 )

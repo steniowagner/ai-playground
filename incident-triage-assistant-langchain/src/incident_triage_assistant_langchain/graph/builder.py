@@ -1,35 +1,35 @@
 from functools import partial
 
-from incident_triage_assistant_langchain.conditions.after_finalize_investigation import (
-    after_finalize_investigation,
-)
-from incident_triage_assistant_langchain.conditions.after_llm_call import (
-    after_llm_call,
-)
-from incident_triage_assistant_langchain.conditions.after_tool_call import (
-    after_tool_call,
-)
-from incident_triage_assistant_langchain.investigation.schema import (
+from incident_triage_assistant_langchain.domain.investigation.schema import (
     InvestigationResponse,
 )
-from incident_triage_assistant_langchain.model.schema import Model
-from incident_triage_assistant_langchain.nodes.execute_approvals.node import (
+from incident_triage_assistant_langchain.graph.conditions.after_finalize_investigation import (
+    after_finalize_investigation,
+)
+from incident_triage_assistant_langchain.graph.conditions.after_llm_call import (
+    after_llm_call,
+)
+from incident_triage_assistant_langchain.graph.conditions.after_tool_call import (
+    after_tool_call,
+)
+from incident_triage_assistant_langchain.graph.nodes.execute_approvals.node import (
     execute_approvals_node,
 )
-from incident_triage_assistant_langchain.nodes.finalize_investigation.node import (
+from incident_triage_assistant_langchain.graph.nodes.finalize_investigation.node import (
     finalize_investigation_node,
 )
-from incident_triage_assistant_langchain.nodes.llm_call.node import llm_call_node
-from incident_triage_assistant_langchain.nodes.prepare_approvals.node import (
+from incident_triage_assistant_langchain.graph.nodes.llm_call.node import llm_call_node
+from incident_triage_assistant_langchain.graph.nodes.prepare_approvals.node import (
     prepare_approvals_node,
 )
-from incident_triage_assistant_langchain.nodes.request_approvals.node import (
+from incident_triage_assistant_langchain.graph.nodes.request_approvals.node import (
     request_approvals_node,
 )
-from incident_triage_assistant_langchain.nodes.schema import Nodes
-from incident_triage_assistant_langchain.nodes.tool_calls.node import (
+from incident_triage_assistant_langchain.graph.nodes.schema import Nodes
+from incident_triage_assistant_langchain.graph.nodes.tool_calls.node import (
     tool_calls_node,
 )
+from incident_triage_assistant_langchain.model.schema import Model
 from incident_triage_assistant_langchain.services.bootstrap_services import (
     bootstrap_services,
 )

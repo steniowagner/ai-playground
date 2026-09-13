@@ -1,5 +1,7 @@
+from incident_triage_assistant_langchain.graph.event_stream.schema import (
+    CustomStreamEvents,
+)
 from incident_triage_assistant_langchain.graph.state import State
-from incident_triage_assistant_langchain.graph.stream.schema import StreamEvents
 from langchain.messages import (
     AIMessage,
     ToolMessage,
@@ -30,7 +32,7 @@ def tool_calls_node(state: State, *, tools: dict[str, BaseTool]) -> dict:
     for tool_call in last_message.tool_calls:
         write_stream_event(
             {
-                "event": StreamEvents.TOOL_STARTED,
+                "event": CustomStreamEvents.TOOL_STARTED,
                 "tool": tool_call["name"],
                 "args": tool_call["args"],
             }
@@ -40,7 +42,7 @@ def tool_calls_node(state: State, *, tools: dict[str, BaseTool]) -> dict:
         if not should_allow_tool_call(messages, tool_call):
             write_stream_event(
                 {
-                    "event": StreamEvents.TOOL_SKIPPED,
+                    "event": CustomStreamEvents.TOOL_SKIPPED,
                     "tool": tool_call["name"],
                     "args": tool_call["args"],
                     "code": "repeated_tool_call",
@@ -53,7 +55,7 @@ def tool_calls_node(state: State, *, tools: dict[str, BaseTool]) -> dict:
         if tool is None:
             write_stream_event(
                 {
-                    "event": StreamEvents.TOOL_FAILED,
+                    "event": CustomStreamEvents.TOOL_FAILED,
                     "tool": tool_call["name"],
                     "args": tool_call["args"],
                     "code": "unknown_tool",
@@ -68,7 +70,7 @@ def tool_calls_node(state: State, *, tools: dict[str, BaseTool]) -> dict:
         except ValidationError:
             write_stream_event(
                 {
-                    "event": StreamEvents.TOOL_FAILED,
+                    "event": CustomStreamEvents.TOOL_FAILED,
                     "tool": tool_call["name"],
                     "args": tool_call["args"],
                     "code": "invalid_arguments",
@@ -81,7 +83,7 @@ def tool_calls_node(state: State, *, tools: dict[str, BaseTool]) -> dict:
 
         write_stream_event(
             {
-                "event": StreamEvents.TOOL_FINISHED,
+                "event": CustomStreamEvents.TOOL_FINISHED,
                 "tool": tool_call["name"],
                 "ok": result.ok,
                 "code": None if result.ok else result.error.code,

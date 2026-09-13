@@ -1,11 +1,11 @@
 from typing import Literal
 
-from incident_triage_assistant_langchain.graph.state import State
-from incident_triage_assistant_langchain.investigation.schema import (
+from incident_triage_assistant_langchain.domain.investigation.schema import (
     ExecutableProposal,
     InvestigationResult,
 )
-from incident_triage_assistant_langchain.nodes.schema import Nodes
+from incident_triage_assistant_langchain.graph.nodes.schema import Nodes
+from incident_triage_assistant_langchain.graph.state import State
 from langgraph.graph import END
 
 
