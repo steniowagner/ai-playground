@@ -85,6 +85,7 @@ def tool_calls_node(state: State, *, tools: dict[str, BaseTool]) -> dict:
                 "tool": tool_call["name"],
                 "ok": result.ok,
                 "code": None if result.ok else result.error.code,
+                "args": tool_call["args"],
             }
         )
 

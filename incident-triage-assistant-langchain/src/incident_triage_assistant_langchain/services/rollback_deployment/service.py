@@ -9,4 +9,4 @@ class RoolbackDeploymentService(Service[RollbackDeploymentServiceArgs]):
             f"Reverting deployment. Args: {args.model_dump_json()}",
         )
 
-        return ServiceSuccessResponse(ok=True, data=args.model_dump(mode="json"))
+        return ServiceSuccessResponse(ok=True, data=args)
