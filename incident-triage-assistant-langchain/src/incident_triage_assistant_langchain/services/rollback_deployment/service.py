@@ -6,7 +6,7 @@ from .schema import RollbackDeploymentServiceArgs
 class RoolbackDeploymentService(Service[RollbackDeploymentServiceArgs]):
     def execute(self, args: RollbackDeploymentServiceArgs) -> ServiceResponse:
         self.logger.warning(
-            f"Reverting deployment. Args: {args.model_dump_json()}",
+            f"\n[Rollback Deployment Service]\nReverting deployment. Args: {args.model_dump_json()}",
         )
 
         return ServiceSuccessResponse(ok=True, data=args)
