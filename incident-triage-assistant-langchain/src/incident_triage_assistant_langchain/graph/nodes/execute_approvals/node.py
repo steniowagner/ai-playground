@@ -64,10 +64,10 @@ def execute_proposal(
 
 
 def update_approvals_status_from_approved_to_executing(
-    approved_decisions: list[PendingApproval],
+    approval_decisions: list[PendingApproval],
 ) -> list[PendingApproval]:
     executing_approvals: list[PendingApproval] = []
-    for approved_decision in approved_decisions:
+    for approved_decision in approval_decisions:
         if approved_decision.status != "approved":
             executing_approvals.append(approved_decision)
             continue
