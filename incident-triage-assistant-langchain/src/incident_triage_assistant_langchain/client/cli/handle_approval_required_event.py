@@ -72,7 +72,6 @@ def handle_proposal_execution_event(
         else "Proposal Execution Finished"
     )
     print(f"[{entry_message}]\n")
-
     print(f"Kind: {event.kind}")
     print(f"Proposal-id: {event.proposal_id}")
     print(f"Incident: {event.incident_id}")

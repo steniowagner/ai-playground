@@ -37,23 +37,33 @@ def parse_update_event(payload: dict, base_event: Event) -> list[GraphEvent]:
             continue
 
         for pending_approval in pending_approvals:
-            ApprovalEvent = (
-                ExecutingProposalEvent
-                if pending_approval.execution_result is None
-                else ProposalExecutionFinishedEvent
-            )
-
-            events.append(
-                ApprovalEvent(
-                    **base_event.model_dump(),
-                    kind=pending_approval.proposal.kind,
-                    arguments=pending_approval.proposal.args.model_dump(mode="json"),
-                    incident_id=pending_approval.incident_id,
-                    proposal_id=pending_approval.proposal_id,
-                    result=pending_approval.execution_result.model_dump(mode="json")
-                    if pending_approval.execution_result
-                    else None,
+            if pending_approval.status == "executing":
+                events.append(
+                    ExecutingProposalEvent(
+                        **base_event.model_dump(),
+                        kind=pending_approval.proposal.kind,
+                        arguments=pending_approval.proposal.args.model_dump(
+                            mode="json"
+                        ),
+                        incident_id=pending_approval.incident_id,
+                        proposal_id=pending_approval.proposal_id,
+                    )
                 )
-            )
+
+            if pending_approval.status == "executed":
+                events.append(
+                    ProposalExecutionFinishedEvent(
+                        **base_event.model_dump(),
+                        kind=pending_approval.proposal.kind,
+                        arguments=pending_approval.proposal.args.model_dump(
+                            mode="json"
+                        ),
+                        incident_id=pending_approval.incident_id,
+                        proposal_id=pending_approval.proposal_id,
+                        result=pending_approval.execution_result.model_dump(
+                            mode="json"
+                        ),
+                    )
+                )
 
     return events
