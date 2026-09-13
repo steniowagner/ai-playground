@@ -8,7 +8,7 @@ from incident_triage_assistant_langchain.graph.event_stream.schema import (
 
 
 def handle_tool_event(event: BaseToolEvent) -> None:
-    print("\n[Tool Calling]\n")
+    print("\n\n[Tool Calling]\n")
     print(f"Tool: {event.tool}")
 
     if isinstance(event, ToolStartedEvent):
@@ -26,4 +26,4 @@ def handle_tool_event(event: BaseToolEvent) -> None:
         print("Status: Skipped")
         print(f"Reason: {event.reason}")
 
-    print(f"Arguments: {event.model_dump_json(indent=2)}\n")
+    print(f"Arguments: {event.model_dump_json(indent=2)}")

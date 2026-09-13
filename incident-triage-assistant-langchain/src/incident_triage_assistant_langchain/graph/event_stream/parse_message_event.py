@@ -2,6 +2,7 @@ from typing import Any
 
 from langchain.messages import AIMessageChunk
 
+from ..nodes.schema import Nodes
 from .schema import Event, MessageChunkEvent, ModelThinkingEvent
 
 
@@ -31,9 +32,12 @@ def split_stream_chunk(message_chunk: str | Any) -> tuple[str, str]:
 def parse_message_event(
     payload: Any, base_event: Event
 ) -> ModelThinkingEvent | MessageChunkEvent | None:
-    message_chunk, _ = payload
+    message_chunk, metadata = payload
 
     if not isinstance(message_chunk, AIMessageChunk):
+        return None
+
+    if metadata.get("langgraph_node") == Nodes.FINALIZER:
         return None
 
     thinking, answer = split_stream_chunk(message_chunk)

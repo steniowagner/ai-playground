@@ -1,12 +1,14 @@
 from incident_triage_assistant_langchain.graph.event_stream.schema import (
     ApprovalRequiredEvent,
     BaseToolEvent,
+    InvestigationCompletedEvent,
     MessageChunkEvent,
     ModelThinkingEvent,
 )
 from incident_triage_assistant_langchain.graph.runner.graph_runner import GraphRunner
 
 from .handle_approval_required_event import handle_approval_required_event
+from .handle_investigation_completed_event import handle_investigation_completed_event
 from .handle_message_event import handle_message_event
 from .handle_tool_event import handle_tool_event
 from .schema import HandleApprovalRequiredEventArgs
@@ -44,5 +46,8 @@ async def run_cli(graph_runner: GraphRunner, thread_id: str) -> None:
                         event=event,
                     )
                 )
+
+            if isinstance(event, InvestigationCompletedEvent):
+                handle_investigation_completed_event(event)
 
         print("\n")
