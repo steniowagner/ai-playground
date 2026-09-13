@@ -23,10 +23,10 @@ def ask_for_approval(
     decisions: list[ApprovalDecision] = []
 
     print("\n\n[Approval Required]\n")
-    print("The investigation proposed the following actions:\n")
+    print("The investigation proposed the following actions:")
 
     for index, action in enumerate(actions, start=1):
-        print(f"[Action {index}]\n")
+        print(f"\n[Action {index}]\n")
         print(f"Kind: {action['kind']}")
         print(f"Proposal-id: {action['proposal_id']}")
         print(f"Incident: {action['incident_id']}")
@@ -74,7 +74,7 @@ def handle_proposal_execution_event(
         if isinstance(event, ExecutingProposalEvent)
         else "Proposal Execution Finished"
     )
-    print(f"[{entry_message}]\n")
+    print(f"\n[{entry_message}]\n")
     print(f"Kind: {event.kind}")
     print(f"Proposal-id: {event.proposal_id}")
     print(f"Incident: {event.incident_id}")

@@ -22,6 +22,9 @@ from incident_triage_assistant_langchain.graph.nodes.llm_call.node import llm_ca
 from incident_triage_assistant_langchain.graph.nodes.prepare_approvals.node import (
     prepare_approvals_node,
 )
+from incident_triage_assistant_langchain.graph.nodes.prepare_user_request.node import (
+    prepare_user_request_node,
+)
 from incident_triage_assistant_langchain.graph.nodes.request_approvals.node import (
     request_approvals_node,
 )
@@ -52,6 +55,7 @@ def build_graph(model: Model, checkpointer: Checkpointer) -> CompiledStateGraph:
 
     graph = StateGraph(State)
 
+    graph.add_node(Nodes.PREPARE_USER_REQUEST, prepare_user_request_node)
     graph.add_node(
         Nodes.LLM_CALL,
         partial(llm_call_node, model=agent_model),
@@ -71,7 +75,8 @@ def build_graph(model: Model, checkpointer: Checkpointer) -> CompiledStateGraph:
         partial(execute_approvals_node, service_registry=service_registry),
     )
 
-    graph.add_edge(START, Nodes.LLM_CALL)
+    graph.add_edge(START, Nodes.PREPARE_USER_REQUEST)
+    graph.add_edge(Nodes.PREPARE_USER_REQUEST, Nodes.LLM_CALL)
     graph.add_conditional_edges(
         Nodes.LLM_CALL,
         after_llm_call,

@@ -1,5 +1,3 @@
-import re
-
 from incident_triage_assistant_langchain.graph.event_stream.schema import (
     CustomStreamEvents,
 )
@@ -11,7 +9,6 @@ from incident_triage_assistant_langchain.tools.schema import (
 )
 from langchain.messages import (
     AIMessage,
-    HumanMessage,
     ToolMessage,
 )
 from langchain_core.messages.tool import ToolCall
@@ -29,25 +26,17 @@ from .utils import (
     should_allow_tool_call,
 )
 
-INCIDENT_ID_PATTERN = re.compile(r"(?<![A-Za-z0-9_-])INC-\d{4}(?![A-Za-z0-9_-])")
-
-
-def latest_user_incident_ids(state: State) -> set[str]:
-    for message in reversed(state.messages):
-        if isinstance(message, HumanMessage):
-            return set(INCIDENT_ID_PATTERN.findall(message.text))
-
-    return set()
-
 
 def is_authorized_incident_lookup(state: State, tool_call: ToolCall) -> bool:
     if tool_call["name"] != ToolNames.GET_INCIDENT:
         return True
 
-    supplied_ids = latest_user_incident_ids(state)
     requested_id = tool_call["args"].get("incident_id")
 
-    return requested_id in supplied_ids
+    return (
+        not state.incident_id_input_invalid
+        and requested_id in state.authorized_incident_ids
+    )
 
 
 def make_get_incident_error_response(tool_call: ToolCall) -> ToolMessage:
@@ -55,7 +44,7 @@ def make_get_incident_error_response(tool_call: ToolCall) -> ToolMessage:
         ok=False,
         error=ToolErrorResponseDetail(
             code="INVALID_ARGUMENT",
-            message="The incident ID was not explicitly provided in the latest user message.",
+            message="The incident ID was not explicitly provided by the user.",
             retryable=False,
             input=tool_call["args"],
             suggested_action="Ask the user to provide an incident ID in the exact INC-XXXX format. Do not infer or normalize it.",

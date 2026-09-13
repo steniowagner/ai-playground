@@ -8,7 +8,7 @@ from incident_triage_assistant_langchain.graph.event_stream.schema import (
 
 
 def handle_tool_event(event: BaseToolEvent) -> None:
-    print("\n\n[Tool Calling]\n")
+    print("\n[Tool Calling]\n")
     print(f"Tool: {event.tool}")
 
     if isinstance(event, ToolStartedEvent):
