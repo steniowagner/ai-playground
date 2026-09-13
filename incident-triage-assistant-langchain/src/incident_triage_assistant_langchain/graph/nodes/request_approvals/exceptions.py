@@ -1,0 +1,2 @@
+class InvalidApprovalResponse(Exception):
+    pass

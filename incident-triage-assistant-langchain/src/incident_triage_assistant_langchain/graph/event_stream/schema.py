@@ -4,7 +4,7 @@ from typing import Annotated, Any, Literal, TypeAlias
 from uuid import UUID
 
 from incident_triage_assistant_langchain.domain.investigation.schema import (
-    InvestigationResult,
+    InvestigationOutcome,
 )
 from langgraph.types import Command
 from pydantic import BaseModel, ConfigDict, Field
@@ -58,9 +58,15 @@ class ApprovalRequiredEvent(Event):
     actions: list[dict]
 
 
+class InvalidApprovalResponseEvent(Event):
+    type: Literal["invalid_approval_response"] = "invalid_approval_response"
+    code: Literal["INVALID_APPROVAL_RESPONSE"] = "INVALID_APPROVAL_RESPONSE"
+    message: str
+
+
 class InvestigationCompletedEvent(Event):
     type: Literal["investigation_completed"] = "investigation_completed"
-    result: InvestigationResult
+    result: InvestigationOutcome
 
 
 class BaseProposalEvent(Event):
@@ -81,11 +87,16 @@ class ProposalExecutionFinishedEvent(BaseProposalEvent):
 
 GraphEvent = Annotated[
     MessageChunkEvent
+    | ToolFailedEvent
+    | ToolSkippedEvent
     | ToolStartedEvent
     | ToolFinishedEvent
     | ApprovalRequiredEvent
+    | InvalidApprovalResponseEvent
     | InvestigationCompletedEvent
-    | ModelThinkingEvent,
+    | ModelThinkingEvent
+    | ExecutingProposalEvent
+    | ProposalExecutionFinishedEvent,
     Field(discriminator="type"),
 ]
 

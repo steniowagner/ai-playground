@@ -1,32 +1,70 @@
+from collections import Counter
+
 from incident_triage_assistant_langchain.graph.nodes.prepare_approvals.schema import (
     PendingApproval,
 )
 from incident_triage_assistant_langchain.graph.state import State
 from langgraph.types import interrupt
+from pydantic import ValidationError
 
+from .exceptions import InvalidApprovalResponse
 from .schema import ApprovalDecision, ApprovalResponse
+
+
+def validate_approval_decisions(
+    pending_approvals: list[PendingApproval],
+    decisions: list[ApprovalDecision],
+) -> None:
+    expected_ids = {
+        approval.proposal_id
+        for approval in pending_approvals
+        if approval.status == "pending"
+    }
+
+    received_ids = [decision.proposal_id for decision in decisions]
+    id_counts = Counter(received_ids)
+
+    duplicate_ids = {
+        proposal_id for proposal_id, count in id_counts.items() if count > 1
+    }
+
+    received_id_set = set(received_ids)
+    unknown_ids = received_id_set - expected_ids
+    missing_ids = expected_ids - received_id_set
+
+    if duplicate_ids:
+        raise InvalidApprovalResponse(
+            f"Duplicate approval decisions: {duplicate_ids}"
+        )
+
+    if unknown_ids:
+        raise InvalidApprovalResponse(f"Unknown approval decisions: {unknown_ids}")
+
+    if missing_ids:
+        raise InvalidApprovalResponse(f"Missing approval decisions: {missing_ids}")
 
 
 def update_pending_approvals_status_based_on_decisions(
     pending_approvals: list[PendingApproval], decisions: list[ApprovalDecision]
 ):
+    validate_approval_decisions(pending_approvals, decisions)
+
     decisions_by_id = {decision.proposal_id: decision for decision in decisions}
 
-    pending_approvals_with_decisions = []
-    for pending_approval in pending_approvals:
-        decision = decisions_by_id.get(pending_approval.proposal_id)
-
-        if pending_approval.status != "pending" or decision is None:
-            pending_approvals_with_decisions.append(pending_approval)
-            continue
-
-        pending_approvals_with_decisions.append(
-            pending_approval.model_copy(
-                update={"status": ("approved" if decision.approved else "rejected")}
-            )
+    return [
+        approval
+        if approval.status != "pending"
+        else approval.model_copy(
+            update={
+                "status": (
+                    "approved"
+                    if decisions_by_id[approval.proposal_id].approved
+                    else "rejected"
+                )
+            }
         )
-
-    return pending_approvals_with_decisions
+        for approval in pending_approvals
+    ]
 
 
 def request_approvals_node(state: State) -> dict:
@@ -46,7 +84,12 @@ def request_approvals_node(state: State) -> dict:
     }
 
     resumed_value = interrupt(approval_request)
-    response = ApprovalResponse.model_validate(resumed_value)
+    try:
+        response = ApprovalResponse.model_validate(resumed_value)
+    except ValidationError as exc:
+        raise InvalidApprovalResponse(
+            "The approval response has an invalid structure."
+        ) from exc
     pending_approvals_with_decisions = (
         update_pending_approvals_status_based_on_decisions(
             state.pending_approvals, response.decisions

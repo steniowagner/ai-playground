@@ -6,6 +6,9 @@ from incident_triage_assistant_langchain.graph.event_stream.schema import (
     ExecutingProposalEvent,
     ProposalExecutionFinishedEvent,
 )
+from incident_triage_assistant_langchain.graph.nodes.request_approvals.exceptions import (
+    InvalidApprovalResponse,
+)
 from incident_triage_assistant_langchain.graph.nodes.request_approvals.schema import (
     ApprovalDecision,
 )
@@ -15,7 +18,7 @@ from .schema import HandleApprovalRequiredEventArgs
 
 def ask_for_approval(
     event: ApprovalRequiredEvent,
-) -> list[ApprovalDecision]:
+) -> list[ApprovalDecision] | None:
     actions = event.actions or []
     decisions: list[ApprovalDecision] = []
 
@@ -41,7 +44,7 @@ def ask_for_approval(
             try:
                 answer = input("\nApprove this action? [y/n] ").strip().lower()
             except (EOFError, KeyboardInterrupt):
-                return
+                return None
 
             if answer in ("y", "yes"):
                 approved = True
@@ -97,7 +100,14 @@ def handle_proposal_execution_event(
 
 async def handle_approval_required_event(args: HandleApprovalRequiredEventArgs) -> None:
     approvals_decisions = ask_for_approval(args.event)
-    approval_events = args.graph_runner.resume(args.thread_id, approvals_decisions)
-    async for approval_event in approval_events:
-        if isinstance(approval_event, BaseProposalEvent):
-            handle_proposal_execution_event(approval_event)
+    if approvals_decisions is None:
+        return
+
+    try:
+        async for event in args.graph_runner.resume(
+            args.thread_id, approvals_decisions
+        ):
+            if isinstance(event, BaseProposalEvent):
+                handle_proposal_execution_event(event)
+    except InvalidApprovalResponse:
+        print("\n[Invalid Approval Response]\n\nThe approval response was invalid.")

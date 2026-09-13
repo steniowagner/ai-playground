@@ -159,7 +159,7 @@ class InvestigationResult(BaseModel):
         for action in self.recommended_actions:
             if (
                 isinstance(action, EscalateIncidentProposal)
-                and action.incident_id != self.incident_id
+                and action.args.incident_id != self.incident_id
             ):
                 raise ValueError(
                     "An escalation action must target the investigated incident."

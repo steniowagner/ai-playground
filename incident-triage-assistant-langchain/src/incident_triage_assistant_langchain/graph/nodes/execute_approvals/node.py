@@ -31,7 +31,7 @@ def execute_proposal(
     if not service:
         return ServiceErrorResponse(
             ok=False,
-            data=ServiceErrorResponseDetail(
+            error=ServiceErrorResponseDetail(
                 code="UNKNOWN_TOOL",
                 input=proposal.args.model_dump(mode="json"),
                 message="Unknown service.",
@@ -44,7 +44,7 @@ def execute_proposal(
     except ValidationError:
         return ServiceErrorResponse(
             ok=False,
-            data=ServiceErrorResponseDetail(
+            error=ServiceErrorResponseDetail(
                 code="INVALID_ARGUMENT",
                 input=proposal.args.model_dump(mode="json"),
                 message="Invalid argument.",
@@ -53,7 +53,7 @@ def execute_proposal(
     except ServiceExecutionException:
         return ServiceErrorResponse(
             ok=False,
-            data=ServiceErrorResponseDetail(
+            error=ServiceErrorResponseDetail(
                 code="EXECUTION_ERROR",
                 input=proposal.args.model_dump(mode="json"),
                 message="Something went wrong.",
