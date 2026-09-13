@@ -19,6 +19,7 @@ from incident_triage_assistant_langchain.tools.schema import (
 from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 
+from ..schema import ToolNames
 from .schema import (
     GetFeatureFlagsArgs,
     GetFeatureFlagsResult,
@@ -26,7 +27,7 @@ from .schema import (
 
 
 class GetFeatureFlagsTool(BaseTool):
-    name: str = "get_feature_flags"
+    name: str = ToolNames.GET_FEATURE_FLAGS
     description: str = "Retrieve feature flags for one exact service and environment, optionally filtered by an exact flag name. Use flag state and change metadata as investigation evidence, but do not treat timing alone as proof of causation or claim that this read-only tool changed a flag."
     args_schema: type[BaseModel] = GetFeatureFlagsArgs
     repository: FeatureFlagsRepository

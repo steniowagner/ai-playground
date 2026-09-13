@@ -19,6 +19,7 @@ from incident_triage_assistant_langchain.tools.schema import (
 from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 
+from ..schema import ToolNames
 from .schema import (
     GetServiceContextArgs,
     GetServiceContextResult,
@@ -26,7 +27,7 @@ from .schema import (
 
 
 class GetServiceContextTool(BaseTool):
-    name: str = "get_service_context"
+    name: str = ToolNames.GET_SERVICE_CONTEXT
     description: str = "Retrieve operational context for one exact service and environment, including ownership, on-call information, dependencies, SLOs, and associated runbook IDs. Use this after identifying the incident's affected service."
     args_schema: type[BaseModel] = GetServiceContextArgs
     repository: ServicesRepository

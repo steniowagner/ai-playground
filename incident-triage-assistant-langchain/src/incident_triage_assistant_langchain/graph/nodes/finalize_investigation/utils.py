@@ -3,9 +3,7 @@ import json
 from incident_triage_assistant_langchain.graph.nodes.tool_calls.utils import (
     find_messages_since_last_human_message,
 )
-from incident_triage_assistant_langchain.tools.complete_investigation.tool import (
-    COMPLETE_INVESTIGATION_TOOL_NAME,
-)
+from incident_triage_assistant_langchain.tools.schema import ToolNames
 from langchain.messages import AIMessage, AnyMessage, HumanMessage, ToolMessage
 
 
@@ -21,7 +19,7 @@ def build_evidence_transcript(messages: list[AnyMessage]) -> str:
 
         if isinstance(message, AIMessage):
             for tool_call in message.tool_calls:
-                if tool_call["name"] == COMPLETE_INVESTIGATION_TOOL_NAME:
+                if tool_call["name"] == ToolNames.COMPLETE_INVESTIGATION:
                     continue
 
                 arguments = json.dumps(tool_call["args"], sort_keys=True)
@@ -29,7 +27,7 @@ def build_evidence_transcript(messages: list[AnyMessage]) -> str:
             continue
 
         if isinstance(message, ToolMessage):
-            if message.name == COMPLETE_INVESTIGATION_TOOL_NAME:
+            if message.name == ToolNames.COMPLETE_INVESTIGATION:
                 continue
 
             lines.append(f"TOOL RESULT [{message.name}]:\n{message.text}")

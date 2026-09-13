@@ -19,6 +19,7 @@ from incident_triage_assistant_langchain.tools.schema import (
 from langchain_core.tools import BaseTool
 from pydantic import AwareDatetime, BaseModel
 
+from ..schema import ToolNames
 from .schema import (
     GetMaintenanceWindowsArgs,
     GetMaintenanceWindowsResult,
@@ -26,7 +27,7 @@ from .schema import (
 
 
 class GetMaintenanceWindowsTool(BaseTool):
-    name: str = "get_maintenance_windows"
+    name: str = ToolNames.GET_MAINTENANCE_WINDOWS
     description: str = "Retrieve approved maintenance windows that overlap a requested period for one exact service and environment. Maintenance is supporting evidence, not an unconditional reason to ignore an alert or customer impact."
     args_schema: type[BaseModel] = GetMaintenanceWindowsArgs
     repository: MaintenanceWindowsRepository

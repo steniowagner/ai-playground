@@ -2,8 +2,8 @@ from typing import Literal
 
 from incident_triage_assistant_langchain.graph.nodes.schema import Nodes
 from incident_triage_assistant_langchain.graph.state import State
-from incident_triage_assistant_langchain.tools.complete_investigation.tool import (
-    COMPLETE_INVESTIGATION_TOOL_NAME,
+from incident_triage_assistant_langchain.tools.schema import (
+    ToolNames,
 )
 from langchain.messages import ToolMessage
 
@@ -13,7 +13,7 @@ def after_tool_call(state: State) -> Literal[Nodes.LLM_CALL, Nodes.FINALIZER]:
         if not isinstance(message, ToolMessage):
             break
 
-        if message.name == COMPLETE_INVESTIGATION_TOOL_NAME:
+        if message.name == ToolNames.COMPLETE_INVESTIGATION:
             return Nodes.FINALIZER
 
     return Nodes.LLM_CALL

@@ -19,6 +19,7 @@ from incident_triage_assistant_langchain.tools.schema import (
 from langchain_core.tools import BaseTool
 from pydantic import AwareDatetime, BaseModel
 
+from ..schema import ToolNames
 from .schema import (
     GetRecentDeploymentsArgs,
     GetRecentDeploymentsResult,
@@ -26,7 +27,7 @@ from .schema import (
 
 
 class GetRecentDeploymentsTool(BaseTool):
-    name: str = "get_recent_deployments"
+    name: str = ToolNames.GET_RECENT_DEPLOYMENTS
     description: str = "Retrieve deployments for one exact service and environment within the requested time window. Use this to identify changes near an incident, but treat timing as correlation rather than proof of causation."
     args_schema: type[BaseModel] = GetRecentDeploymentsArgs
     repository: DeploymentsRepository

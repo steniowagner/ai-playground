@@ -21,6 +21,7 @@ from incident_triage_assistant_langchain.tools.schema import (
 from langchain_core.tools import BaseTool
 from pydantic import AwareDatetime, BaseModel
 
+from ..schema import ToolNames
 from .schema import (
     Metric,
     MetricSeries,
@@ -31,7 +32,7 @@ from .schema import (
 
 
 class QueryMetricsTool(BaseTool):
-    name: str = "query_metrics"
+    name: str = ToolNames.QUERY_METRICS
     description: str = "Query selected metrics for one exact service and environment within a maximum 60-minute window. Returns timestamped measurements and evidence IDs; use the observations to investigate behavior without asking the tool to determine the root cause."
     args_schema: type[BaseModel] = QueryMetricsArgs
     repository: MetricsRepository

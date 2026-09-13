@@ -5,13 +5,12 @@ from incident_triage_assistant_langchain.tools.schema import (
 from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 
+from ..schema import ToolNames
 from .schema import (
     CompleteInvestigationArgs,
     CompleteInvestigationResult,
     CompletionReason,
 )
-
-COMPLETE_INVESTIGATION_TOOL_NAME = "complete_investigation"
 
 
 class CompleteInvestigationTool(BaseTool):
@@ -24,7 +23,7 @@ class CompleteInvestigationTool(BaseTool):
     validated instead of parsed out of free-form assistant prose.
     """
 
-    name: str = COMPLETE_INVESTIGATION_TOOL_NAME
+    name: str = ToolNames.COMPLETE_INVESTIGATION
     description: str = (
         "Signal that evidence collection for a requested full incident "
         "investigation is finished and the structured report should now be "

@@ -1,6 +1,20 @@
+from enum import StrEnum
 from typing import Any, Generic, Literal, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field
+
+
+class ToolNames(StrEnum):
+    COMPLETE_INVESTIGATION = "complete_investigation"
+    GET_INCIDENT = "get_incident"
+    GET_FEATURE_FLAGS = "get_feature_flags"
+    GET_MAINTENANCE_WINDOWS = "get_maintenance_windows"
+    GET_RECENT_DEPLOYMENTS = "get_recent_deployments"
+    GET_RUNBOOK = "get_runbook"
+    GET_SERVICE_CONTEXT = "get_service_context"
+    QUERY_LOGS = "query_logs"
+    QUERY_METRICS = "query_metrics"
+
 
 ToolErrorResponseCode = Literal[
     "NOT_FOUND",

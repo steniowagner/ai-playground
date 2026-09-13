@@ -15,11 +15,12 @@ from incident_triage_assistant_langchain.tools.schema import (
 from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 
+from ..schema import ToolNames
 from .schema import GetIncidentArgs, GetIncidentResult
 
 
 class GetIncidentTool(BaseTool):
-    name: str = "get_incident"
+    name: str = ToolNames.GET_INCIDENT
     description: str = "Retrieve the recorded details of one incident by its exact incident ID, including its authoritative severity, affected service, environment, alert, status, timestamps, and reported symptoms. Use this as the starting point when investigating a known incident."
     args_schema: type[BaseModel] = GetIncidentArgs
     repository: IncidentRepository
