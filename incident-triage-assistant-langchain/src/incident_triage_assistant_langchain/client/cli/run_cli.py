@@ -11,10 +11,13 @@ from .handle_approval_required_event import handle_approval_required_event
 from .handle_investigation_completed_event import handle_investigation_completed_event
 from .handle_message_event import handle_message_event
 from .handle_tool_event import handle_tool_event
+from .print_header import print_header
 from .schema import HandleApprovalRequiredEventArgs
 
 
 async def run_cli(graph_runner: GraphRunner, thread_id: str) -> None:
+    print_header()
+
     while True:
         try:
             user_input = input("> ").strip()
