@@ -1,4 +1,5 @@
 from collections.abc import AsyncIterator
+from typing import Any, TypeAlias
 
 from incident_triage_assistant_langchain.graph.nodes.request_approvals.schema import (
     ApprovalDecision,
@@ -8,9 +9,10 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.types import Command
 
-from ..event_stream.parse_graph_event import parse_graph_event
-from ..event_stream.schema import GraphEvent, ParseGraphEventArgs
-from .schema import GraphInput
+from .event_stream.parse_graph_event import parse_graph_event
+from .event_stream.schema import GraphEvent, ParseGraphEventArgs
+
+GraphInput: TypeAlias = dict[str, Any] | Command
 
 
 class GraphRunner:

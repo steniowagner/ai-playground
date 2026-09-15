@@ -26,20 +26,28 @@ from .utils import (
     should_allow_tool_call,
 )
 
+INCIDENT_ID_AUTHORIZED_TOOLS = {
+    ToolNames.GET_INCIDENT,
+    ToolNames.COMPLETE_INVESTIGATION,
+}
 
-def is_authorized_incident_lookup(state: State, tool_call: ToolCall) -> bool:
-    if tool_call["name"] != ToolNames.GET_INCIDENT:
+
+def is_authorized_incident_tool_call(
+    state: State,
+    tool_call: ToolCall,
+) -> bool:
+    if tool_call["name"] not in INCIDENT_ID_AUTHORIZED_TOOLS:
         return True
 
     requested_id = tool_call["args"].get("incident_id")
 
     return (
-        not state.incident_id_input_invalid
-        and requested_id in state.authorized_incident_ids
+        not state.is_incident_id_input_invalid
+        and state.authorized_incident_id == requested_id
     )
 
 
-def make_get_incident_error_response(tool_call: ToolCall) -> ToolMessage:
+def make_unauthorized_incident_id_response(tool_call: ToolCall) -> ToolMessage:
     response = ToolErrorResponse(
         ok=False,
         error=ToolErrorResponseDetail(
@@ -68,15 +76,15 @@ def tool_calls_node(state: State, *, tools: dict[str, BaseTool]) -> dict:
     write_stream_event = get_stream_writer()
 
     for tool_call in last_message.tool_calls:
-        if not is_authorized_incident_lookup(state, tool_call):
-            tool_call_results.append(make_get_incident_error_response(tool_call))
+        if not is_authorized_incident_tool_call(state, tool_call):
+            tool_call_results.append(make_unauthorized_incident_id_response(tool_call))
 
             write_stream_event(
                 {
                     "event": CustomStreamEvents.TOOL_SKIPPED,
                     "tool": tool_call["name"],
                     "args": tool_call["args"],
-                    "code": ToolCallStreamEventCodes.INCIDENT_ID_NOT_PROVIDED,
+                    "code": ToolCallStreamEventCodes.INCIDENT_ID_NOT_AUTHORIZED,
                 }
             )
 

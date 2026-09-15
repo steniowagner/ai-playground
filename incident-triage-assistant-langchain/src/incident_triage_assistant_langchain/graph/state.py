@@ -20,5 +20,6 @@ class State(BaseModel):
     final_result: InvestigationResult | InvestigationFailure | None = None
     pending_approvals: list[PendingApproval] = Field(default_factory=list)
     approval_decisions: list[ApprovalDecision] = Field(default_factory=list)
-    authorized_incident_ids: set[str] = Field(default_factory=set)
-    incident_id_input_invalid: bool = False
+    is_incident_id_input_invalid: bool = True
+    authorized_incident_id: str | None = None
+    pending_incident_id_confirmation: str | None = None

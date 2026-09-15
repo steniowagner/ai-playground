@@ -15,7 +15,7 @@ def finalize_investigation_node(
     *,
     model: Runnable[LanguageModelInput, InvestigationResponse],
 ) -> dict:
-    evidence_transcript = build_evidence_transcript(state.messages)
+    evidence_transcript = build_evidence_transcript(state)
 
     structured_response = model.invoke(
         [
@@ -28,4 +28,6 @@ def finalize_investigation_node(
         "final_result": structured_response.outcome,
         "pending_approvals": [],
         "approval_decisions": [],
+        "is_incident_id_input_invalid": True,
+        "authorized_incident_id": None,
     }

@@ -5,7 +5,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 
 from incident_triage_assistant_langchain.client.cli.run_cli import run_cli
 from incident_triage_assistant_langchain.graph.builder import build_graph
-from incident_triage_assistant_langchain.graph.runner.graph_runner import (
+from incident_triage_assistant_langchain.graph.runner import (
     GraphRunner,
 )
 from incident_triage_assistant_langchain.model.factory import create_model

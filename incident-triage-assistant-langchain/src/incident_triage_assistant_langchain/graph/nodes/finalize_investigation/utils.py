@@ -3,14 +3,15 @@ import json
 from incident_triage_assistant_langchain.graph.nodes.tool_calls.utils import (
     find_messages_since_last_human_message,
 )
+from incident_triage_assistant_langchain.graph.state import State
 from incident_triage_assistant_langchain.tools.schema import ToolNames
-from langchain.messages import AIMessage, AnyMessage, HumanMessage, ToolMessage
+from langchain.messages import AIMessage, HumanMessage, ToolMessage
 
 
-def build_evidence_transcript(messages: list[AnyMessage]) -> str:
-    investigation_messages = find_messages_since_last_human_message(messages)
+def build_evidence_transcript(state: State) -> str:
+    investigation_messages = find_messages_since_last_human_message(state.messages)
 
-    lines: list[str] = []
+    lines: list[str] = [f"INVESTIGATION-ID: {state.authorized_incident_id}"]
 
     for message in investigation_messages:
         if isinstance(message, HumanMessage):

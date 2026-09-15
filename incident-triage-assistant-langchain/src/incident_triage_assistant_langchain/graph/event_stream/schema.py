@@ -58,12 +58,6 @@ class ApprovalRequiredEvent(Event):
     actions: list[dict]
 
 
-class InvalidApprovalResponseEvent(Event):
-    type: Literal["invalid_approval_response"] = "invalid_approval_response"
-    code: Literal["INVALID_APPROVAL_RESPONSE"] = "INVALID_APPROVAL_RESPONSE"
-    message: str
-
-
 class InvestigationCompletedEvent(Event):
     type: Literal["investigation_completed"] = "investigation_completed"
     result: InvestigationOutcome
@@ -92,7 +86,6 @@ GraphEvent = Annotated[
     | ToolStartedEvent
     | ToolFinishedEvent
     | ApprovalRequiredEvent
-    | InvalidApprovalResponseEvent
     | InvestigationCompletedEvent
     | ModelThinkingEvent
     | ExecutingProposalEvent

@@ -5,7 +5,7 @@ from incident_triage_assistant_langchain.graph.event_stream.schema import (
     MessageChunkEvent,
     ModelThinkingEvent,
 )
-from incident_triage_assistant_langchain.graph.runner.graph_runner import GraphRunner
+from incident_triage_assistant_langchain.graph.runner import GraphRunner
 
 from .handle_approval_required_event import handle_approval_required_event
 from .handle_investigation_completed_event import handle_investigation_completed_event
