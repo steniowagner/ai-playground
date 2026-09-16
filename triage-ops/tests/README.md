@@ -1,0 +1,31 @@
+# Test suite
+
+Tests are grouped by application module rather than mirroring every source file:
+
+- `domain/`
+- `repositories/`
+- `tools/`
+- `services/`
+- `graph/`
+- `event_stream/`
+- `integration/`
+- `cli/`
+- `evaluations/`
+
+Shared object factories and test doubles live in `support/`. Tests must not make
+real model-provider or network calls; the global fixture in `conftest.py` blocks
+socket connections so accidental external calls fail immediately.
+
+Run the deterministic suite with:
+
+```bash
+uv run pytest
+```
+
+Useful selections:
+
+```bash
+uv run pytest -m unit
+uv run pytest -m integration
+uv run pytest -m "not slow and not evaluation"
+```

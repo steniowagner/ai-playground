@@ -28,5 +28,25 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
     "ruff>=0.16.7",
+]
+
+[tool.pytest.ini_options]
+minversion = "9.0"
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = [
+    "-ra",
+    "--strict-config",
+    "--strict-markers",
+]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+markers = [
+    "unit: fast tests for one module with dependencies isolated",
+    "integration: tests covering collaboration between application modules",
+    "evaluation: model-behavior evaluations that may be slower or nondeterministic",
+    "slow: tests excluded from the normal fast feedback loop when requested",
 ]
