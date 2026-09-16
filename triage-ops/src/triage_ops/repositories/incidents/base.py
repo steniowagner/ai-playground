@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from triage_ops.tools.get_incident.schema import Incident
+from triage_ops.tools.get_incident import Incident
 
 
 class IncidentRepository(ABC):

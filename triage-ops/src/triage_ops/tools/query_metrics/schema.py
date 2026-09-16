@@ -3,7 +3,7 @@ from typing import Literal
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
 
-from triage_ops.domain.types import (
+from triage_ops.domain import (
     Environment,
 )
 

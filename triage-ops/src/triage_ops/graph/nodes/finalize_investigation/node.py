@@ -2,10 +2,10 @@ from langchain.messages import HumanMessage, SystemMessage
 from langchain_core.language_models import LanguageModelInput
 from langchain_core.runnables import Runnable
 
-from triage_ops.domain.investigation.schema import (
+from triage_ops.domain.investigation import (
     InvestigationResponse,
 )
-from triage_ops.graph.state import State
+from triage_ops.graph import State
 
 from .prompts import FINALIZER_HUMAN_PROMPT, FINALIZER_SYSTEM_PROMPT
 from .utils import build_evidence_transcript

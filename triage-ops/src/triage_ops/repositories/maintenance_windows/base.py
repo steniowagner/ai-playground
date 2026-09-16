@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from triage_ops.tools.get_maintenance_windows.schema import (
+from triage_ops.tools.get_maintenance_windows import (
     MaintenanceWindow,
 )
 

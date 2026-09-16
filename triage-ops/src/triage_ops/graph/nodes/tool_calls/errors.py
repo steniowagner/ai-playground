@@ -3,7 +3,7 @@ from langchain.messages import (
 )
 from langchain_core.messages.tool import ToolCall
 
-from triage_ops.tools.schema import (
+from triage_ops.tools import (
     ToolErrorResponse,
     ToolErrorResponseDetail,
 )

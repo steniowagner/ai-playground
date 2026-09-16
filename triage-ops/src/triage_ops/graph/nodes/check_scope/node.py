@@ -2,7 +2,7 @@ from langchain.messages import SystemMessage
 from langchain_core.language_models import LanguageModelInput
 from langchain_core.runnables import Runnable
 
-from triage_ops.graph.state import State
+from triage_ops.graph import State
 
 from ..utils import get_latest_user_message
 from .prompts import SCOPE_PROMPT

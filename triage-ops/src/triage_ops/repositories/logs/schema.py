@@ -1,7 +1,7 @@
 from pydantic import AwareDatetime, BaseModel, ConfigDict
 
-from triage_ops.domain.types import Environment
-from triage_ops.tools.query_logs.schema import Severity
+from triage_ops.domain import Environment
+from triage_ops.tools.query_logs import Severity
 
 
 class FindLogsArgs(BaseModel):

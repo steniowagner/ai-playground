@@ -2,7 +2,7 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
-from triage_ops.tools.query_logs.schema import Log
+from triage_ops.tools.query_logs import Log
 
 from ..exceptions import RepositoryDataError, RepositoryUnavailable
 from .base import LogsRepository

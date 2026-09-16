@@ -3,10 +3,10 @@ from collections import Counter
 from langgraph.types import interrupt
 from pydantic import ValidationError
 
-from triage_ops.graph.nodes.prepare_approvals.schema import (
+from triage_ops.graph import State
+from triage_ops.graph.nodes.prepare_approvals import (
     PendingApproval,
 )
-from triage_ops.graph.state import State
 
 from .exceptions import InvalidApprovalResponse
 from .schema import ApprovalDecision, ApprovalResponse

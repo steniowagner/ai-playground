@@ -1,6 +1,6 @@
 import re
 
-from triage_ops.graph.state import State
+from triage_ops.graph import State
 
 from ..utils import get_latest_user_message
 

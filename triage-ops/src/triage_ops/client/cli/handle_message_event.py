@@ -1,6 +1,6 @@
 from typing import Literal
 
-from triage_ops.graph.event_stream.schema import (
+from triage_ops.graph.event_stream import (
     GraphEvent,
     MessageChunkEvent,
     ModelThinkingEvent,

@@ -1,8 +1,8 @@
 from langchain.messages import AIMessage
 from langgraph.config import get_stream_writer
 
-from triage_ops.graph.event_stream.schema import CustomStreamEvents
-from triage_ops.graph.state import State
+from triage_ops.graph import State
+from triage_ops.graph.event_stream import CustomStreamEvents
 
 OUT_OF_SCOPE_RESPONSE = (
     "I can help with incident triage and operational questions about services, "

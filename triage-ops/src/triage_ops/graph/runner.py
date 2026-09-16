@@ -6,7 +6,7 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.types import Command
 
-from triage_ops.graph.nodes.request_approvals.schema import (
+from triage_ops.graph.nodes.request_approvals import (
     ApprovalDecision,
 )
 

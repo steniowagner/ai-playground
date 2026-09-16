@@ -3,12 +3,12 @@ import asyncio
 from dotenv import load_dotenv
 from langgraph.checkpoint.memory import InMemorySaver
 
-from triage_ops.client.cli.run_cli import run_cli
-from triage_ops.graph.builder import build_graph
-from triage_ops.graph.runner import (
+from triage_ops.client.cli import run_cli
+from triage_ops.graph import (
     GraphRunner,
+    build_graph,
 )
-from triage_ops.model.factory import create_model
+from triage_ops.model import create_model
 
 
 def main() -> None:

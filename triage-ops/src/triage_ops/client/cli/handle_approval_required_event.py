@@ -1,16 +1,14 @@
 import json
 
-from triage_ops.graph.event_stream.schema import (
+from triage_ops.graph.event_stream import (
     ApprovalRequiredEvent,
     BaseProposalEvent,
     ExecutingProposalEvent,
     ProposalExecutionFinishedEvent,
 )
-from triage_ops.graph.nodes.request_approvals.exceptions import (
-    InvalidApprovalResponse,
-)
-from triage_ops.graph.nodes.request_approvals.schema import (
+from triage_ops.graph.nodes.request_approvals import (
     ApprovalDecision,
+    InvalidApprovalResponse,
 )
 
 from .schema import HandleApprovalRequiredEventArgs

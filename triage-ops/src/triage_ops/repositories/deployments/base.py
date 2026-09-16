@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from triage_ops.tools.get_recent_deployments.schema import (
+from triage_ops.tools.get_recent_deployments import (
     Deployment,
 )
 

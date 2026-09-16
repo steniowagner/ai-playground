@@ -4,15 +4,15 @@ from langchain.messages import AnyMessage
 from langgraph.graph.message import add_messages
 from pydantic import BaseModel, Field
 
-from triage_ops.domain.investigation.schema import (
+from triage_ops.domain.investigation import (
     InvestigationFailure,
     InvestigationResult,
 )
 from triage_ops.graph.nodes.check_scope import RequestScope
-from triage_ops.graph.nodes.prepare_approvals.schema import (
+from triage_ops.graph.nodes.prepare_approvals import (
     PendingApproval,
 )
-from triage_ops.graph.nodes.request_approvals.schema import (
+from triage_ops.graph.nodes.request_approvals import (
     ApprovalDecision,
 )
 

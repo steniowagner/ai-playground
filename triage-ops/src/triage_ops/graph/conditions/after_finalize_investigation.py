@@ -2,12 +2,12 @@ from typing import Literal
 
 from langgraph.graph import END
 
-from triage_ops.domain.investigation.schema import (
+from triage_ops.domain.investigation import (
     ExecutableProposal,
     InvestigationResult,
 )
-from triage_ops.graph.nodes.schema import Nodes
-from triage_ops.graph.state import State
+from triage_ops.graph import State
+from triage_ops.graph.nodes import Nodes
 
 
 def after_finalize_investigation(

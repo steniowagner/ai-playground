@@ -1,4 +1,6 @@
-from typing import Any, Generic, Literal, TypeVar
+import logging
+from abc import ABC, abstractmethod
+from typing import Any, Generic, Literal, TypedDict, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -38,3 +40,21 @@ class ServiceSuccessResponse(BaseModel, Generic[T]):
 type ServiceResponse[ResponseT] = (
     ServiceSuccessResponse[ResponseT] | ServiceErrorResponse
 )
+
+
+class Service[Args](ABC):
+    def __init__(self):
+        self.logger = logging.getLogger(
+            f"{self.__class__.__module__}.{self.__class__.__name__}"
+        )
+
+    @abstractmethod
+    def execute(self, args: Args) -> ServiceResponse:
+        pass
+
+
+class ServiceRegistry(TypedDict):
+    rollback_deployment: Service
+    disable_feature_flag: Service
+    restart_service: Service
+    escalate_incident: Service

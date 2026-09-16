@@ -4,7 +4,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from triage_ops.tools.get_recent_deployments.schema import (
+from triage_ops.tools.get_recent_deployments import (
     Deployment,
 )
 

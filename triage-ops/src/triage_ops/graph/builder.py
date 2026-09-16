@@ -4,43 +4,39 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.types import Checkpointer
 
-from triage_ops.domain.investigation.schema import (
+from triage_ops.domain.investigation import (
     InvestigationResponse,
 )
-from triage_ops.graph.conditions.after_finalize_investigation import (
+from triage_ops.graph.conditions import (
     after_finalize_investigation,
-)
-from triage_ops.graph.conditions.after_llm_call import (
     after_llm_call,
-)
-from triage_ops.graph.conditions.after_tool_call import (
     after_tool_call,
 )
-from triage_ops.graph.nodes.execute_approvals.node import (
+from triage_ops.graph.nodes import (
+    Nodes,
+)
+from triage_ops.graph.nodes.execute_approvals import (
     execute_approvals_node,
 )
-from triage_ops.graph.nodes.finalize_investigation.node import (
+from triage_ops.graph.nodes.finalize_investigation import (
     finalize_investigation_node,
 )
-from triage_ops.graph.nodes.llm_call.node import llm_call_node
-from triage_ops.graph.nodes.prepare_approvals.node import (
+from triage_ops.graph.nodes.llm_call import llm_call_node
+from triage_ops.graph.nodes.prepare_approvals import (
     prepare_approvals_node,
 )
-from triage_ops.graph.nodes.prepare_user_request.node import (
+from triage_ops.graph.nodes.prepare_user_request import (
     prepare_user_request_node,
 )
-from triage_ops.graph.nodes.request_approvals.node import (
+from triage_ops.graph.nodes.request_approvals import (
     request_approvals_node,
 )
-from triage_ops.graph.nodes.schema import Nodes
-from triage_ops.graph.nodes.tool_calls.node import (
-    tool_calls_node,
-)
-from triage_ops.model.schema import Model
-from triage_ops.services.bootstrap_services import (
+from triage_ops.graph.nodes.tool_calls.node import tool_calls_node
+from triage_ops.model import Model
+from triage_ops.services import (
     bootstrap_services,
 )
-from triage_ops.tools.bootstrap_tools import bootstrap_tools
+from triage_ops.tools import bootstrap_tools
 
 from .conditions.after_scope_check import after_scope_check
 from .nodes.check_scope import ScopeDecision, check_scope_node

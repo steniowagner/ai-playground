@@ -8,8 +8,8 @@ from pydantic import (
     model_validator,
 )
 
-from triage_ops.domain.types import IncidentSeverity
-from triage_ops.tools.schema import ToolNames
+from triage_ops.domain import IncidentSeverity
+from triage_ops.tools import ToolNames
 
 from .proposals import (
     DisableFeatureFlagProposal,

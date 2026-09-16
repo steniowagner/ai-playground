@@ -5,7 +5,7 @@ from pydantic import (
     model_validator,
 )
 
-from triage_ops.domain.types import Environment
+from triage_ops.domain import Environment
 
 
 class Deployment(BaseModel):

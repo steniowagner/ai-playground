@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 
-from triage_ops.graph.event_stream.schema import (
+from triage_ops.graph import GraphRunner
+from triage_ops.graph.event_stream import (
     ApprovalRequiredEvent,
 )
-from triage_ops.graph.runner import GraphRunner
 
 
 @dataclass(frozen=True, slots=True)

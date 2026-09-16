@@ -1,27 +1,27 @@
 from langchain_core.tools import BaseTool
 
-from triage_ops.repositories.deployments.json import (
+from triage_ops.repositories.deployments import (
     JSONDeploymentsRepository,
 )
-from triage_ops.repositories.feature_flags.json import (
+from triage_ops.repositories.feature_flags import (
     JSONFeatureFlagsRepository,
 )
-from triage_ops.repositories.incidents.json import (
+from triage_ops.repositories.incidents import (
     JSONIncidentRepository,
 )
-from triage_ops.repositories.logs.json import (
+from triage_ops.repositories.logs import (
     JSONLogsRepository,
 )
-from triage_ops.repositories.maintenance_windows.json import (
+from triage_ops.repositories.maintenance_windows import (
     JSONMaintenanceWindowsRepository,
 )
-from triage_ops.repositories.metrics.json import (
+from triage_ops.repositories.metrics import (
     JSONMetricsRepository,
 )
-from triage_ops.repositories.runbooks.json import (
+from triage_ops.repositories.runbooks import (
     JSONRunbooksRepository,
 )
-from triage_ops.repositories.services.json import (
+from triage_ops.repositories.services import (
     JSONServicesRepository,
 )
 

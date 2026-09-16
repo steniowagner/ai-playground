@@ -3,17 +3,17 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .bootstrap_services import (
-        ServiceRegistry,
         bootstrap_services,
     )
     from .exceptions import ServiceExecutionException
     from .schema import (
+        Service,
         ServiceErrorResponse,
         ServiceErrorResponseDetail,
+        ServiceRegistry,
         ServiceResponse,
         ServiceSuccessResponse,
     )
-    from .service import Service
 
 __all__ = [
     "Service",
@@ -27,14 +27,14 @@ __all__ = [
 ]
 
 _EXPORTS = {
-    "ServiceRegistry": (".bootstrap_services", "ServiceRegistry"),
+    "ServiceRegistry": (".schema", "ServiceRegistry"),
     "bootstrap_services": (".bootstrap_services", "bootstrap_services"),
     "ServiceExecutionException": (".exceptions", "ServiceExecutionException"),
     "ServiceErrorResponse": (".schema", "ServiceErrorResponse"),
     "ServiceErrorResponseDetail": (".schema", "ServiceErrorResponseDetail"),
     "ServiceResponse": (".schema", "ServiceResponse"),
     "ServiceSuccessResponse": (".schema", "ServiceSuccessResponse"),
-    "Service": (".service", "Service"),
+    "Service": (".schema", "Service"),
 }
 
 

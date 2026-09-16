@@ -1,26 +1,20 @@
 from pydantic import ValidationError
 
-from triage_ops.domain.investigation.schema import (
+from triage_ops.domain.investigation import (
     ExecutableProposal,
 )
-from triage_ops.graph.nodes.prepare_approvals.schema import (
+from triage_ops.graph import State
+from triage_ops.graph.nodes.prepare_approvals import (
     PendingApproval,
 )
-from triage_ops.graph.state import State
-from triage_ops.services.bootstrap_services import (
-    ServiceRegistry,
-)
-from triage_ops.services.exceptions import (
-    ServiceExecutionException,
-)
-from triage_ops.services.schema import (
+from triage_ops.services import (
+    Service,
     ServiceErrorResponse,
     ServiceErrorResponseDetail,
+    ServiceExecutionException,
+    ServiceRegistry,
     ServiceResponse,
     ServiceSuccessResponse,
-)
-from triage_ops.services.service import (
-    Service,
 )
 
 

@@ -4,7 +4,7 @@ from pydantic import (
     Field,
 )
 
-from triage_ops.domain.types import (
+from triage_ops.domain import (
     Environment,
 )
 

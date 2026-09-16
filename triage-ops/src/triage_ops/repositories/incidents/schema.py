@@ -2,8 +2,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
-from triage_ops.domain.types import IncidentSeverity
-from triage_ops.tools.get_incident.schema import Incident
+from triage_ops.domain import IncidentSeverity
+from triage_ops.tools.get_incident import Incident
 
 
 class IncidentFixtureTruth(BaseModel):

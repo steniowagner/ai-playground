@@ -1,7 +1,8 @@
 from pathlib import Path
 
 from pydantic import ValidationError
-from triage_ops.tools.query_metrics.schema import Metric
+
+from triage_ops.tools.query_metrics import Metric
 
 from ..exceptions import RepositoryDataError, RepositoryUnavailable
 from .base import MetricsRepository

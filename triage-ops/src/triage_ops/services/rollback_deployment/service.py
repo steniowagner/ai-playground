@@ -1,5 +1,4 @@
-from ..schema import ServiceResponse, ServiceSuccessResponse
-from ..service import Service
+from ..schema import Service, ServiceResponse, ServiceSuccessResponse
 from .schema import RollbackDeploymentServiceArgs
 
 

@@ -1,4 +1,4 @@
-from triage_ops.graph.event_stream.schema import (
+from triage_ops.graph.event_stream import (
     InvestigationCompletedEvent,
 )
 

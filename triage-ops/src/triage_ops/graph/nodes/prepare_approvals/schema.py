@@ -3,10 +3,10 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
-from triage_ops.domain.investigation.schema import (
+from triage_ops.domain.investigation import (
     ExecutableProposal,
 )
-from triage_ops.services.schema import ServiceResponse
+from triage_ops.services import ServiceResponse
 
 ApprovalStatus = Literal[
     "pending",

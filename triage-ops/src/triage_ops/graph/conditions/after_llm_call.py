@@ -3,8 +3,8 @@ from typing import Literal
 from langchain.messages import AIMessage
 from langgraph.graph import END
 
-from triage_ops.graph.nodes.schema import Nodes
-from triage_ops.graph.state import State
+from triage_ops.graph import State
+from triage_ops.graph.nodes import Nodes
 
 
 def after_llm_call(state: State) -> Literal[Nodes.TOOL, "__end__"]:

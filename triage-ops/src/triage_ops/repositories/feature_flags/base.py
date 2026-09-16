@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from triage_ops.tools.get_feature_flags.schema import (
+from triage_ops.tools.get_feature_flags import (
     FeatureFlag,
 )
 

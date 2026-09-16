@@ -2,16 +2,16 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from triage_ops.services.disable_feature_flag.schema import (
+from triage_ops.services.disable_feature_flag import (
     DisableFeatureFlagServiceArgs,
 )
-from triage_ops.services.escalate_incident.schema import (
+from triage_ops.services.escalate_incident import (
     EscalateIncidentServiceArgs,
 )
-from triage_ops.services.restart_service.schema import (
+from triage_ops.services.restart_service import (
     RestartServiceArgs,
 )
-from triage_ops.services.rollback_deployment.schema import (
+from triage_ops.services.rollback_deployment import (
     RollbackDeploymentServiceArgs,
 )
 

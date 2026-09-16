@@ -1,8 +1,8 @@
 from typing import Literal
 
-from triage_ops.graph.nodes.check_scope.schema import RequestScope
-from triage_ops.graph.nodes.schema import Nodes
-from triage_ops.graph.state import State
+from triage_ops.graph import State
+from triage_ops.graph.nodes import Nodes
+from triage_ops.graph.nodes.check_scope import RequestScope
 
 
 def after_scope_check(

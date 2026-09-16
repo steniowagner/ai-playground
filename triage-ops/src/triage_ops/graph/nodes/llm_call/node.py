@@ -7,7 +7,7 @@ from langchain_core.messages import (
 )
 from langchain_core.runnables import Runnable
 
-from triage_ops.graph.state import State
+from triage_ops.graph import State
 
 from .prompts import SYSTEM_PROMPT
 

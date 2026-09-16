@@ -1,10 +1,10 @@
 from uuid import uuid4
 
-from triage_ops.domain.investigation.schema import (
+from triage_ops.domain.investigation import (
     ExecutableProposal,
     InvestigationResult,
 )
-from triage_ops.graph.state import State
+from triage_ops.graph import State
 
 from .schema import PendingApproval
 

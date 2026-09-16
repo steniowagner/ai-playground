@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict, Field
 
-from triage_ops.domain.types import (
+from triage_ops.domain import (
     IncidentSeverity,
 )
 

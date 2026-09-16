@@ -4,7 +4,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from triage_ops.tools.get_service_context.schema import Service
+from triage_ops.tools.get_service_context import Service
 
 from ..exceptions import RepositoryDataError, RepositoryUnavailable
 from .base import ServicesRepository
