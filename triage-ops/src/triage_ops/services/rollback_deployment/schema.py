@@ -38,6 +38,7 @@ class RollbackDeploymentServiceArgs(BaseModel):
 
     target_deployment_id: str | None = Field(
         default=None,
+        min_length=1,
         description=(
             "Identifier of the known-good deployment to restore, copied exactly "
             "from get_recent_deployments. Null means restore the deployment that "

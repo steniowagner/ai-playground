@@ -1,6 +1,6 @@
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Generic, Literal, TypedDict, TypeVar
+from typing import Any, Literal, TypedDict
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -9,8 +9,6 @@ ServiceErrorResponseCode = Literal[
     "UNKNOWN_TOOL",
     "EXECUTION_ERROR",
 ]
-
-T = TypeVar("T")
 
 
 class ServiceErrorResponseDetail(BaseModel):
@@ -29,7 +27,7 @@ class ServiceErrorResponse(BaseModel):
     error: ServiceErrorResponseDetail
 
 
-class ServiceSuccessResponse(BaseModel, Generic[T]):
+class ServiceSuccessResponse[T](BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     ok: Literal[True]

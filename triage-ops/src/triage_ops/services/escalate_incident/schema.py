@@ -26,6 +26,7 @@ class EscalateIncidentServiceArgs(BaseModel):
 
     notify_team: str | None = Field(
         default=None,
+        min_length=1,
         description=(
             "Owning team to page, copied exactly from get_service_context "
             "ownership. Null when ownership was not retrieved."
