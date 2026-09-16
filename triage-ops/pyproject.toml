@@ -41,6 +41,8 @@ addopts = [
     "-ra",
     "--strict-config",
     "--strict-markers",
+    "-m",
+    "not evaluation",
 ]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
@@ -48,5 +50,6 @@ markers = [
     "unit: fast tests for one module with dependencies isolated",
     "integration: tests covering collaboration between application modules",
     "evaluation: model-behavior evaluations that may be slower or nondeterministic",
+    "live_model: evaluations that require an explicitly configured model provider",
     "slow: tests excluded from the normal fast feedback loop when requested",
 ]

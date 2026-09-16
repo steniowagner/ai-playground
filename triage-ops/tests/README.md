@@ -27,5 +27,9 @@ Useful selections:
 ```bash
 uv run pytest -m unit
 uv run pytest -m integration
+uv run pytest -m evaluation
 uv run pytest -m "not slow and not evaluation"
 ```
+
+Model evaluations are excluded from the default run. Their development and
+held-out acceptance thresholds are documented in `evaluations/README.md`.
