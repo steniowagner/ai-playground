@@ -2,6 +2,7 @@ import logging
 
 from langchain_core.tools import BaseTool
 from pydantic import BaseModel
+
 from triage_ops.repositories.exceptions import (
     RepositoryException,
 )

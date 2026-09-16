@@ -1,6 +1,7 @@
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
+
 from triage_ops.domain.types import IncidentSeverity
 from triage_ops.tools.get_incident.schema import Incident
 

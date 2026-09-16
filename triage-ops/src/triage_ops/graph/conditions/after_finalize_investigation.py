@@ -1,6 +1,7 @@
 from typing import Literal
 
 from langgraph.graph import END
+
 from triage_ops.domain.investigation.schema import (
     ExecutableProposal,
     InvestigationResult,

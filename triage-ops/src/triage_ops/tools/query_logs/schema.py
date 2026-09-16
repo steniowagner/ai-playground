@@ -2,6 +2,7 @@ from datetime import timedelta
 from typing import Any, Literal
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
+
 from triage_ops.domain.types import Environment
 
 DEFAULT_QUERY_WINDOW_MINUTES = 60

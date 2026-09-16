@@ -7,7 +7,9 @@ from pydantic import (
     TypeAdapter,
     model_validator,
 )
+
 from triage_ops.domain.types import IncidentSeverity
+from triage_ops.tools.schema import ToolNames
 
 from .proposals import (
     DisableFeatureFlagProposal,
@@ -20,14 +22,14 @@ from .proposals import (
 ConfidenceLevel = Literal["low", "medium", "high"]
 
 EvidenceSource = Literal[
-    "get_incident",
-    "get_service_context",
-    "get_recent_deployments",
-    "query_metrics",
-    "query_logs",
-    "get_runbook",
-    "get_maintenance_windows",
-    "get_feature_flags",
+    ToolNames.GET_INCIDENT,
+    ToolNames.GET_SERVICE_CONTEXT,
+    ToolNames.GET_RECENT_DEPLOYMENTS,
+    ToolNames.QUERY_METRICS,
+    ToolNames.QUERY_LOGS,
+    ToolNames.GET_RUNBOOK,
+    ToolNames.GET_MAINTENANCE_WINDOWS,
+    ToolNames.GET_FEATURE_FLAGS,
 ]
 
 

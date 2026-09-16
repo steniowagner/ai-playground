@@ -2,6 +2,7 @@ from datetime import timedelta
 from typing import Literal
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, model_validator
+
 from triage_ops.domain.types import Environment
 
 MAX_QUERY_WINDOW_HOURS = 24

@@ -5,6 +5,7 @@ from uuid import UUID
 
 from langgraph.types import Command
 from pydantic import BaseModel, ConfigDict, Field
+
 from triage_ops.domain.investigation.schema import (
     InvestigationOutcome,
 )

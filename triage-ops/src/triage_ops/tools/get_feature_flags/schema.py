@@ -1,6 +1,7 @@
 from typing import Literal
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field
+
 from triage_ops.domain.types import Environment
 
 

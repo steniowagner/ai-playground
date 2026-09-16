@@ -1,6 +1,7 @@
 from typing import Literal
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict
+
 from triage_ops.domain.types import Environment
 from triage_ops.tools.get_maintenance_windows.schema import (
     MaintenanceWindow,

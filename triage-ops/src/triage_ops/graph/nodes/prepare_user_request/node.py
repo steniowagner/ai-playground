@@ -1,6 +1,7 @@
 import re
 
 from langchain.messages import HumanMessage
+
 from triage_ops.graph.state import State
 
 VALID_INCIDENT_ID_PATTERN = re.compile(r"(?<![A-Za-z0-9_-])INC-\d{4}(?![A-Za-z0-9_-])")

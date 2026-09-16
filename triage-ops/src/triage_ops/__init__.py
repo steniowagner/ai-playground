@@ -25,3 +25,6 @@ def main() -> None:
             thread_id="cli",
         )
     )
+
+
+__all__ = ["main"]

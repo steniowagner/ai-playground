@@ -1,4 +1,5 @@
 from pydantic import ValidationError
+
 from triage_ops.domain.investigation.schema import (
     ExecutableProposal,
 )

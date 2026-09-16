@@ -4,6 +4,7 @@ from pydantic import (
     ConfigDict,
     model_validator,
 )
+
 from triage_ops.domain.types import Environment
 
 

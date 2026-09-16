@@ -1,6 +1,7 @@
 from langchain.messages import HumanMessage, SystemMessage
 from langchain_core.language_models import LanguageModelInput
 from langchain_core.runnables import Runnable
+
 from triage_ops.domain.investigation.schema import (
     InvestigationResponse,
 )

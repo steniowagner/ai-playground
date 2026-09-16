@@ -3,6 +3,7 @@ from typing import Annotated
 from langchain.messages import AnyMessage
 from langgraph.graph.message import add_messages
 from pydantic import BaseModel, Field
+
 from triage_ops.domain.investigation.schema import (
     InvestigationFailure,
     InvestigationResult,

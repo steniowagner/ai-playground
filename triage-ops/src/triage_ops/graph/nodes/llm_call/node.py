@@ -6,6 +6,7 @@ from langchain_core.messages import (
     AIMessage,
 )
 from langchain_core.runnables import Runnable
+
 from triage_ops.graph.state import State
 
 from .prompts import SYSTEM_PROMPT

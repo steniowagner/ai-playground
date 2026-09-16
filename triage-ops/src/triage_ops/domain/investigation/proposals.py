@@ -1,6 +1,7 @@
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
+
 from triage_ops.services.disable_feature_flag.schema import (
     DisableFeatureFlagServiceArgs,
 )

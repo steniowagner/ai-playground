@@ -3,6 +3,7 @@ from functools import partial
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.types import Checkpointer
+
 from triage_ops.domain.investigation.schema import (
     InvestigationResponse,
 )

@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Any
 
 from pydantic import ValidationError
+
 from triage_ops.tools.get_incident.schema import Incident
 
 from ..exceptions import RepositoryDataError, RepositoryUnavailable

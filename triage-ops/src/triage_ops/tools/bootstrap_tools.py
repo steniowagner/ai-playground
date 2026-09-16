@@ -1,4 +1,5 @@
 from langchain_core.tools import BaseTool
+
 from triage_ops.repositories.deployments.json import (
     JSONDeploymentsRepository,
 )

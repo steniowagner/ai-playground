@@ -1,0 +1,34 @@
+from importlib import import_module
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from .schema import (
+        Log,
+        Severity,
+    )
+    from .tool import QueryLogsTool
+
+__all__ = [
+    "Log",
+    "QueryLogsTool",
+    "Severity",
+]
+
+_EXPORTS = {
+    "Log": (".schema", "Log"),
+    "Severity": (".schema", "Severity"),
+    "QueryLogsTool": (".tool", "QueryLogsTool"),
+}
+
+
+def __getattr__(name: str) -> Any:
+    try:
+        module_name, attribute_name = _EXPORTS[name]
+    except KeyError as error:
+        raise AttributeError(
+            f"module {__name__!r} has no attribute {name!r}"
+        ) from error
+
+    value = getattr(import_module(module_name, __name__), attribute_name)
+    globals()[name] = value
+    return value

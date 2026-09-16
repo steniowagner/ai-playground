@@ -3,6 +3,7 @@ from pydantic import (
     ConfigDict,
     Field,
 )
+
 from triage_ops.domain.types import (
     Environment,
 )

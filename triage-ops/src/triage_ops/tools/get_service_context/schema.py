@@ -1,6 +1,7 @@
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict
+
 from triage_ops.domain.types import Environment
 
 
