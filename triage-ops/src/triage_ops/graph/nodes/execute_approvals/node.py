@@ -90,11 +90,14 @@ def execute_approvals_node(state: State, *, service_registry: ServiceRegistry) -
         )
 
         executed_proposals.append(
-            executing_proposal.model_copy(
-                update={
-                    "status": "executed"
-                    if isinstance(proposal_result, ServiceSuccessResponse)
-                    else "failed",
+            PendingApproval.model_validate(
+                {
+                    **executing_proposal.model_dump(),
+                    "status": (
+                        "executed"
+                        if isinstance(proposal_result, ServiceSuccessResponse)
+                        else "failed"
+                    ),
                     "execution_result": proposal_result,
                 }
             )

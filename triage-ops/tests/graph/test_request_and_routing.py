@@ -233,10 +233,6 @@ class TestScopeAndLlmNodes:
         assert "INC-1042" in system_messages[1].text
         assert "not authorized" in system_messages[1].text
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason="llm_call_node currently appends state.messages twice",
-    )
     def test_llm_node_includes_conversation_history_exactly_once(self) -> None:
         model = ScriptedModel([AIMessage(content="answer")])
         history = [

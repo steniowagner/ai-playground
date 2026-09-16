@@ -498,10 +498,6 @@ class TestApprovalAndCheckpointPaths:
         assert first["authorized_incident_id"] == "INC-1042"
         assert second.get("authorized_incident_id") is None
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason="rejected proposal event parsing dereferences execution_result=None",
-    )
     async def test_rejected_proposal_is_never_executed(self) -> None:
         app = harness(
             scopes=[RequestScope.IN_SCOPE],

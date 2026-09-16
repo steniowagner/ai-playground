@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
@@ -25,4 +25,4 @@ class PendingApproval(BaseModel):
     incident_id: str
     proposal: ExecutableProposal
     status: ApprovalStatus
-    execution_result: ServiceResponse | None = None
+    execution_result: ServiceResponse[Any] | None = None

@@ -50,10 +50,8 @@ def parse_update_event(payload: dict, base_event: Event) -> list[GraphEvent]:
                     )
                 )
 
-            if (
-                pending_approval.status == "executed"
-                or pending_approval.status == "rejected"
-            ):
+            if pending_approval.status in {"executed", "failed", "rejected"}:
+                execution_result = pending_approval.execution_result
                 events.append(
                     ProposalExecutionFinishedEvent(
                         **base_event.model_dump(),
@@ -63,8 +61,10 @@ def parse_update_event(payload: dict, base_event: Event) -> list[GraphEvent]:
                         ),
                         incident_id=pending_approval.incident_id,
                         proposal_id=pending_approval.proposal_id,
-                        result=pending_approval.execution_result.model_dump(
-                            mode="json"
+                        result=(
+                            execution_result.model_dump(mode="json")
+                            if execution_result is not None
+                            else None
                         ),
                     )
                 )

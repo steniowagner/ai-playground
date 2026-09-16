@@ -288,10 +288,6 @@ class TestUpdateEventParsing:
             "error": None,
         }
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason="rejected approvals currently dereference execution_result=None",
-    )
     def test_emits_rejected_proposal_without_execution_result(self) -> None:
         events = parse_update_event(
             {"approval": {"pending_approvals": [approval("rejected")]}},
@@ -302,10 +298,6 @@ class TestUpdateEventParsing:
         assert isinstance(events[0], ProposalExecutionFinishedEvent)
         assert events[0].result is None
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason="failed proposal status is not included in finished-event routing",
-    )
     def test_emits_failed_proposal_result(self) -> None:
         execution_result = ServiceErrorResponse.model_validate(
             {

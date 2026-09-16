@@ -32,4 +32,4 @@ def llm_call_node(
 
     messages.extend(state.messages)
 
-    return {"messages": [model.invoke([*messages, *state.messages])]}
+    return {"messages": [model.invoke(messages)]}
