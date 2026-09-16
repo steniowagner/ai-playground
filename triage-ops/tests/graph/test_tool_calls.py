@@ -218,6 +218,9 @@ class TestToolCallsNode:
             "messages": []
         }
 
+    def test_ignores_empty_message_history(self) -> None:
+        assert tool_calls_node(State(messages=[]), tools={}) == {"messages": []}
+
     def test_executes_known_tool_and_emits_lifecycle_events(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
@@ -257,6 +260,53 @@ class TestToolCallsNode:
             "call-2",
         ]
         assert tool.calls == [{"value": "one"}, {"value": "two"}]
+
+    def test_isolates_invalid_and_valid_calls_in_the_same_batch(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        invalid = call(args={"value": ""}, id_="call-1")
+        valid = call(args={"value": "safe"}, id_="call-2")
+        tool = EchoTool()
+
+        result, _ = self.run_node(
+            monkeypatch,
+            State(messages=[ai_call(invalid, valid)]),
+            {tool.name: tool},
+        )
+
+        invalid_response = ToolErrorResponse.model_validate_json(
+            result["messages"][0].content
+        )
+        valid_response = ToolSuccessResponse[Any].model_validate_json(
+            result["messages"][1].content
+        )
+        assert [message.tool_call_id for message in result["messages"]] == [
+            "call-1",
+            "call-2",
+        ]
+        assert invalid_response.error.code == "INVALID_ARGUMENT"
+        assert valid_response.data == {"echo": "safe"}
+        assert tool.calls == [{"value": "safe"}]
+
+    def test_blocks_duplicate_calls_within_the_same_model_message(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        first = call(id_="call-1")
+        duplicate = call(id_="call-2")
+        tool = EchoTool()
+
+        result, events = self.run_node(
+            monkeypatch,
+            State(messages=[ai_call(first, duplicate)]),
+            {tool.name: tool},
+        )
+
+        duplicate_response = ToolErrorResponse.model_validate_json(
+            result["messages"][1].content
+        )
+        assert duplicate_response.error.code == "RETRY_NOT_ALLOWED"
+        assert tool.calls == [{"value": "one"}]
+        assert events[-1]["code"] == ToolCallStreamEventCodes.REPEATED_TOOL_CALL
 
     def test_blocks_unauthorized_incident_call_before_tool_lookup(
         self, monkeypatch: pytest.MonkeyPatch

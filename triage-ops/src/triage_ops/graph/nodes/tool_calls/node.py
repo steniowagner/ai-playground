@@ -68,6 +68,9 @@ def make_unauthorized_incident_id_response(tool_call: ToolCall) -> ToolMessage:
 
 
 def tool_calls_node(state: State, *, tools: dict[str, BaseTool]) -> dict:
+    if not state.messages:
+        return {"messages": []}
+
     last_message = state.messages[-1]
 
     if not isinstance(last_message, AIMessage) or not last_message.tool_calls:

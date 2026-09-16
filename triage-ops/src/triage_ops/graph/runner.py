@@ -1,5 +1,5 @@
 from collections.abc import AsyncIterator
-from typing import Any, TypeAlias
+from typing import Any
 
 from langchain.messages import HumanMessage
 from langchain_core.runnables import RunnableConfig
@@ -13,7 +13,7 @@ from triage_ops.graph.nodes.request_approvals import (
 from .event_stream.parse_graph_event import parse_graph_event
 from .event_stream.schema import GraphEvent, ParseGraphEventArgs
 
-GraphInput: TypeAlias = dict[str, Any] | Command
+type GraphInput = dict[str, Any] | Command
 
 
 class GraphRunner:

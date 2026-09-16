@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Annotated, Any, Literal, TypeAlias
+from typing import Annotated, Any, Literal
 from uuid import UUID
 
 from langgraph.types import Command
@@ -10,7 +10,7 @@ from triage_ops.domain.investigation import (
     InvestigationOutcome,
 )
 
-GraphInput: TypeAlias = dict[str, Any] | Command
+type GraphInput = dict[str, Any] | Command
 
 
 class Event(BaseModel):

@@ -81,8 +81,11 @@ class TestPrepareUserRequest:
             state_with_message("Compare INC-1042 with the details for INC-1042")
         )
 
-        assert result["authorized_incident_id"] == "INC-1042"
-        assert result["is_incident_id_input_invalid"] is False
+        assert result == {
+            "authorized_incident_id": "INC-1042",
+            "pending_incident_id_confirmation": None,
+            "is_incident_id_input_invalid": False,
+        }
 
     def test_rejects_multiple_distinct_incident_ids(self) -> None:
         result = prepare_user_request_node(
@@ -157,8 +160,11 @@ class TestPrepareUserRequest:
             )
         )
 
-        assert result["authorized_incident_id"] == "INC-2042"
-        assert result["pending_incident_id_confirmation"] is None
+        assert result == {
+            "authorized_incident_id": "INC-2042",
+            "pending_incident_id_confirmation": None,
+            "is_incident_id_input_invalid": False,
+        }
 
     def test_unrelated_message_leaves_authorization_state_unchanged(self) -> None:
         assert (
@@ -217,6 +223,17 @@ class TestScopeAndLlmNodes:
 
         assert result == {"messages": [response]}
         assert isinstance(model.inputs[0][0], SystemMessage)
+        assert model.inputs[0][1:] == [user_message]
+        assert (
+            len(
+                [
+                    message
+                    for message in model.inputs[0]
+                    if isinstance(message, SystemMessage)
+                ]
+            )
+            == 1
+        )
 
     def test_llm_node_adds_pending_confirmation_instruction(self) -> None:
         model = ScriptedModel([AIMessage(content="Please confirm INC-1042")])
@@ -286,6 +303,9 @@ class TestRoutingConditions:
 
         assert after_llm_call(State(messages=[message])) == Nodes.TOOL
 
+    def test_after_llm_call_ends_without_messages(self) -> None:
+        assert after_llm_call(State(messages=[])) == END
+
     @pytest.mark.parametrize(
         "message", [AIMessage(content="answer"), HumanMessage(content="question")]
     )
@@ -319,6 +339,26 @@ class TestRoutingConditions:
                     tool_call_id="call-1",
                 ),
                 AIMessage(content="later response"),
+            ]
+        )
+
+        assert after_tool_call(state) == Nodes.LLM_CALL
+
+    def test_after_tool_call_routes_regular_tool_results_back_to_the_model(
+        self,
+    ) -> None:
+        state = State(
+            messages=[
+                ToolMessage(
+                    content="{}",
+                    name="query_logs",
+                    tool_call_id="call-1",
+                ),
+                ToolMessage(
+                    content="{}",
+                    name="query_metrics",
+                    tool_call_id="call-2",
+                ),
             ]
         )
 
