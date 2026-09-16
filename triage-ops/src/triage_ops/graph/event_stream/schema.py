@@ -110,6 +110,7 @@ class ParseGraphEventArgs(BaseModel):
 
 
 class CustomStreamEvents(str, Enum):
+    MESSAGE_CHUNK = "message_chunk"
     TOOL_STARTED = "tool_started"
     TOOL_SKIPPED = "tool_skipped"
     TOOL_FAILED = "tool_failed"

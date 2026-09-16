@@ -37,7 +37,12 @@ def parse_message_event(
     if not isinstance(message_chunk, AIMessageChunk):
         return None
 
-    if metadata.get("langgraph_node") == Nodes.FINALIZER:
+    hidden_nodes = {
+        Nodes.CHECK_SCOPE,
+        Nodes.FINALIZER,
+    }
+
+    if metadata.get("langgraph_node") in hidden_nodes:
         return None
 
     thinking, answer = split_stream_chunk(message_chunk)

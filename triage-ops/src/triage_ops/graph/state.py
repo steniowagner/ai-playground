@@ -8,6 +8,7 @@ from triage_ops.domain.investigation.schema import (
     InvestigationFailure,
     InvestigationResult,
 )
+from triage_ops.graph.nodes.check_scope import RequestScope
 from triage_ops.graph.nodes.prepare_approvals.schema import (
     PendingApproval,
 )
@@ -24,3 +25,4 @@ class State(BaseModel):
     is_incident_id_input_invalid: bool = True
     authorized_incident_id: str | None = None
     pending_incident_id_confirmation: str | None = None
+    request_scope: RequestScope | None = None

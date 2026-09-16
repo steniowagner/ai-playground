@@ -5,6 +5,7 @@ from triage_ops.graph.event_stream.schema import (
 from .schema import (
     Event,
     GraphEvent,
+    MessageChunkEvent,
     ToolFailedEvent,
     ToolFinishedEvent,
     ToolSkippedEvent,
@@ -14,6 +15,11 @@ from .schema import (
 
 def parse_custom_event(payload: dict, base_event: Event) -> GraphEvent | None:
     match payload["event"]:
+        case CustomStreamEvents.MESSAGE_CHUNK:
+            return MessageChunkEvent(
+                **base_event.model_dump(),
+                content=payload["content"],
+            )
         case CustomStreamEvents.TOOL_STARTED:
             return ToolStartedEvent(
                 **base_event.model_dump(),

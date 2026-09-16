@@ -1,8 +1,8 @@
 import re
 
-from langchain.messages import HumanMessage
-
 from triage_ops.graph.state import State
+
+from ..utils import get_latest_user_message
 
 VALID_INCIDENT_ID_PATTERN = re.compile(r"(?<![A-Za-z0-9_-])INC-\d{4}(?![A-Za-z0-9_-])")
 
@@ -25,14 +25,6 @@ NEGATIVE_CONFIRMATION_PATTERN = re.compile(
     r"^\s*(?:no|n|incorrect|that's incorrect)\s*[.!]?\s*$",
     re.IGNORECASE,
 )
-
-
-def get_latest_user_message(state: State) -> HumanMessage | None:
-    for message in reversed(state.messages):
-        if isinstance(message, HumanMessage):
-            return message
-
-    return None
 
 
 def prepare_user_request_node(state: State) -> dict:

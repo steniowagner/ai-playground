@@ -42,6 +42,9 @@ from triage_ops.services.bootstrap_services import (
 )
 from triage_ops.tools.bootstrap_tools import bootstrap_tools
 
+from .conditions.after_scope_check import after_scope_check
+from .nodes.check_scope import ScopeDecision, check_scope_node
+from .nodes.reject_out_of_scope import reject_out_of_scope_node
 from .state import State
 
 
@@ -49,6 +52,10 @@ def build_graph(model: Model, checkpointer: Checkpointer) -> CompiledStateGraph:
     tools = bootstrap_tools()
     service_registry = bootstrap_services()
 
+    scope_model = model.with_structured_output(
+        ScopeDecision,
+        method="json_schema",
+    )
     agent_model = model.bind_tools(tools)
     finalizer_model = model.with_structured_output(
         InvestigationResponse, method="json_schema"
@@ -75,9 +82,28 @@ def build_graph(model: Model, checkpointer: Checkpointer) -> CompiledStateGraph:
         Nodes.EXECUTE_APPROVALS,
         partial(execute_approvals_node, service_registry=service_registry),
     )
+    graph.add_node(
+        Nodes.CHECK_SCOPE,
+        partial(check_scope_node, model=scope_model),
+    )
+    graph.add_node(
+        Nodes.REJECT_OUT_OF_SCOPE,
+        reject_out_of_scope_node,
+    )
 
     graph.add_edge(START, Nodes.PREPARE_USER_REQUEST)
-    graph.add_edge(Nodes.PREPARE_USER_REQUEST, Nodes.LLM_CALL)
+    graph.add_edge(Nodes.PREPARE_USER_REQUEST, Nodes.CHECK_SCOPE)
+    graph.add_conditional_edges(
+        Nodes.CHECK_SCOPE,
+        after_scope_check,
+        [
+            Nodes.LLM_CALL,
+            Nodes.REJECT_OUT_OF_SCOPE,
+        ],
+    )
+
+    graph.add_edge(Nodes.REJECT_OUT_OF_SCOPE, END)
+
     graph.add_conditional_edges(
         Nodes.LLM_CALL,
         after_llm_call,

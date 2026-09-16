@@ -24,7 +24,7 @@ def handle_message_event(
     if isinstance(event, MessageChunkEvent) and not isinstance(
         message_utils["previous_message_event"], MessageChunkEvent
     ):
-        print("\n[Answer]\n")
+        print("\n\n[Answer]\n")
 
     message_utils["previous_message_event"] = event
 
