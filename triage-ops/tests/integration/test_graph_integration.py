@@ -32,50 +32,16 @@ from triage_ops.tools import bootstrap_tools
 from triage_ops.tools.get_incident import GetIncidentTool, Incident
 
 from tests.support.factories import (
+    make_ai_tool_message,
     make_incident,
-    make_investigation_result,
+    make_investigation_failure_response,
+    make_investigation_response,
     make_restart_proposal,
+    make_tool_call,
 )
+from tests.support.fakes import ScriptedGraphModel
 
 pytestmark = [pytest.mark.integration, pytest.mark.asyncio]
-
-
-class QueueModel:
-    def __init__(self, responses: Iterable[Any]) -> None:
-        self.responses = deque(responses)
-        self.inputs: list[Any] = []
-
-    def invoke(self, model_input: Any, *_args: Any, **_kwargs: Any) -> Any:
-        self.inputs.append(model_input)
-        if not self.responses:
-            raise AssertionError("No scripted model response remains.")
-        response = self.responses.popleft()
-        if isinstance(response, Exception):
-            raise response
-        return response
-
-
-class GraphModel:
-    def __init__(
-        self,
-        *,
-        scopes: Iterable[ScopeDecision],
-        agent_messages: Iterable[AIMessage],
-        final_responses: Iterable[InvestigationResponse] = (),
-    ) -> None:
-        self.scope = QueueModel(scopes)
-        self.agent = QueueModel(agent_messages)
-        self.finalizer = QueueModel(final_responses)
-
-    def bind_tools(self, _tools: list) -> QueueModel:
-        return self.agent
-
-    def with_structured_output(self, schema: type, **_kwargs: Any) -> QueueModel:
-        if schema is ScopeDecision:
-            return self.scope
-        if schema is InvestigationResponse:
-            return self.finalizer
-        raise AssertionError(f"Unexpected structured schema: {schema}")
 
 
 class SequentialIncidentRepository(IncidentRepository):
@@ -93,7 +59,7 @@ class SequentialIncidentRepository(IncidentRepository):
 
 @dataclass
 class Harness:
-    model: GraphModel
+    model: ScriptedGraphModel
     graph: Any
     runner: GraphRunner
 
@@ -113,7 +79,7 @@ def harness(
     agent_messages: Iterable[AIMessage],
     final_responses: Iterable[InvestigationResponse] = (),
 ) -> Harness:
-    model = GraphModel(
+    model = ScriptedGraphModel(
         scopes=[ScopeDecision(scope=scope) for scope in scopes],
         agent_messages=agent_messages,
         final_responses=final_responses,
@@ -123,31 +89,23 @@ def harness(
 
 
 def tool_call(name: str, args: dict[str, Any], id_: str) -> AIMessage:
-    return AIMessage(content="", tool_calls=[{"name": name, "args": args, "id": id_}])
+    return make_ai_tool_message(make_tool_call(name, args, id_))
 
 
 def completed_result(*, actions: list[Any] | None = None) -> InvestigationResponse:
-    return InvestigationResponse(
-        outcome=make_investigation_result(
-            evidence=[
-                InvestigationEvidence(
-                    source="get_incident",
-                    observation="The incident record was retrieved.",
-                )
-            ],
-            recommended_actions=actions or [],
-        )
+    return make_investigation_response(
+        evidence=[
+            InvestigationEvidence(
+                source="get_incident",
+                observation="The incident record was retrieved.",
+            )
+        ],
+        recommended_actions=actions or [],
     )
 
 
 def completion_failure() -> InvestigationResponse:
-    return InvestigationResponse(
-        outcome=InvestigationFailure(
-            incident_id="INC-9999",
-            error_code="NOT_FOUND",
-            summary="The incident record could not be retrieved.",
-        )
-    )
+    return make_investigation_failure_response()
 
 
 def replace_incident_tool(repository: IncidentRepository) -> list:

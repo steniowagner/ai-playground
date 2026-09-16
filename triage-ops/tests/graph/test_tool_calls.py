@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 import triage_ops.graph.nodes.tool_calls.node as tool_node_module
-from langchain.messages import AIMessage, HumanMessage, ToolMessage
+from langchain.messages import AIMessage, HumanMessage
 from langchain_core.tools import BaseTool
 from pydantic import BaseModel, ConfigDict, Field
 from triage_ops.graph.nodes.tool_calls.node import (
@@ -22,6 +22,16 @@ from triage_ops.tools import (
     ToolErrorResponse,
     ToolErrorResponseDetail,
     ToolSuccessResponse,
+)
+
+from tests.support.factories import (
+    make_ai_tool_message as ai_call,
+)
+from tests.support.factories import (
+    make_tool_call as call,
+)
+from tests.support.factories import (
+    make_tool_result as tool_result,
 )
 
 pytestmark = pytest.mark.unit
@@ -43,43 +53,6 @@ class EchoTool(BaseTool):
     def _run(self, value: str) -> Any:
         self.calls.append({"value": value})
         return self.response or ToolSuccessResponse(ok=True, data={"echo": value})
-
-
-def call(
-    name: str = "query_logs", args: dict[str, Any] | None = None, id_: str = "call-1"
-) -> dict:
-    return {"name": name, "args": args or {"value": "one"}, "id": id_}
-
-
-def ai_call(*tool_calls: dict) -> AIMessage:
-    return AIMessage(content="", tool_calls=list(tool_calls))
-
-
-def tool_result(
-    tool_call: dict,
-    *,
-    ok: bool,
-    retryable: bool = False,
-    error_code: str = "EXECUTION_ERROR",
-) -> ToolMessage:
-    response = (
-        ToolSuccessResponse(ok=True, data={"result": "ok"})
-        if ok
-        else ToolErrorResponse(
-            ok=False,
-            error=ToolErrorResponseDetail(
-                code=error_code,  # type: ignore[arg-type]
-                message="failed",
-                retryable=retryable,
-                input=tool_call["args"],
-            ),
-        )
-    )
-    return ToolMessage(
-        content=response.model_dump_json(),
-        name=tool_call["name"],
-        tool_call_id=tool_call["id"],
-    )
 
 
 class TestToolCallHistory:

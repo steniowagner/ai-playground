@@ -31,10 +31,9 @@ from triage_ops.graph.event_stream.schema import (
     ToolStartedEvent,
 )
 from triage_ops.graph.nodes import Nodes
-from triage_ops.graph.nodes.prepare_approvals import PendingApproval
 from triage_ops.services import ServiceErrorResponse, ServiceSuccessResponse
 
-from tests.support.factories import make_investigation_result, make_restart_proposal
+from tests.support.factories import make_investigation_result, make_pending_approval
 
 pytestmark = pytest.mark.unit
 
@@ -46,11 +45,9 @@ def base_event() -> Event:
     return Event(event_id=EVENT_ID, thread_id="thread-1")
 
 
-def approval(status: str, result: Any = None) -> PendingApproval:
-    return PendingApproval(
+def approval(status: str, result: Any = None):
+    return make_pending_approval(
         proposal_id=PROPOSAL_ID,
-        incident_id="INC-1042",
-        proposal=make_restart_proposal(),
         status=status,  # type: ignore[arg-type]
         execution_result=result,
     )

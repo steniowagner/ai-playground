@@ -24,7 +24,6 @@ from triage_ops.graph.nodes.finalize_investigation.utils import (
     build_evidence_transcript,
 )
 from triage_ops.graph.nodes.prepare_approvals.node import prepare_approvals_node
-from triage_ops.graph.nodes.prepare_approvals.schema import PendingApproval
 from triage_ops.graph.nodes.request_approvals import (
     ApprovalDecision,
     InvalidApprovalResponse,
@@ -46,7 +45,13 @@ from triage_ops.tools import (
     ToolSuccessResponse,
 )
 
-from tests.support.factories import make_investigation_result, make_restart_proposal
+from tests.support.factories import (
+    make_investigation_result,
+    make_restart_proposal,
+)
+from tests.support.factories import (
+    make_pending_approval as pending,
+)
 from tests.support.fakes import ScriptedModel
 
 pytestmark = pytest.mark.unit
@@ -54,19 +59,6 @@ pytestmark = pytest.mark.unit
 PROPOSAL_1 = UUID("00000000-0000-0000-0000-000000000001")
 PROPOSAL_2 = UUID("00000000-0000-0000-0000-000000000002")
 UNKNOWN_PROPOSAL = UUID("00000000-0000-0000-0000-000000000099")
-
-
-def pending(
-    proposal_id: UUID = PROPOSAL_1,
-    *,
-    status: str = "pending",
-) -> PendingApproval:
-    return PendingApproval(
-        proposal_id=proposal_id,
-        incident_id="INC-1042",
-        proposal=make_restart_proposal(),
-        status=status,  # type: ignore[arg-type]
-    )
 
 
 def evidence_messages() -> list:

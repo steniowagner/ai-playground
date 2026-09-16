@@ -30,6 +30,7 @@ build-backend = "uv_build"
 dev = [
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
+    "pytest-cov>=7.1.0",
     "ruff>=0.16.7",
 ]
 
@@ -54,3 +55,16 @@ markers = [
     "live_model: evaluations that require an explicitly configured model provider",
     "slow: tests excluded from the normal fast feedback loop when requested",
 ]
+
+[tool.coverage.run]
+branch = true
+relative_files = true
+source = ["triage_ops"]
+
+[tool.coverage.report]
+fail_under = 89
+precision = 2
+show_missing = true
+
+[tool.coverage.xml]
+output = "coverage.xml"

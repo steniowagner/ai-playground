@@ -16,7 +16,18 @@ Shared object factories and test doubles live in `support/`. Tests must not make
 real model-provider or network calls; the global fixture in `conftest.py` blocks
 socket connections so accidental external calls fail immediately.
 
-Run the deterministic suite with:
+Run the deterministic suite with enforced branch coverage and terminal/XML
+reports with:
+
+```bash
+uv run pytest --cov=triage_ops --cov-branch --cov-report=term-missing --cov-report=xml
+```
+
+The coverage gate starts at 89%, just below the measured 89.95% baseline. The
+threshold lives in `pyproject.toml`; raise it as the remaining CLI and model
+paths gain deterministic tests. The XML report is written to `coverage.xml`.
+
+For a quick test run without collecting coverage, use:
 
 ```bash
 uv run pytest

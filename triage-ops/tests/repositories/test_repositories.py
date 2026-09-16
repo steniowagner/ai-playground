@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -31,134 +30,31 @@ from triage_ops.repositories.maintenance_windows import (
 from triage_ops.repositories.metrics import FindMetricsArgs, JSONMetricsRepository
 from triage_ops.repositories.runbooks import FindRunbookByIdArgs, JSONRunbooksRepository
 from triage_ops.repositories.services import FindServiceArgs, JSONServicesRepository
-from triage_ops.tools.get_feature_flags import FeatureFlag
-from triage_ops.tools.get_maintenance_windows import MaintenanceWindow
-from triage_ops.tools.get_recent_deployments import Deployment
-from triage_ops.tools.get_service_context import Service
-from triage_ops.tools.query_logs import Log
-from triage_ops.tools.query_metrics import Metric
-from triage_ops.tools.query_metrics.schema import MetricValues
 
-from tests.support.factories import make_incident
+from tests.support.factories import (
+    at,
+    make_incident,
+)
+from tests.support.factories import (
+    make_deployment as deployment,
+)
+from tests.support.factories import (
+    make_feature_flag as feature_flag,
+)
+from tests.support.factories import (
+    make_log as log,
+)
+from tests.support.factories import (
+    make_maintenance_window as maintenance_window,
+)
+from tests.support.factories import (
+    make_metric as metric,
+)
+from tests.support.factories import (
+    make_service_context as service,
+)
 
 pytestmark = pytest.mark.unit
-
-
-def at(hour: int, minute: int = 0) -> datetime:
-    return datetime(2026, 7, 10, hour, minute, tzinfo=UTC)
-
-
-def deployment(
-    deployment_id: str,
-    *,
-    service: str = "checkout-api",
-    environment: str = "production",
-    started_at: datetime | None = None,
-    completed_at: datetime | None = None,
-) -> Deployment:
-    return Deployment(
-        deployment_id=deployment_id,
-        service=service,
-        environment=environment,  # type: ignore[arg-type]
-        version="2026.07.10.1",
-        commit="abc1234",
-        started_at=started_at or at(13, 55),
-        completed_at=completed_at or at(14, 5),
-        status="succeeded",
-        summary="Deploy checkout changes",
-    )
-
-
-def feature_flag(
-    flag: str,
-    *,
-    service: str = "checkout-api",
-    environment: str = "production",
-) -> FeatureFlag:
-    return FeatureFlag(
-        flag=flag,
-        service=service,
-        environment=environment,  # type: ignore[arg-type]
-        enabled=True,
-        owner_team="payments",
-        changed_at=at(14, 5),
-        changed_by_deployment="dep-882",
-    )
-
-
-def log(
-    log_id: str,
-    timestamp: datetime,
-    *,
-    service: str = "checkout-api",
-    environment: str = "production",
-    severity: str = "ERROR",
-    message: str = "OrderMappingError occurred",
-) -> Log:
-    return Log(
-        log_id=log_id,
-        timestamp=timestamp,
-        service=service,
-        environment=environment,  # type: ignore[arg-type]
-        severity=severity,  # type: ignore[arg-type]
-        message=message,
-        attributes={},
-    )
-
-
-def metric(
-    metric_id: str,
-    timestamp: datetime,
-    *,
-    service: str = "checkout-api",
-    environment: str = "production",
-) -> Metric:
-    return Metric(
-        metric_id=metric_id,
-        timestamp=timestamp,
-        service=service,
-        environment=environment,  # type: ignore[arg-type]
-        values=MetricValues(error_rate=8.4, p95_latency_ms=900),
-    )
-
-
-def maintenance_window(
-    maintenance_id: str,
-    *,
-    services: list[str] | None = None,
-    environment: str = "production",
-    start_time: datetime | None = None,
-    end_time: datetime | None = None,
-    status: str = "scheduled",
-) -> MaintenanceWindow:
-    return MaintenanceWindow(
-        maintenance_id=maintenance_id,
-        title="Database maintenance",
-        services=services or ["checkout-api"],
-        environment=environment,  # type: ignore[arg-type]
-        start_time=start_time or at(14),
-        end_time=end_time or at(15),
-        expected_effects=["Elevated latency"],
-        approved_by="ops",
-        status=status,  # type: ignore[arg-type]
-    )
-
-
-def service(
-    name: str = "checkout-api", environments: list[str] | None = None
-) -> Service:
-    return Service(
-        service=name,
-        display_name="Checkout API",
-        description="Checkout service",
-        tier=1,
-        owner_team="payments",
-        on_call="payments-primary",
-        environments=environments or ["production"],  # type: ignore[arg-type]
-        dependencies=["payment-adapter"],
-        runbook_ids=["RB-CHECKOUT-ERRORS"],
-        slo={"availability_percent": 99.95},
-    )
 
 
 class TestRepositoryFixtureContract:
