@@ -7,8 +7,9 @@ from typing import Any
 
 import pytest
 import triage_ops.graph.builder as builder_module
-from langchain.messages import AIMessage
+from langchain.messages import AIMessage, HumanMessage
 from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.types import Command
 from triage_ops.domain.investigation.schema import (
     AdvisoryAction,
     InvestigationEvidence,
@@ -19,17 +20,28 @@ from triage_ops.graph import GraphRunner, build_graph
 from triage_ops.graph.event_stream import (
     ApprovalRequiredEvent,
     BaseToolEvent,
+    ExecutingProposalEvent,
     InvestigationCompletedEvent,
     ProposalExecutionFinishedEvent,
     ToolFinishedEvent,
     ToolSkippedEvent,
 )
 from triage_ops.graph.nodes.check_scope import RequestScope, ScopeDecision
-from triage_ops.graph.nodes.request_approvals import ApprovalDecision
+from triage_ops.graph.nodes.request_approvals import (
+    ApprovalDecision,
+    InvalidApprovalResponse,
+)
 from triage_ops.repositories import RepositoryDataError, RepositoryUnavailable
 from triage_ops.repositories.incidents import IncidentRepository
+from triage_ops.repositories.logs import FindLogsArgs, LogsRepository
+from triage_ops.services import (
+    ServiceExecutionException,
+    bootstrap_services,
+)
+from triage_ops.services.restart_service import RestartServiceArgs
 from triage_ops.tools import bootstrap_tools
 from triage_ops.tools.get_incident import GetIncidentTool, Incident
+from triage_ops.tools.query_logs import QueryLogsTool
 
 from tests.support.factories import (
     make_ai_tool_message,
@@ -39,7 +51,7 @@ from tests.support.factories import (
     make_restart_proposal,
     make_tool_call,
 )
-from tests.support.fakes import ScriptedGraphModel
+from tests.support.fakes import RecordingService, ScriptedGraphModel
 
 pytestmark = [pytest.mark.integration, pytest.mark.asyncio]
 
@@ -55,6 +67,16 @@ class SequentialIncidentRepository(IncidentRepository):
         if isinstance(outcome, Exception):
             raise outcome
         return outcome
+
+
+class FailingLogsRepository(LogsRepository):
+    def __init__(self, error: Exception) -> None:
+        self.error = error
+        self.calls: list[FindLogsArgs] = []
+
+    def find(self, args: FindLogsArgs):
+        self.calls.append(args)
+        raise self.error
 
 
 @dataclass
@@ -92,7 +114,9 @@ def tool_call(name: str, args: dict[str, Any], id_: str) -> AIMessage:
     return make_ai_tool_message(make_tool_call(name, args, id_))
 
 
-def completed_result(*, actions: list[Any] | None = None) -> InvestigationResponse:
+def completed_result(
+    *, actions: list[Any] | None = None, **overrides: Any
+) -> InvestigationResponse:
     return make_investigation_response(
         evidence=[
             InvestigationEvidence(
@@ -101,6 +125,7 @@ def completed_result(*, actions: list[Any] | None = None) -> InvestigationRespon
             )
         ],
         recommended_actions=actions or [],
+        **overrides,
     )
 
 
@@ -108,13 +133,54 @@ def completion_failure() -> InvestigationResponse:
     return make_investigation_failure_response()
 
 
-def replace_incident_tool(repository: IncidentRepository) -> list:
+def replace_tool(name: str, replacement: Any) -> list:
     return [
-        GetIncidentTool(repository=repository)
-        if tool.get_name() == "get_incident"
-        else tool
-        for tool in bootstrap_tools()
+        replacement if tool.get_name() == name else tool for tool in bootstrap_tools()
     ]
+
+
+def replace_incident_tool(repository: IncidentRepository) -> list:
+    return replace_tool("get_incident", GetIncidentTool(repository=repository))
+
+
+def two_restart_proposals() -> list[Any]:
+    return [
+        make_restart_proposal(),
+        make_restart_proposal(
+            rationale="A second independently affected worker group must restart.",
+            args=RestartServiceArgs(
+                service="checkout-api",
+                environment="production",
+                strategy="immediate",
+            ),
+        ),
+    ]
+
+
+def investigation_messages(
+    incident_id: str = "INC-1042", suffix: str = "1"
+) -> list[AIMessage]:
+    return [
+        tool_call(
+            "get_incident",
+            {"incident_id": incident_id},
+            f"incident-{suffix}",
+        ),
+        tool_call(
+            "complete_investigation",
+            {"incident_id": incident_id, "reason": "evidence_sufficient"},
+            f"complete-{suffix}",
+        ),
+    ]
+
+
+def install_restart_service(
+    monkeypatch: pytest.MonkeyPatch,
+    service: RecordingService,
+) -> None:
+    registry = bootstrap_services()
+    registry["restart_service"] = service  # type: ignore[typeddict-item]
+    monkeypatch.setattr(builder_module, "bootstrap_services", lambda: registry)
 
 
 class TestBasicGraphPaths:
@@ -331,6 +397,120 @@ class TestInvestigationPaths:
         ]
         assert [event.ok for event in incident_events] == [False, True]
 
+    async def test_retryable_incident_failure_exhausts_one_retry_then_finalizes(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        repository = SequentialIncidentRepository(
+            [
+                RepositoryUnavailable("temporary one"),
+                RepositoryUnavailable("temporary two"),
+            ]
+        )
+        monkeypatch.setattr(
+            builder_module,
+            "bootstrap_tools",
+            lambda: replace_incident_tool(repository),
+        )
+        failure = InvestigationResponse(
+            outcome=InvestigationFailure(
+                incident_id="INC-1042",
+                error_code="EXECUTION_ERROR",
+                summary="The incident repository remained unavailable after retry.",
+            )
+        )
+        app = harness(
+            scopes=[RequestScope.IN_SCOPE],
+            agent_messages=[
+                tool_call("get_incident", {"incident_id": "INC-1042"}, "incident-1"),
+                tool_call("get_incident", {"incident_id": "INC-1042"}, "incident-2"),
+                tool_call(
+                    "complete_investigation",
+                    {
+                        "incident_id": "INC-1042",
+                        "reason": "incident_lookup_failed",
+                    },
+                    "complete-1",
+                ),
+            ],
+            final_responses=[failure],
+        )
+
+        events = await app.start("Investigate INC-1042")
+
+        assert repository.calls == ["INC-1042", "INC-1042"]
+        incident_events = [
+            event
+            for event in events
+            if isinstance(event, ToolFinishedEvent) and event.tool == "get_incident"
+        ]
+        assert [event.ok for event in incident_events] == [False, False]
+        completed = next(
+            event for event in events if isinstance(event, InvestigationCompletedEvent)
+        )
+        assert completed.result == failure.outcome
+
+    async def test_supporting_evidence_failure_becomes_a_safe_limitation(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        repository = FailingLogsRepository(
+            RepositoryDataError("secret log backend details")
+        )
+        query_logs = QueryLogsTool(repository=repository)
+        monkeypatch.setattr(
+            builder_module,
+            "bootstrap_tools",
+            lambda: replace_tool("query_logs", query_logs),
+        )
+        expected = completed_result(
+            summary="The incident was investigated, but log evidence was unavailable.",
+            confidence="low",
+        )
+        app = harness(
+            scopes=[RequestScope.IN_SCOPE],
+            agent_messages=[
+                tool_call("get_incident", {"incident_id": "INC-1042"}, "incident-1"),
+                tool_call(
+                    "query_logs",
+                    {
+                        "service": "checkout-api",
+                        "environment": "production",
+                        "contains": None,
+                        "limit": 10,
+                        "severity": ["ERROR"],
+                        "start_time": "2026-07-10T14:00:00Z",
+                        "end_time": "2026-07-10T15:00:00Z",
+                    },
+                    "logs-1",
+                ),
+                tool_call(
+                    "complete_investigation",
+                    {
+                        "incident_id": "INC-1042",
+                        "reason": "evidence_sufficient",
+                    },
+                    "complete-1",
+                ),
+            ],
+            final_responses=[expected],
+        )
+
+        events = await app.start("Investigate INC-1042")
+
+        assert len(repository.calls) == 1
+        log_event = next(
+            event
+            for event in events
+            if isinstance(event, ToolFinishedEvent) and event.tool == "query_logs"
+        )
+        assert log_event.ok is False
+        completed = next(
+            event for event in events if isinstance(event, InvestigationCompletedEvent)
+        )
+        assert completed.result == expected.outcome
+        transcript = app.model.finalizer.inputs[0][1].text
+        assert "Failed to query logs due to an internal error" in transcript
+        assert "secret log backend details" not in transcript
+
     async def test_non_retryable_incident_failure_is_not_executed_twice(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
@@ -364,6 +544,98 @@ class TestInvestigationPaths:
 
         assert repository.calls == ["INC-1042"]
         assert any(isinstance(event, InvestigationCompletedEvent) for event in events)
+
+
+class TestMultiTurnStatePaths:
+    async def test_second_ordinary_turn_receives_history_once_in_order(self) -> None:
+        app = harness(
+            scopes=[RequestScope.IN_SCOPE, RequestScope.IN_SCOPE],
+            agent_messages=[
+                AIMessage(content="The payments team owns checkout-api."),
+                AIMessage(content="Its primary runbook is RB-CHECKOUT-ERRORS."),
+            ],
+        )
+
+        await app.start("Who owns checkout-api?")
+        await app.start("Which runbook should that team use?")
+
+        second_input = app.model.agent.inputs[1]
+        conversation = [
+            message
+            for message in second_input
+            if isinstance(message, (HumanMessage, AIMessage))
+        ]
+        assert [message.text for message in conversation] == [
+            "Who owns checkout-api?",
+            "The payments team owns checkout-api.",
+            "Which runbook should that team use?",
+        ]
+
+    async def test_new_investigation_replaces_stale_authorization_approvals_and_evidence(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        repository = SequentialIncidentRepository(
+            [
+                make_incident(incident_id="INC-1042"),
+                make_incident(incident_id="INC-2042"),
+            ]
+        )
+        monkeypatch.setattr(
+            builder_module,
+            "bootstrap_tools",
+            lambda: replace_incident_tool(repository),
+        )
+        service = RecordingService()
+        install_restart_service(monkeypatch, service)
+        app = harness(
+            scopes=[RequestScope.IN_SCOPE, RequestScope.IN_SCOPE],
+            agent_messages=[
+                *investigation_messages("INC-1042", "old"),
+                *investigation_messages("INC-2042", "new"),
+            ],
+            final_responses=[
+                completed_result(actions=[make_restart_proposal()]),
+                completed_result(incident_id="INC-2042"),
+            ],
+        )
+
+        first_events = await app.start("Investigate INC-1042")
+        first_action = next(
+            event.actions[0]
+            for event in first_events
+            if isinstance(event, ApprovalRequiredEvent)
+        )
+        _ = [
+            event
+            async for event in app.runner.resume(
+                "thread-1",
+                [
+                    ApprovalDecision(
+                        proposal_id=first_action["proposal_id"],
+                        approved=True,
+                    )
+                ],
+            )
+        ]
+
+        second_events = await app.start("Investigate INC-2042")
+
+        assert repository.calls == ["INC-1042", "INC-2042"]
+        completed = next(
+            event
+            for event in second_events
+            if isinstance(event, InvestigationCompletedEvent)
+        )
+        assert completed.result.incident_id == "INC-2042"
+        second_transcript = app.model.finalizer.inputs[1][1].text
+        assert "INC-2042" in second_transcript
+        assert "INC-1042" not in second_transcript
+        state = await app.state()
+        assert state["authorized_incident_id"] is None
+        assert state["pending_approvals"] == []
+        assert state["approval_decisions"] == []
+        assert state["final_result"].incident_id == "INC-2042"
+        assert len(service.calls) == 1
 
 
 class TestApprovalAndCheckpointPaths:
@@ -412,6 +684,174 @@ class TestApprovalAndCheckpointPaths:
         state = await app.state()
         assert state["pending_approvals"][0].status == "executed"
 
+    async def test_multiple_executable_proposals_create_one_approval_each(
+        self,
+    ) -> None:
+        app = harness(
+            scopes=[RequestScope.IN_SCOPE],
+            agent_messages=investigation_messages(),
+            final_responses=[completed_result(actions=two_restart_proposals())],
+        )
+
+        events = await app.start("Investigate INC-1042")
+
+        approval_event = next(
+            event for event in events if isinstance(event, ApprovalRequiredEvent)
+        )
+        assert len(approval_event.actions) == 2
+        assert len({action["proposal_id"] for action in approval_event.actions}) == 2
+        assert [action["args"]["strategy"] for action in approval_event.actions] == [
+            "rolling",
+            "immediate",
+        ]
+        state = await app.state()
+        assert [record.status for record in state["pending_approvals"]] == [
+            "pending",
+            "pending",
+        ]
+
+    async def test_mixed_decisions_execute_only_the_approved_proposal(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        service = RecordingService()
+        install_restart_service(monkeypatch, service)
+        app = harness(
+            scopes=[RequestScope.IN_SCOPE],
+            agent_messages=investigation_messages(),
+            final_responses=[completed_result(actions=two_restart_proposals())],
+        )
+        initial = await app.start("Investigate INC-1042")
+        actions = next(
+            event.actions
+            for event in initial
+            if isinstance(event, ApprovalRequiredEvent)
+        )
+
+        resumed = [
+            event
+            async for event in app.runner.resume(
+                "thread-1",
+                [
+                    ApprovalDecision(
+                        proposal_id=actions[0]["proposal_id"],
+                        approved=True,
+                    ),
+                    ApprovalDecision(
+                        proposal_id=actions[1]["proposal_id"],
+                        approved=False,
+                    ),
+                ],
+            )
+        ]
+
+        assert len(service.calls) == 1
+        assert service.calls[0].strategy == "rolling"
+        state = await app.state()
+        assert [record.status for record in state["pending_approvals"]] == [
+            "executed",
+            "rejected",
+        ]
+        finished = {
+            str(event.proposal_id): event
+            for event in resumed
+            if isinstance(event, ProposalExecutionFinishedEvent)
+        }
+        assert finished[actions[0]["proposal_id"]].result["ok"] is True
+        assert finished[actions[1]["proposal_id"]].result is None
+
+    async def test_service_execution_failure_emits_a_safe_failed_result(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        service = RecordingService(
+            error=ServiceExecutionException("secret provider failure")
+        )
+        install_restart_service(monkeypatch, service)
+        app = harness(
+            scopes=[RequestScope.IN_SCOPE],
+            agent_messages=investigation_messages(),
+            final_responses=[completed_result(actions=[make_restart_proposal()])],
+        )
+        initial = await app.start("Investigate INC-1042")
+        action = next(
+            event.actions[0]
+            for event in initial
+            if isinstance(event, ApprovalRequiredEvent)
+        )
+
+        resumed = [
+            event
+            async for event in app.runner.resume(
+                "thread-1",
+                [
+                    ApprovalDecision(
+                        proposal_id=action["proposal_id"],
+                        approved=True,
+                    )
+                ],
+            )
+        ]
+
+        finished = next(
+            event
+            for event in resumed
+            if isinstance(event, ProposalExecutionFinishedEvent)
+        )
+        assert finished.result["ok"] is False
+        assert finished.result["error"]["code"] == "EXECUTION_ERROR"
+        assert "secret provider failure" not in str(finished.result)
+        assert len(service.calls) == 1
+        state = await app.state()
+        assert state["pending_approvals"][0].status == "failed"
+
+    async def test_multiple_approved_actions_execute_once_in_proposal_order(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        service = RecordingService()
+        install_restart_service(monkeypatch, service)
+        app = harness(
+            scopes=[RequestScope.IN_SCOPE],
+            agent_messages=investigation_messages(),
+            final_responses=[completed_result(actions=two_restart_proposals())],
+        )
+        initial = await app.start("Investigate INC-1042")
+        actions = next(
+            event.actions
+            for event in initial
+            if isinstance(event, ApprovalRequiredEvent)
+        )
+
+        resumed = [
+            event
+            async for event in app.runner.resume(
+                "thread-1",
+                [
+                    ApprovalDecision(
+                        proposal_id=actions[1]["proposal_id"],
+                        approved=True,
+                    ),
+                    ApprovalDecision(
+                        proposal_id=actions[0]["proposal_id"],
+                        approved=True,
+                    ),
+                ],
+            )
+        ]
+
+        assert [call.strategy for call in service.calls] == ["rolling", "immediate"]
+        executing = [
+            str(event.proposal_id)
+            for event in resumed
+            if isinstance(event, ExecutingProposalEvent)
+        ]
+        finished = [
+            str(event.proposal_id)
+            for event in resumed
+            if isinstance(event, ProposalExecutionFinishedEvent)
+        ]
+        expected_order = [action["proposal_id"] for action in actions]
+        assert executing == expected_order
+        assert finished == expected_order
+
     async def test_advisory_only_result_ends_without_approval(self) -> None:
         advisory = AdvisoryAction(
             kind="advisory",
@@ -456,7 +896,11 @@ class TestApprovalAndCheckpointPaths:
         assert first["authorized_incident_id"] == "INC-1042"
         assert second.get("authorized_incident_id") is None
 
-    async def test_rejected_proposal_is_never_executed(self) -> None:
+    async def test_rejected_proposal_is_never_executed(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        service = RecordingService()
+        install_restart_service(monkeypatch, service)
         app = harness(
             scopes=[RequestScope.IN_SCOPE],
             agent_messages=[
@@ -496,3 +940,112 @@ class TestApprovalAndCheckpointPaths:
             if isinstance(event, ProposalExecutionFinishedEvent)
         )
         assert finished.result is None
+        assert service.calls == []
+
+    async def test_invalid_resume_fails_without_executing_the_proposal(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        service = RecordingService()
+        install_restart_service(monkeypatch, service)
+        app = harness(
+            scopes=[RequestScope.IN_SCOPE],
+            agent_messages=investigation_messages(),
+            final_responses=[completed_result(actions=[make_restart_proposal()])],
+        )
+        initial = await app.start("Investigate INC-1042")
+        action = next(
+            event.actions[0]
+            for event in initial
+            if isinstance(event, ApprovalRequiredEvent)
+        )
+        invalid_resume = Command(
+            resume={
+                "decisions": [
+                    {
+                        "proposal_id": action["proposal_id"],
+                        "approved": "yes",
+                    }
+                ]
+            }
+        )
+
+        with pytest.raises(InvalidApprovalResponse):
+            _ = [
+                event async for event in app.runner._stream("thread-1", invalid_resume)
+            ]
+
+        assert service.calls == []
+        state = await app.state()
+        assert state["pending_approvals"][0].status == "pending"
+
+    async def test_interleaved_threads_keep_interrupts_and_resumes_isolated(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        service = RecordingService()
+        install_restart_service(monkeypatch, service)
+        app = harness(
+            scopes=[RequestScope.IN_SCOPE, RequestScope.IN_SCOPE],
+            agent_messages=[
+                *investigation_messages(suffix="a"),
+                *investigation_messages(suffix="b"),
+            ],
+            final_responses=[
+                completed_result(actions=[make_restart_proposal()]),
+                completed_result(actions=[make_restart_proposal()]),
+            ],
+        )
+
+        first_events = await app.start("Investigate INC-1042", thread_id="thread-a")
+        second_events = await app.start("Investigate INC-1042", thread_id="thread-b")
+        first_action = next(
+            event.actions[0]
+            for event in first_events
+            if isinstance(event, ApprovalRequiredEvent)
+        )
+        second_action = next(
+            event.actions[0]
+            for event in second_events
+            if isinstance(event, ApprovalRequiredEvent)
+        )
+
+        second_resume = [
+            event
+            async for event in app.runner.resume(
+                "thread-b",
+                [
+                    ApprovalDecision(
+                        proposal_id=second_action["proposal_id"],
+                        approved=True,
+                    )
+                ],
+            )
+        ]
+
+        assert len(service.calls) == 1
+        assert (await app.state("thread-a"))["pending_approvals"][0].status == "pending"
+        assert (await app.state("thread-b"))["pending_approvals"][
+            0
+        ].status == "executed"
+        assert {event.thread_id for event in second_resume} == {"thread-b"}
+
+        first_resume = [
+            event
+            async for event in app.runner.resume(
+                "thread-a",
+                [
+                    ApprovalDecision(
+                        proposal_id=first_action["proposal_id"],
+                        approved=False,
+                    )
+                ],
+            )
+        ]
+
+        assert len(service.calls) == 1
+        assert (await app.state("thread-a"))["pending_approvals"][
+            0
+        ].status == "rejected"
+        assert (await app.state("thread-b"))["pending_approvals"][
+            0
+        ].status == "executed"
+        assert {event.thread_id for event in first_resume} == {"thread-a"}

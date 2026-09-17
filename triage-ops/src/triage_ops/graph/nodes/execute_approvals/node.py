@@ -1,9 +1,11 @@
+from langgraph.config import get_stream_writer
 from pydantic import ValidationError
 
 from triage_ops.domain.investigation import (
     ExecutableProposal,
 )
 from triage_ops.graph import State
+from triage_ops.graph.event_stream import CustomStreamEvents
 from triage_ops.graph.nodes.prepare_approvals import (
     PendingApproval,
 )
@@ -79,11 +81,27 @@ def execute_approvals_node(state: State, *, service_registry: ServiceRegistry) -
         state.pending_approvals
     )
 
+    try:
+        write_stream_event = get_stream_writer()
+    except RuntimeError:
+        write_stream_event = None
+
     executed_proposals: list[PendingApproval] = []
     for executing_proposal in executing_proposals:
         if executing_proposal.status != "executing":
             executed_proposals.append(executing_proposal)
             continue
+
+        if write_stream_event is not None:
+            write_stream_event(
+                {
+                    "event": CustomStreamEvents.EXECUTING_PROPOSAL,
+                    "kind": executing_proposal.proposal.kind,
+                    "args": executing_proposal.proposal.args.model_dump(mode="json"),
+                    "incident_id": executing_proposal.incident_id,
+                    "proposal_id": executing_proposal.proposal_id,
+                }
+            )
 
         proposal_result = execute_proposal(
             executing_proposal.proposal, service_registry

@@ -8,6 +8,7 @@ from triage_ops.graph.event_stream import (
 
 from .schema import (
     Event,
+    ExecutingProposalEvent,
     GraphEvent,
     MessageChunkEvent,
     ToolFailedEvent,
@@ -57,6 +58,15 @@ def parse_custom_event(payload: Any, base_event: Event) -> GraphEvent | None:
                     arguments=payload.get("args"),
                     tool=payload.get("tool"),
                     reason=payload.get("code"),
+                )
+
+            case CustomStreamEvents.EXECUTING_PROPOSAL:
+                return ExecutingProposalEvent(
+                    **base_event.model_dump(),
+                    kind=payload.get("kind"),
+                    arguments=payload.get("args"),
+                    incident_id=payload.get("incident_id"),
+                    proposal_id=payload.get("proposal_id"),
                 )
 
             case _:

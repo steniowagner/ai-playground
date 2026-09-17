@@ -115,3 +115,4 @@ class CustomStreamEvents(str, Enum):
     TOOL_SKIPPED = "tool_skipped"
     TOOL_FAILED = "tool_failed"
     TOOL_FINISHED = "tool_finished"
+    EXECUTING_PROPOSAL = "executing_proposal"

@@ -230,6 +230,22 @@ class TestCustomEventParsing:
                 ToolSkippedEvent,
                 {"reason": "repeated_tool_call"},
             ),
+            (
+                {
+                    "event": CustomStreamEvents.EXECUTING_PROPOSAL,
+                    "kind": "restart_service",
+                    "args": {"strategy": "rolling"},
+                    "incident_id": "INC-1042",
+                    "proposal_id": str(PROPOSAL_ID),
+                },
+                ExecutingProposalEvent,
+                {
+                    "kind": "restart_service",
+                    "arguments": {"strategy": "rolling"},
+                    "incident_id": "INC-1042",
+                    "proposal_id": PROPOSAL_ID,
+                },
+            ),
         ],
     )
     def test_maps_custom_events(
