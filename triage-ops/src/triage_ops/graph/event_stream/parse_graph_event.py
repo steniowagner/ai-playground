@@ -19,6 +19,10 @@ def parse_graph_event(args: ParseGraphEventArgs) -> Iterable[GraphEvent]:
         return [event] if event is not None else []
 
     if args.mode == "updates":
-        return parse_update_event(args.payload, base_event_args)
+        events = parse_update_event(args.payload, base_event_args)
+        return [
+            event if index == 0 else event.model_copy(update={"event_id": uuid4()})
+            for index, event in enumerate(events)
+        ]
 
     return []

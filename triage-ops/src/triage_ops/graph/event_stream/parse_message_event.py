@@ -32,9 +32,12 @@ def split_stream_chunk(message_chunk: str | Any) -> tuple[str, str]:
 def parse_message_event(
     payload: Any, base_event: Event
 ) -> ModelThinkingEvent | MessageChunkEvent | None:
+    if not isinstance(payload, (list, tuple)) or len(payload) != 2:
+        return None
+
     message_chunk, metadata = payload
 
-    if not isinstance(message_chunk, AIMessageChunk):
+    if not isinstance(message_chunk, AIMessageChunk) or not isinstance(metadata, dict):
         return None
 
     hidden_nodes = {

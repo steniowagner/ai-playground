@@ -1,3 +1,9 @@
+from typing import Any
+
+from pydantic import ValidationError
+
+from triage_ops.graph.nodes.prepare_approvals import PendingApproval
+
 from .schema import (
     ApprovalRequiredEvent,
     Event,
@@ -8,17 +14,31 @@ from .schema import (
 )
 
 
-def parse_update_event(payload: dict, base_event: Event) -> list[GraphEvent]:
+def parse_update_event(payload: Any, base_event: Event) -> list[GraphEvent]:
     events: list[GraphEvent] = []
 
+    if not isinstance(payload, dict):
+        return events
+
     interrupts = payload.get("__interrupt__", ())
+    if not isinstance(interrupts, (list, tuple)):
+        interrupts = ()
 
     for interruption in interrupts:
-        events.append(
-            ApprovalRequiredEvent(
-                **base_event.model_dump(), actions=interruption.value["actions"]
+        value = getattr(interruption, "value", None)
+        actions = value.get("actions") if isinstance(value, dict) else None
+        if not isinstance(actions, list):
+            continue
+
+        try:
+            events.append(
+                ApprovalRequiredEvent(
+                    **base_event.model_dump(),
+                    actions=actions,
+                )
             )
-        )
+        except ValidationError:
+            continue
 
     for node_update in payload.values():
         if not isinstance(node_update, dict):
@@ -26,17 +46,24 @@ def parse_update_event(payload: dict, base_event: Event) -> list[GraphEvent]:
 
         final_result = node_update.get("final_result")
         if final_result is not None:
-            events.append(
-                InvestigationCompletedEvent(
-                    **base_event.model_dump(), result=final_result
+            try:
+                events.append(
+                    InvestigationCompletedEvent(
+                        **base_event.model_dump(),
+                        result=final_result,
+                    )
                 )
-            )
+            except ValidationError:
+                pass
 
         pending_approvals = node_update.get("pending_approvals")
-        if pending_approvals is None:
+        if not isinstance(pending_approvals, (list, tuple)):
             continue
 
         for pending_approval in pending_approvals:
+            if not isinstance(pending_approval, PendingApproval):
+                continue
+
             if pending_approval.status == "executing":
                 events.append(
                     ExecutingProposalEvent(
