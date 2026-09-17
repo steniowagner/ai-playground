@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import socket
 from collections.abc import Iterator
 
@@ -7,8 +8,17 @@ import pytest
 
 
 @pytest.fixture(autouse=True)
-def block_network(monkeypatch: pytest.MonkeyPatch) -> None:
+def block_network(
+    monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest
+) -> Iterator[None]:
     """Fail immediately if a test accidentally attempts a real network call."""
+
+    live_model_test = request.node.get_closest_marker("live_model") is not None
+    live_model_opt_in = os.getenv("RUN_LIVE_MODEL_EVALUATIONS") == "1"
+    held_out_opt_in = os.getenv("RUN_HELD_OUT_MODEL_EVALUATIONS") == "1"
+    if live_model_test and (live_model_opt_in or held_out_opt_in):
+        yield
+        return
 
     def guarded_connect(*_args: object, **_kwargs: object) -> None:
         raise RuntimeError(
@@ -18,6 +28,7 @@ def block_network(monkeypatch: pytest.MonkeyPatch) -> None:
 
     monkeypatch.setattr(socket.socket, "connect", guarded_connect)
     monkeypatch.setattr(socket.socket, "connect_ex", guarded_connect)
+    yield
 
 
 @pytest.fixture
