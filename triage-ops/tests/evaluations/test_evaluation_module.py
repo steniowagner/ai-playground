@@ -22,6 +22,7 @@ from tests.evaluations.evaluation import (
     HELD_OUT_PASS_THRESHOLD,
     SAFETY_PASS_THRESHOLD,
     EvaluationCase,
+    EvaluationExpectations,
     EvaluationObservation,
     load_cases,
     score_case,
@@ -54,10 +55,6 @@ class TestEvaluationDatasets:
         assert development_ids.isdisjoint(held_out_ids)
 
     @pytest.mark.parametrize("dataset", [DEVELOPMENT_DATASET, HELD_OUT_DATASET])
-    @pytest.mark.xfail(
-        strict=True,
-        reason="some evaluation requests omit the exact incident ID required by the graph input contract",
-    )
     def test_every_case_mentions_its_incident_id(self, dataset: Path) -> None:
         for case in load_cases(dataset):
             assert case.incident_id in case.user_request
@@ -91,16 +88,12 @@ class TestEvaluationDatasets:
         with pytest.raises(ValueError, match=r"invalid.jsonl:1"):
             load_cases(path)
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason="three evaluation cases expect restart_staging_worker, which is not a supported proposal kind",
-    )
     def test_expected_action_types_are_supported_by_domain_schema(self) -> None:
         cases = load_cases(DEVELOPMENT_DATASET) + load_cases(HELD_OUT_DATASET)
         expected_actions = {
-            case.expected["expected_action_type"]
+            case.expected.expected_action_type
             for case in cases
-            if "expected_action_type" in case.expected
+            if case.expected.expected_action_type is not None
         }
         supported_actions = {
             RollbackDeploymentProposal.model_fields["kind"].default,
@@ -297,33 +290,79 @@ class TestEvaluationScoring:
 
     def test_every_dataset_expectation_has_a_scoring_path(self) -> None:
         cases = load_cases(DEVELOPMENT_DATASET) + load_cases(HELD_OUT_DATASET)
-        scoreable = {
-            "action_must_not_execute",
-            "approval_required",
-            "expected_action_type",
-            "expected_cause_contains",
-            "expected_confidence",
-            "expected_error_code",
-            "expected_evidence_refs",
-            "expected_severity",
-            "forbidden_action_types",
-            "max_identical_tool_calls",
-            "max_log_results",
-            "max_log_window_minutes",
-            "must_escalate",
-            "must_not_disclose_secrets",
-            "must_not_invent_incident",
-            "must_not_use_future_evidence",
-            "must_preserve_queue",
-            "must_reject_restart_as_ineffective",
-            "must_terminate_within_limits",
-            "oversized_query_must_be_rejected_or_narrowed",
-            "required_tools",
-            "unsupported_claims_allowed",
-        }
-        used = {key for case in cases for key in case.expected}
 
-        assert used <= scoreable, f"Missing scorers for: {sorted(used - scoreable)}"
+        for case in cases:
+            score = score_case(case, EvaluationObservation())
+            scored = {check.expectation for check in score.checks}
+
+            assert scored == case.expected.model_fields_set
+
+    @pytest.mark.parametrize(
+        "invalid_expected",
+        [
+            {},
+            {"expected_severity": None},
+            {"expected_severity": "SEV2", "severity_typo": "SEV2"},
+            {"expected_action_type": "restart_staging_worker"},
+            {"max_log_results": -1},
+            {"must_not_disclose_secrets": False},
+        ],
+    )
+    def test_expectation_contract_rejects_unscoreable_values(
+        self, invalid_expected: dict
+    ) -> None:
+        with pytest.raises(ValueError):
+            EvaluationExpectations.model_validate(invalid_expected)
+
+    def test_case_contract_rejects_request_without_exact_incident_id(self) -> None:
+        with pytest.raises(ValueError, match="exact incident ID"):
+            EvaluationCase(
+                case_id="dev-999",
+                incident_id="INC-1042",
+                user_request="Investigate the checkout incident",
+                fixture_clock="2026-07-10T14:20:00Z",
+                expected={"expected_severity": "SEV2"},
+                tags=["test"],
+            )
+
+    @pytest.mark.parametrize(
+        ("field", "value"),
+        [
+            ("maximum_identical_tool_calls", -1),
+            ("maximum_log_window_minutes", -1),
+            ("maximum_log_results", -1),
+            ("unsupported_claims", -1),
+        ],
+    )
+    def test_observation_contract_rejects_negative_measurements(
+        self, field: str, value: int
+    ) -> None:
+        with pytest.raises(ValueError):
+            EvaluationObservation.model_validate({field: value})
+
+    @pytest.mark.parametrize(
+        "expectation",
+        ["forbidden_action_types", "must_reject_restart_as_ineffective"],
+    )
+    def test_critical_action_checks_are_safety_requirements(
+        self, expectation: str
+    ) -> None:
+        expected = (
+            {expectation: ["restart_service"]}
+            if expectation == "forbidden_action_types"
+            else {expectation: True}
+        )
+        observation = (
+            EvaluationObservation(action_types=["restart_service"])
+            if expectation == "forbidden_action_types"
+            else EvaluationObservation(restart_rejected_as_ineffective=False)
+        )
+
+        score = score_case(self.case(expected), observation)
+
+        assert score.checks[0].safety is True
+        assert score.safety_pass_rate == 0.0
+        assert score.passed is False
 
     def test_case_schema_rejects_unknown_fields(self) -> None:
         payload = {
