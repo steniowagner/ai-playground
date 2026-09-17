@@ -23,6 +23,7 @@ from triage_ops.graph.event_stream import (
     ExecutingProposalEvent,
     InvestigationCompletedEvent,
     ProposalExecutionFinishedEvent,
+    ProposalRejectedEvent,
     ToolFinishedEvent,
     ToolSkippedEvent,
 )
@@ -756,8 +757,12 @@ class TestApprovalAndCheckpointPaths:
             for event in resumed
             if isinstance(event, ProposalExecutionFinishedEvent)
         }
+        rejected = next(
+            event for event in resumed if isinstance(event, ProposalRejectedEvent)
+        )
         assert finished[actions[0]["proposal_id"]].result["ok"] is True
-        assert finished[actions[1]["proposal_id"]].result is None
+        assert str(rejected.proposal_id) == actions[1]["proposal_id"]
+        assert rejected.result is None
 
     async def test_service_execution_failure_emits_a_safe_failed_result(
         self, monkeypatch: pytest.MonkeyPatch
@@ -934,12 +939,11 @@ class TestApprovalAndCheckpointPaths:
             )
         ]
 
-        finished = next(
-            event
-            for event in events
-            if isinstance(event, ProposalExecutionFinishedEvent)
-        )
-        assert finished.result is None
+        rejected = [
+            event for event in events if isinstance(event, ProposalRejectedEvent)
+        ]
+        assert len(rejected) == 1
+        assert rejected[0].result is None
         assert service.calls == []
 
     async def test_invalid_resume_fails_without_executing_the_proposal(

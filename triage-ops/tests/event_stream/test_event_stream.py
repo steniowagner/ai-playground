@@ -26,6 +26,7 @@ from triage_ops.graph.event_stream.schema import (
     ModelThinkingEvent,
     ParseGraphEventArgs,
     ProposalExecutionFinishedEvent,
+    ProposalRejectedEvent,
     ToolFailedEvent,
     ToolFinishedEvent,
     ToolSkippedEvent,
@@ -319,7 +320,11 @@ class TestUpdateEventParsing:
 
     def test_emits_executing_proposal_event(self) -> None:
         events = parse_update_event(
-            {"execute": {"pending_approvals": [approval("executing")]}},
+            {
+                Nodes.EXECUTE_APPROVALS.value: {
+                    "pending_approvals": [approval("executing")]
+                }
+            },
             base_event(),
         )
 
@@ -336,7 +341,7 @@ class TestUpdateEventParsing:
         execution_result = ServiceSuccessResponse(ok=True, data={"restarted": True})
         events = parse_update_event(
             {
-                "execute": {
+                Nodes.EXECUTE_APPROVALS.value: {
                     "pending_approvals": [approval("executed", execution_result)]
                 }
             },
@@ -352,15 +357,36 @@ class TestUpdateEventParsing:
             "error": None,
         }
 
-    def test_emits_rejected_proposal_without_execution_result(self) -> None:
+    def test_emits_proposal_rejected_event_from_request_approvals_node(self) -> None:
         events = parse_update_event(
-            {"approval": {"pending_approvals": [approval("rejected")]}},
+            {
+                Nodes.REQUEST_APPROVALS.value: {
+                    "pending_approvals": [approval("rejected")]
+                }
+            },
             base_event(),
         )
 
         assert len(events) == 1
-        assert isinstance(events[0], ProposalExecutionFinishedEvent)
-        assert events[0].result is None
+        event = events[0]
+        assert isinstance(event, ProposalRejectedEvent)
+        assert event.kind == "restart_service"
+        assert event.incident_id == "INC-1042"
+        assert event.proposal_id == PROPOSAL_ID
+        assert event.arguments["strategy"] == "rolling"
+        assert event.result is None
+
+    def test_does_not_reemit_rejection_from_execute_approvals_node(self) -> None:
+        events = parse_update_event(
+            {
+                Nodes.EXECUTE_APPROVALS.value: {
+                    "pending_approvals": [approval("rejected")]
+                }
+            },
+            base_event(),
+        )
+
+        assert events == []
 
     def test_emits_failed_proposal_result(self) -> None:
         execution_result = ServiceErrorResponse.model_validate(
@@ -374,7 +400,11 @@ class TestUpdateEventParsing:
             }
         )
         events = parse_update_event(
-            {"execute": {"pending_approvals": [approval("failed", execution_result)]}},
+            {
+                Nodes.EXECUTE_APPROVALS.value: {
+                    "pending_approvals": [approval("failed", execution_result)]
+                }
+            },
             base_event(),
         )
 
@@ -397,7 +427,7 @@ class TestUpdateEventParsing:
 
         events = parse_update_event(
             {
-                "execute": {
+                Nodes.EXECUTE_APPROVALS.value: {
                     "pending_approvals": [
                         approval("pending"),
                         approval("approved", proposal_id=PROPOSAL_2),
@@ -406,7 +436,10 @@ class TestUpdateEventParsing:
                         approval("failed", failure, proposal_id=PROPOSAL_2),
                         approval("rejected", proposal_id=PROPOSAL_ID),
                     ]
-                }
+                },
+                Nodes.REQUEST_APPROVALS.value: {
+                    "pending_approvals": [approval("rejected", proposal_id=PROPOSAL_ID)]
+                },
             },
             base_event(),
         )
@@ -418,9 +451,9 @@ class TestUpdateEventParsing:
             PROPOSAL_ID,
         ]
         assert isinstance(events[0], ExecutingProposalEvent)
-        assert all(
-            isinstance(event, ProposalExecutionFinishedEvent) for event in events[1:]
-        )
+        assert isinstance(events[1], ProposalExecutionFinishedEvent)
+        assert isinstance(events[2], ProposalExecutionFinishedEvent)
+        assert isinstance(events[3], ProposalRejectedEvent)
         assert [event.result for event in events[1:]] == [
             success.model_dump(mode="json"),
             failure.model_dump(mode="json"),
@@ -454,8 +487,10 @@ class TestUpdateEventParsing:
     def test_multiple_events_share_source_update_metadata(self) -> None:
         events = parse_update_event(
             {
-                "finalizer": {"final_result": make_investigation_result()},
-                "execute": {"pending_approvals": [approval("executing")]},
+                Nodes.FINALIZER.value: {"final_result": make_investigation_result()},
+                Nodes.EXECUTE_APPROVALS.value: {
+                    "pending_approvals": [approval("executing")]
+                },
             },
             base_event(),
         )
@@ -531,13 +566,19 @@ class TestGraphEventDispatcher:
                 ParseGraphEventArgs(
                     mode="updates",
                     payload={
-                        "finalizer": {
-                            "final_result": make_investigation_result(),
+                        Nodes.FINALIZER.value: {
+                            "final_result": make_investigation_result()
+                        },
+                        Nodes.EXECUTE_APPROVALS.value: {
                             "pending_approvals": [
                                 approval("executing"),
+                            ]
+                        },
+                        Nodes.REQUEST_APPROVALS.value: {
+                            "pending_approvals": [
                                 approval("rejected", proposal_id=PROPOSAL_2),
-                            ],
-                        }
+                            ]
+                        },
                     },
                     thread_id="thread-unique",
                 )
@@ -572,13 +613,19 @@ class TestGraphRunnerEventContract:
                 (
                     "updates",
                     {
-                        "finalizer": {
-                            "final_result": make_investigation_result(),
+                        Nodes.FINALIZER.value: {
+                            "final_result": make_investigation_result()
+                        },
+                        Nodes.EXECUTE_APPROVALS.value: {
                             "pending_approvals": [
                                 approval("executing"),
+                            ]
+                        },
+                        Nodes.REQUEST_APPROVALS.value: {
+                            "pending_approvals": [
                                 approval("rejected", proposal_id=PROPOSAL_2),
-                            ],
-                        }
+                            ]
+                        },
                     },
                 ),
             ]
@@ -595,7 +642,7 @@ class TestGraphRunnerEventContract:
             ToolStartedEvent,
             InvestigationCompletedEvent,
             ExecutingProposalEvent,
-            ProposalExecutionFinishedEvent,
+            ProposalRejectedEvent,
         ]
         assert len({event.event_id for event in events}) == len(events)
         assert {event.thread_id for event in events} == {"thread-runner"}

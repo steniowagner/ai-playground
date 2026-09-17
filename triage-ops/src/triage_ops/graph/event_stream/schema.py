@@ -80,6 +80,10 @@ class ProposalExecutionFinishedEvent(BaseProposalEvent):
     type: Literal["proposal_execution_finished"] = "proposal_execution_finished"
 
 
+class ProposalRejectedEvent(BaseProposalEvent):
+    type: Literal["proposal_rejected"] = "proposal_rejected"
+
+
 GraphEvent = Annotated[
     MessageChunkEvent
     | ToolFailedEvent
@@ -90,7 +94,8 @@ GraphEvent = Annotated[
     | InvestigationCompletedEvent
     | ModelThinkingEvent
     | ExecutingProposalEvent
-    | ProposalExecutionFinishedEvent,
+    | ProposalExecutionFinishedEvent
+    | ProposalRejectedEvent,
     Field(discriminator="type"),
 ]
 
@@ -116,3 +121,4 @@ class CustomStreamEvents(str, Enum):
     TOOL_FAILED = "tool_failed"
     TOOL_FINISHED = "tool_finished"
     EXECUTING_PROPOSAL = "executing_proposal"
+    PROPOSAL_REJECTED = "proposal_rejected"

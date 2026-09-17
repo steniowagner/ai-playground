@@ -2,6 +2,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
+from triage_ops.graph.nodes import Nodes
 from triage_ops.graph.nodes.prepare_approvals import PendingApproval
 
 from .schema import (
@@ -11,6 +12,7 @@ from .schema import (
     GraphEvent,
     InvestigationCompletedEvent,
     ProposalExecutionFinishedEvent,
+    ProposalRejectedEvent,
 )
 
 
@@ -40,7 +42,7 @@ def parse_update_event(payload: Any, base_event: Event) -> list[GraphEvent]:
         except ValidationError:
             continue
 
-    for node_update in payload.values():
+    for node_name, node_update in payload.items():
         if not isinstance(node_update, dict):
             continue
 
@@ -64,7 +66,10 @@ def parse_update_event(payload: Any, base_event: Event) -> list[GraphEvent]:
             if not isinstance(pending_approval, PendingApproval):
                 continue
 
-            if pending_approval.status == "executing":
+            if (
+                node_name == Nodes.EXECUTE_APPROVALS.value
+                and pending_approval.status == "executing"
+            ):
                 events.append(
                     ExecutingProposalEvent(
                         **base_event.model_dump(),
@@ -77,7 +82,10 @@ def parse_update_event(payload: Any, base_event: Event) -> list[GraphEvent]:
                     )
                 )
 
-            if pending_approval.status in {"executed", "failed", "rejected"}:
+            if (
+                node_name == Nodes.EXECUTE_APPROVALS.value
+                and pending_approval.status in {"executed", "failed"}
+            ):
                 execution_result = pending_approval.execution_result
                 events.append(
                     ProposalExecutionFinishedEvent(
@@ -93,6 +101,22 @@ def parse_update_event(payload: Any, base_event: Event) -> list[GraphEvent]:
                             if execution_result is not None
                             else None
                         ),
+                    )
+                )
+
+            if (
+                node_name == Nodes.REQUEST_APPROVALS.value
+                and pending_approval.status == "rejected"
+            ):
+                events.append(
+                    ProposalRejectedEvent(
+                        **base_event.model_dump(),
+                        kind=pending_approval.proposal.kind,
+                        arguments=pending_approval.proposal.args.model_dump(
+                            mode="json"
+                        ),
+                        incident_id=pending_approval.incident_id,
+                        proposal_id=pending_approval.proposal_id,
                     )
                 )
 

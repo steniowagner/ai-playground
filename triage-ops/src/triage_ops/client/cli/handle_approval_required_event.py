@@ -5,6 +5,7 @@ from triage_ops.graph.event_stream import (
     BaseProposalEvent,
     ExecutingProposalEvent,
     ProposalExecutionFinishedEvent,
+    ProposalRejectedEvent,
 )
 from triage_ops.graph.nodes.request_approvals import (
     ApprovalDecision,
@@ -61,18 +62,24 @@ def ask_for_approval(
     return decisions
 
 
+def get_entry_message(event: BaseProposalEvent) -> str:
+    if isinstance(event, ExecutingProposalEvent):
+        return "Executing Proposal"
+    if isinstance(event, ProposalRejectedEvent):
+        return "Proposal Rejected"
+    return "Proposal Execution Finished"
+
+
 def handle_proposal_execution_event(
     event: BaseProposalEvent,
 ) -> None:
-    if not isinstance(event, (ProposalExecutionFinishedEvent, ExecutingProposalEvent)):
+    if not isinstance(
+        event,
+        (ProposalExecutionFinishedEvent, ProposalRejectedEvent, ExecutingProposalEvent),
+    ):
         return
 
-    entry_message = (
-        "Executing Proposal"
-        if isinstance(event, ExecutingProposalEvent)
-        else "Proposal Execution Finished"
-    )
-    print(f"\n[{entry_message}]\n")
+    print(f"\n[{get_entry_message(event)}]\n")
     print(f"Kind: {event.kind}")
     print(f"Proposal-id: {event.proposal_id}")
     print(f"Incident: {event.incident_id}")
