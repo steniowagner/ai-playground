@@ -7,7 +7,7 @@ from fastapi.sse import EventSourceResponse, ServerSentEvent
 from triage_ops.client.http.utils import create_thread_id, get_graph_runner
 from triage_ops.graph import GraphRunner
 
-from .schema import CreateThreadResponse, StartThreadRequest
+from .schema import CreateThreadResponse, ResumeStreamRequest, StartStreamRequest
 
 router = APIRouter(prefix="/threads", tags=["threads"])
 
@@ -21,11 +21,25 @@ def create_thread() -> CreateThreadResponse:
 
 
 @router.post("/{thread_id}/messages/stream", response_class=EventSourceResponse)
-async def stream_messages(
-    thread_id: UUID, request: StartThreadRequest, graph_runner: GraphRunnerDependency
+async def start_stream(
+    thread_id: UUID, request: StartStreamRequest, graph_runner: GraphRunnerDependency
 ) -> AsyncGenerator[ServerSentEvent]:
     async for graph_event in graph_runner.start(
         thread_id=str(thread_id), message=request.message
+    ):
+        yield ServerSentEvent(
+            id=str(graph_event.event_id),
+            event=graph_event.type,
+            data=graph_event.model_dump(mode="json"),
+        )
+
+
+@router.post("/{thread_id}/approvals/stream", response_class=EventSourceResponse)
+async def resume_stream(
+    thread_id: UUID, request: ResumeStreamRequest, graph_runner: GraphRunnerDependency
+) -> AsyncGenerator[ServerSentEvent]:
+    async for graph_event in graph_runner.resume(
+        thread_id=str(thread_id), decisions=request.decisions
     ):
         yield ServerSentEvent(
             id=str(graph_event.event_id),
