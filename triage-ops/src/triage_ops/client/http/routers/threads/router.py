@@ -4,9 +4,10 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends
 from fastapi.sse import EventSourceResponse, ServerSentEvent
-from triage_ops.client.http.utils import create_thread_id, get_graph_runner
+from triage_ops.client.http.utils import create_thread_id
 from triage_ops.graph import GraphRunner
 
+from .dependencies import get_graph_runner
 from .schema import CreateThreadResponse, ResumeStreamRequest, StartStreamRequest
 
 router = APIRouter(prefix="/threads", tags=["threads"])
