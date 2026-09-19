@@ -1,3 +1,15 @@
-.coverage
-coverage.xml
-htmlcov/
+# Python agent
+agent/.coverage
+agent/.pytest_cache/
+agent/.ruff_cache/
+agent/.venv/
+agent/coverage.xml
+agent/htmlcov/
+agent/**/__pycache__/
+agent/**/*.py[cod]
+
+# Next.js frontend
+frontend/.next/
+frontend/node_modules/
+frontend/.env.local
+frontend/.pnpm-store/
