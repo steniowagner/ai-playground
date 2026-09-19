@@ -45,7 +45,14 @@ export async function consumeEventStream(
 
   while (true) {
     const { done, value } = await reader.read();
-    buffer += decoder.decode(value, { stream: !done }).replace(/\r\n/g, "\n");
+    buffer += decoder.decode(value, { stream: !done });
+
+    // Normalize only after joining the newly decoded text to the buffered
+    // remainder. A CRLF delimiter can be split across network chunks; doing
+    // this replacement on each chunk independently leaves the delimiter
+    // unrecognized and causes all subsequent SSE events to be discarded.
+    buffer = buffer.replace(/\r\n/g, "\n");
+    if (done) buffer = buffer.replace(/\r/g, "\n");
 
     const blocks = buffer.split("\n\n");
     buffer = blocks.pop() ?? "";

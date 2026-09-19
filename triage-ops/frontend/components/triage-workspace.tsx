@@ -430,18 +430,24 @@ export function TriageWorkspace() {
 
     if (event.type === "message_chunk") {
       const content = String(event.content ?? "");
-      setItems((current) => {
-        const existingId = assistantMessageId.current;
-        if (existingId) {
-          return current.map((item) =>
+      const existingId = assistantMessageId.current;
+
+      if (existingId) {
+        setItems((current) =>
+          current.map((item) =>
             item.id === existingId && item.kind === "assistant"
               ? { ...item, content: item.content + content }
               : item,
-          );
-        }
+          ),
+        );
+      } else {
         assistantMessageId.current = id;
-        return [...current, { id, kind: "assistant", content }];
-      });
+        setItems((current) => [
+          ...current,
+          { id, kind: "assistant", content },
+        ]);
+      }
+
       return;
     }
 
@@ -732,6 +738,17 @@ export function TriageWorkspace() {
         </section>
 
         <aside className="side-panel">
+          <div className="scope-card">
+            <div>
+              <ServerCog size={17} />
+              <strong>Operational scope</strong>
+            </div>
+            <p>
+              Incidents · services · deployments · logs · metrics · flags ·
+              maintenance · runbooks
+            </p>
+          </div>
+
           <div className="side-heading">
             <div>
               <h2>Suggested prompts</h2>
@@ -767,17 +784,6 @@ export function TriageWorkspace() {
               </div>
             )}
           </nav>
-
-          <div className="scope-card">
-            <div>
-              <ServerCog size={17} />
-              <strong>Operational scope</strong>
-            </div>
-            <p>
-              Incidents · services · deployments · logs · metrics · flags ·
-              maintenance · runbooks
-            </p>
-          </div>
         </aside>
       </div>
     </main>

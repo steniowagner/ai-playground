@@ -226,7 +226,7 @@ button { color: inherit; }
 .question-skeleton { height: 68px; border-bottom: 1px solid var(--line); background: linear-gradient(90deg, transparent, rgba(255,255,255,.9), transparent); background-size: 200% 100%; animation: shimmer 1.8s infinite; }
 @keyframes shimmer { to { background-position: -200% 0; } }
 .list-error { padding: 16px 0; display: flex; gap: 8px; align-items: center; color: #8d2929; font-size: 11px; }
-.scope-card { margin-top: 24px; padding: 15px; background: #e9eee9; border: 1px solid #d2dbd4; border-radius: 9px; }
+.scope-card { margin: 0 0 24px; padding: 15px; background: #e9eee9; border: 1px solid #d2dbd4; border-radius: 9px; }
 .scope-card > div { gap: 7px; }
 .scope-card strong { font-size: 11px; }
 .scope-card p { margin: 9px 0 0; color: var(--ink-soft); font-size: 10px; line-height: 1.55; }
