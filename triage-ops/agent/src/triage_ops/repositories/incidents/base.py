@@ -7,3 +7,7 @@ class IncidentRepository(ABC):
     @abstractmethod
     def find_by_id(self, incident_id: str) -> Incident | None:
         pass
+
+    @abstractmethod
+    def find(self) -> list[Incident]:
+        pass

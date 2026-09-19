@@ -36,6 +36,8 @@ from triage_ops.tools.get_feature_flags import (
 from triage_ops.tools.get_feature_flags.schema import GetFeatureFlagsArgs
 from triage_ops.tools.get_incident import GetIncidentTool
 from triage_ops.tools.get_incident.schema import GetIncidentArgs
+from triage_ops.tools.get_incidents import GetIncidentsTool
+from triage_ops.tools.get_incidents.schema import GetIncidentsArgs
 from triage_ops.tools.get_maintenance_windows import (
     GetMaintenanceWindowsTool,
     MaintenanceWindow,
@@ -374,6 +376,64 @@ class TestReadOnlyToolErrorContract:
         assert "secret" not in response.model_dump_json()
 
 
+class TestGetIncidentsTool:
+    def test_returns_every_registered_incident(self) -> None:
+        incidents = [
+            make_incident(),
+            make_incident(
+                incident_id="INC-1043",
+                title="Inventory processing delayed",
+            ),
+        ]
+        repository = Mock(spec=IncidentRepository)
+        repository.find.return_value = incidents
+        tool = GetIncidentsTool(repository=repository)
+
+        response = tool.invoke({})
+
+        assert isinstance(response, ToolSuccessResponse)
+        assert response.data.incidents == incidents
+        repository.find.assert_called_once_with()
+
+    def test_returns_success_when_no_incidents_are_registered(self) -> None:
+        repository = Mock(spec=IncidentRepository)
+        repository.find.return_value = []
+        tool = GetIncidentsTool(repository=repository)
+
+        response = tool.invoke({})
+
+        assert isinstance(response, ToolSuccessResponse)
+        assert response.data.incidents == []
+        repository.find.assert_called_once_with()
+
+    @pytest.mark.parametrize(
+        ("exception", "retryable", "guidance"),
+        [
+            (RepositoryUnavailable("secret storage details"), True, "Retry"),
+            (RepositoryDataError("secret fixture details"), False, "Do not retry"),
+        ],
+    )
+    def test_translates_repository_failures_to_safe_error_response(
+        self,
+        exception: Exception,
+        retryable: bool,
+        guidance: str,
+    ) -> None:
+        repository = Mock(spec=IncidentRepository)
+        repository.find.side_effect = exception
+        tool = GetIncidentsTool(repository=repository)
+
+        response = tool.invoke({})
+
+        assert isinstance(response, ToolErrorResponse)
+        assert response.error.code == "EXECUTION_ERROR"
+        assert response.error.retryable is retryable
+        assert response.error.input == {}
+        assert guidance in response.error.suggested_action
+        assert "secret" not in response.model_dump_json()
+        repository.find.assert_called_once_with()
+
+
 class TestQueryMetricsTool:
     def test_builds_requested_series_and_reports_missing_metrics(self) -> None:
         repository = Mock(spec=MetricsRepository)
@@ -413,6 +473,7 @@ class TestToolArgumentSchemas:
                 {"incident_id": "INC-1042", "reason": "done"},
             ),
             (GetIncidentArgs, {"incident_id": "inc-1042"}),
+            (GetIncidentsArgs, {"incident_id": "INC-1042"}),
             (
                 GetFeatureFlagsArgs,
                 {**COMMON_SERVICE_INPUT, "flag_name": ""},

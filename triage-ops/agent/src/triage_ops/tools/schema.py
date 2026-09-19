@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 class ToolNames(StrEnum):
     COMPLETE_INVESTIGATION = "complete_investigation"
     GET_INCIDENT = "get_incident"
+    GET_INCIDENTS = "get_incidents"
     GET_FEATURE_FLAGS = "get_feature_flags"
     GET_MAINTENANCE_WINDOWS = "get_maintenance_windows"
     GET_RECENT_DEPLOYMENTS = "get_recent_deployments"

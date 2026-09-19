@@ -53,3 +53,6 @@ class JSONIncidentRepository(IncidentRepository):
             ),
             None,
         )
+
+    def find(self) -> list[Incident]:
+        return self._read_incidents()

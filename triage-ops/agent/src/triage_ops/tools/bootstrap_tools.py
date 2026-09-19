@@ -28,6 +28,7 @@ from triage_ops.repositories.services import (
 from .complete_investigation.tool import CompleteInvestigationTool
 from .get_feature_flags.tool import GetFeatureFlagsTool
 from .get_incident.tool import GetIncidentTool
+from .get_incidents import GetIncidentsTool
 from .get_maintenance_windows.tool import GetMaintenanceWindowsTool
 from .get_recent_deployments.tool import GetRecentDeploymentsTool
 from .get_runbook.tool import GetRunbookTool
@@ -48,6 +49,7 @@ def bootstrap_tools() -> list[BaseTool]:
 
     tools = [
         GetIncidentTool(repository=json_incidents_repository),
+        GetIncidentsTool(repository=json_incidents_repository),
         GetFeatureFlagsTool(repository=json_feature_flags_repository),
         GetMaintenanceWindowsTool(repository=json_maintenance_windows_repository),
         GetRecentDeploymentsTool(repository=json_deployment_repository),

@@ -69,6 +69,9 @@ class SequentialIncidentRepository(IncidentRepository):
             raise outcome
         return outcome
 
+    def find(self) -> list[Incident]:
+        raise AssertionError("This test repository only supports find_by_id().")
+
 
 class FailingLogsRepository(LogsRepository):
     def __init__(self, error: Exception) -> None:
