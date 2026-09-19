@@ -1,0 +1,7 @@
+.env*
+.git
+.gitignore
+.next
+.pnpm-store
+node_modules
+*.tsbuildinfo
