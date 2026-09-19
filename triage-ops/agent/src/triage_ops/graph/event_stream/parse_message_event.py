@@ -31,14 +31,14 @@ def split_stream_chunk(message_chunk: str | Any) -> tuple[str, str]:
 
 def parse_message_event(
     payload: Any, base_event: Event
-) -> ModelThinkingEvent | MessageChunkEvent | None:
+) -> list[ModelThinkingEvent | MessageChunkEvent]:
     if not isinstance(payload, (list, tuple)) or len(payload) != 2:
-        return None
+        return []
 
     message_chunk, metadata = payload
 
     if not isinstance(message_chunk, AIMessageChunk) or not isinstance(metadata, dict):
-        return None
+        return []
 
     hidden_nodes = {
         Nodes.CHECK_SCOPE,
@@ -46,18 +46,25 @@ def parse_message_event(
     }
 
     if metadata.get("langgraph_node") in hidden_nodes:
-        return None
+        return []
 
     thinking, answer = split_stream_chunk(message_chunk)
+    events: list[ModelThinkingEvent | MessageChunkEvent] = []
 
     if thinking:
-        return ModelThinkingEvent(
-            **base_event.model_dump(),
-            content=thinking,
+        events.append(
+            ModelThinkingEvent(
+                **base_event.model_dump(),
+                content=thinking,
+            )
         )
 
     if answer:
-        return MessageChunkEvent(
-            **base_event.model_dump(),
-            content=answer,
+        events.append(
+            MessageChunkEvent(
+                **base_event.model_dump(),
+                content=answer,
+            )
         )
+
+    return events

@@ -106,11 +106,13 @@ class TestMessageChunkSplitting:
 
 class TestMessageEventParsing:
     def test_parses_answer_chunk(self) -> None:
-        event = parse_message_event(
+        events = parse_message_event(
             (AIMessageChunk(content="answer"), {"langgraph_node": Nodes.LLM_CALL}),
             base_event(),
         )
 
+        assert len(events) == 1
+        event = events[0]
         assert isinstance(event, MessageChunkEvent)
         assert event.content == "answer"
         assert event.event_id == EVENT_ID
@@ -119,7 +121,7 @@ class TestMessageEventParsing:
     @pytest.mark.parametrize("block_type", ["thinking", "reasoning"])
     def test_parses_model_thinking_chunk(self, block_type: str) -> None:
         key = "thinking" if block_type == "thinking" else "reasoning"
-        event = parse_message_event(
+        events = parse_message_event(
             (
                 AIMessageChunk(
                     content=[{"type": block_type, key: "internal reasoning"}]
@@ -129,11 +131,13 @@ class TestMessageEventParsing:
             base_event(),
         )
 
+        assert len(events) == 1
+        event = events[0]
         assert isinstance(event, ModelThinkingEvent)
         assert event.content == "internal reasoning"
 
-    def test_thinking_takes_precedence_when_chunk_contains_both(self) -> None:
-        event = parse_message_event(
+    def test_preserves_thinking_and_answer_when_chunk_contains_both(self) -> None:
+        events = parse_message_event(
             (
                 AIMessageChunk(
                     content=[
@@ -146,29 +150,30 @@ class TestMessageEventParsing:
             base_event(),
         )
 
-        assert isinstance(event, ModelThinkingEvent)
-        assert event.content == "reason"
+        assert len(events) == 2
+        assert isinstance(events[0], ModelThinkingEvent)
+        assert events[0].content == "reason"
+        assert isinstance(events[1], MessageChunkEvent)
+        assert events[1].content == "answer"
 
     @pytest.mark.parametrize("node", [Nodes.CHECK_SCOPE, Nodes.FINALIZER])
     def test_hides_internal_model_nodes(self, node: Nodes) -> None:
-        event = parse_message_event(
+        events = parse_message_event(
             (AIMessageChunk(content="hidden"), {"langgraph_node": node}),
             base_event(),
         )
 
-        assert event is None
+        assert events == []
 
     def test_ignores_non_ai_chunks(self) -> None:
-        event = parse_message_event(
+        events = parse_message_event(
             (HumanMessageChunk(content="user"), {}), base_event()
         )
 
-        assert event is None
+        assert events == []
 
     def test_ignores_empty_ai_chunk(self) -> None:
-        assert (
-            parse_message_event((AIMessageChunk(content=""), {}), base_event()) is None
-        )
+        assert parse_message_event((AIMessageChunk(content=""), {}), base_event()) == []
 
     @pytest.mark.parametrize(
         "payload",
@@ -180,7 +185,7 @@ class TestMessageEventParsing:
         ],
     )
     def test_ignores_malformed_message_payload(self, payload: Any) -> None:
-        assert parse_message_event(payload, base_event()) is None
+        assert parse_message_event(payload, base_event()) == []
 
 
 class TestCustomEventParsing:
@@ -501,6 +506,32 @@ class TestUpdateEventParsing:
 
 
 class TestGraphEventDispatcher:
+    def test_dispatches_both_thinking_and_answer_with_unique_ids(self) -> None:
+        events = list(
+            parse_graph_event(
+                ParseGraphEventArgs(
+                    mode="messages",
+                    payload=(
+                        AIMessageChunk(
+                            content=[
+                                {"type": "thinking", "thinking": "reason"},
+                                {"type": "text", "text": "visible answer"},
+                            ]
+                        ),
+                        {"langgraph_node": Nodes.LLM_CALL},
+                    ),
+                    thread_id="thread-mixed-chunk",
+                )
+            )
+        )
+
+        assert [type(event) for event in events] == [
+            ModelThinkingEvent,
+            MessageChunkEvent,
+        ]
+        assert len({event.event_id for event in events}) == 2
+        assert events[1].content == "visible answer"  # type: ignore[union-attr]
+
     @pytest.mark.parametrize(
         ("mode", "payload", "event_type"),
         [
