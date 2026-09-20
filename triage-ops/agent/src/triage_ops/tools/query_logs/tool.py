@@ -7,7 +7,7 @@ from triage_ops.domain import Environment
 from triage_ops.repositories import (
     RepositoryException,
 )
-from triage_ops.repositories.logs import FindLogsArgs, LogsRepository
+from triage_ops.repositories.logs import FindLogsArgs, LogSeverity, LogsRepository
 from triage_ops.tools import (
     ToolErrorResponse,
     ToolErrorResponseDetail,
@@ -16,7 +16,7 @@ from triage_ops.tools import (
 )
 
 from ..schema import ToolNames
-from .schema import QueryLogsArgs, QueryLogsResult, Severity
+from .schema import QueryLogsArgs, QueryLogsResult
 
 
 class QueryLogsTool(BaseTool):
@@ -31,7 +31,7 @@ class QueryLogsTool(BaseTool):
         environment: Environment,
         contains: str | None,
         limit: int,
-        severity: set[Severity] | None,
+        severity: set[LogSeverity] | None,
         start_time: AwareDatetime,
         end_time: AwareDatetime,
     ) -> ToolResponse[QueryLogsResult]:
@@ -44,6 +44,7 @@ class QueryLogsTool(BaseTool):
             start_time=start_time,
             end_time=end_time,
         )
+
         try:
             logs = self.repository.find(FindLogsArgs(**args.model_dump()))
         except RepositoryException as exc:

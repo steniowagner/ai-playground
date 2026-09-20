@@ -11,11 +11,11 @@ from .utils import (
 def initialize_database() -> None:
     settings = get_settings()
     db_engine = create_database_engine(settings.database_url)
-    db_session = create_session_factory(db_engine)
+    session_factory = create_session_factory(db_engine)
 
     try:
         create_database_schema(db_engine)
-        seed_db(db_session)
+        seed_db(session_factory)
     finally:
         db_engine.dispose()
 
