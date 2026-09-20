@@ -4,7 +4,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from triage_ops.tools.get_incident import Incident
+from triage_ops.repositories.incidents import Incident
 
 from ..exceptions import RepositoryDataError, RepositoryUnavailable
 from .base import IncidentRepository

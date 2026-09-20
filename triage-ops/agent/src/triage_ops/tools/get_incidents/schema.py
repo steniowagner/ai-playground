@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict
 
-from ..get_incident import Incident
+from triage_ops.repositories.incidents import Incident
 
 
 class GetIncidentsResult(BaseModel):

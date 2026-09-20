@@ -2,16 +2,13 @@ from importlib import import_module
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from .schema import Incident
     from .tool import GetIncidentTool
 
 __all__ = [
     "GetIncidentTool",
-    "Incident",
 ]
 
 _EXPORTS = {
-    "Incident": (".schema", "Incident"),
     "GetIncidentTool": (".tool", "GetIncidentTool"),
 }
 

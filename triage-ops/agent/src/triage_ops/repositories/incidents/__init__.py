@@ -4,15 +4,23 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from .base import IncidentRepository
     from .json import JSONIncidentRepository
+    from .postgres import PostgresIncidentsRepository
+    from .schema import Incident, IncidentAlert
 
 __all__ = [
+    "Incident",
+    "IncidentAlert",
     "IncidentRepository",
     "JSONIncidentRepository",
+    "PostgresIncidentsRepository",
 ]
 
 _EXPORTS = {
     "IncidentRepository": (".base", "IncidentRepository"),
     "JSONIncidentRepository": (".json", "JSONIncidentRepository"),
+    "PostgresIncidentsRepository": (".postgres", "PostgresIncidentsRepository"),
+    "Incident": (".schema", "Incident"),
+    "IncidentAlert": (".schema", "IncidentAlert"),
 }
 
 

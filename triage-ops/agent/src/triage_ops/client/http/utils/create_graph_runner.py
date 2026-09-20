@@ -7,7 +7,7 @@ from triage_ops.repositories.feature_flags import (
     JSONFeatureFlagsRepository,
 )
 from triage_ops.repositories.incidents import (
-    JSONIncidentRepository,
+    PostgresIncidentsRepository,
 )
 from triage_ops.repositories.logs import PostgresLogsRepository
 from triage_ops.repositories.maintenance_windows import (
@@ -30,7 +30,9 @@ def get_tools(session_factory: SessionFactory):
         BootstrapToolsArgs(
             deployments_repository=JSONDeploymentsRepository(),
             feature_flags_repository=JSONFeatureFlagsRepository(),
-            incidents_repository=JSONIncidentRepository(),
+            incidents_repository=PostgresIncidentsRepository(
+                session_factory=session_factory
+            ),
             logs_repository=PostgresLogsRepository(session_factory=session_factory),
             maintenance_windows_repository=JSONMaintenanceWindowsRepository(),
             metrics_repository=JSONMetricsRepository(),

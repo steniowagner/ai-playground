@@ -1,9 +1,38 @@
+from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
-from triage_ops.domain import IncidentSeverity
-from triage_ops.tools.get_incident import Incident
+from triage_ops.domain import (
+    Environment,
+    IncidentSeverity,
+)
+
+IncidentStatus = Literal["investigating", "monitoring", "resolved"]
+
+
+class IncidentAlert(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    metric: str
+    observed: float
+    threshold: float
+    unit: str
+
+
+class Incident(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    incident_id: str
+    title: str
+    environment: Environment
+    primary_service: str
+    alert_started_at: datetime
+    created_at: datetime
+    status: IncidentStatus
+    severity: IncidentSeverity
+    reported_symptoms: list[str]
+    alert: IncidentAlert
 
 
 class IncidentFixtureTruth(BaseModel):

@@ -2,6 +2,7 @@ from importlib import import_module
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from .models.incidents import IncidentsRecord
     from .models.logs import LogsRecord
     from .schema import (
         SessionFactory,
@@ -9,6 +10,7 @@ if TYPE_CHECKING:
     from .utils import create_database_engine, create_session_factory
 
 __all__ = [
+    "IncidentsRecord",
     "LogsRecord",
     "SessionFactory",
     "create_database_engine",
@@ -20,6 +22,7 @@ _EXPORTS = {
     "create_database_engine": (".utils", "create_database_engine"),
     "create_session_factory": (".utils", "create_session_factory"),
     "LogsRecord": (".models.logs", "LogsRecord"),
+    "IncidentsRecord": (".models.incidents", "IncidentsRecord"),
 }
 
 
