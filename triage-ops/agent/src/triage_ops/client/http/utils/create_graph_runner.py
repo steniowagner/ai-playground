@@ -4,7 +4,7 @@ from triage_ops.graph import BuildGraphArgs, GraphRunner, build_graph
 from triage_ops.model import create_model
 from triage_ops.repositories.deployments import JSONDeploymentsRepository
 from triage_ops.repositories.feature_flags import (
-    JSONFeatureFlagsRepository,
+    PostgresFeatureFlagsRepository,
 )
 from triage_ops.repositories.incidents import (
     PostgresIncidentsRepository,
@@ -29,7 +29,9 @@ def get_tools(session_factory: SessionFactory):
     return bootstrap_tools(
         BootstrapToolsArgs(
             deployments_repository=JSONDeploymentsRepository(),
-            feature_flags_repository=JSONFeatureFlagsRepository(),
+            feature_flags_repository=PostgresFeatureFlagsRepository(
+                session_factory=session_factory
+            ),
             incidents_repository=PostgresIncidentsRepository(
                 session_factory=session_factory
             ),

@@ -9,7 +9,7 @@ from .base import Base
 class FeatureFlagsRecord(Base):
     __tablename__ = "feature_flags"
 
-    id: Mapped[str] = mapped_column(UUID, primary_key=True)
+    id: Mapped[UUID] = mapped_column(UUID, primary_key=True)
 
     flag: Mapped[str] = mapped_column(String, nullable=False)
 

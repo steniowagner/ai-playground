@@ -25,7 +25,7 @@ _EXPORTS = {
     "create_session_factory": (".utils", "create_session_factory"),
     "LogsRecord": (".models.logs", "LogsRecord"),
     "IncidentsRecord": (".models.incidents", "IncidentsRecord"),
-    "FeatureFlagsRecord": (".models.incidents", "FeatureFlagsRecord"),
+    "FeatureFlagsRecord": (".models.feature_flags", "FeatureFlagsRecord"),
 }
 
 

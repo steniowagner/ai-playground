@@ -2,14 +2,14 @@ from importlib import import_module
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from .schema import FeatureFlagsFixture
     from .tool import GetFeatureFlagsTool
 
-__all__ = [
-    "GetFeatureFlagsTool",
-]
+__all__ = ["FeatureFlagsFixture", "GetFeatureFlagsTool"]
 
 _EXPORTS = {
     "GetFeatureFlagsTool": (".tool", "GetFeatureFlagsTool"),
+    "FeatureFlagsFixture": (".schema", "FeatureFlagsFixture"),
 }
 
 

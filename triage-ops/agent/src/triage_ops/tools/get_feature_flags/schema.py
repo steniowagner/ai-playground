@@ -1,5 +1,3 @@
-from typing import Literal
-
 from pydantic import BaseModel, ConfigDict, Field
 
 from triage_ops.domain import Environment
@@ -17,11 +15,4 @@ class GetFeatureFlagsArgs(BaseModel):
 class GetFeatureFlagsResult(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    feature_flags: list[FeatureFlag]
-
-
-class FeatureFlagsFixture(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
-
-    schema_version: Literal["1.0"]
     feature_flags: list[FeatureFlag]

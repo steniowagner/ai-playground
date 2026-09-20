@@ -11,7 +11,7 @@ class PostgresFeatureFlagsRepository(FeatureFlagsRepository):
         self._session_factory = session_factory
 
     def find(self, args: FindFeatureFlagsArgs) -> list[FeatureFlag]:
-        statement = select(FeatureFlag).where(
+        statement = select(FeatureFlagsRecord).where(
             FeatureFlagsRecord.service == args.service,
             FeatureFlagsRecord.environment == args.environment,
         )
