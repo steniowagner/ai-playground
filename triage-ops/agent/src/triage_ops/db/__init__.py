@@ -2,6 +2,7 @@ from importlib import import_module
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from .models.feature_flags import FeatureFlagsRecord
     from .models.incidents import IncidentsRecord
     from .models.logs import LogsRecord
     from .schema import (
@@ -10,6 +11,7 @@ if TYPE_CHECKING:
     from .utils import create_database_engine, create_session_factory
 
 __all__ = [
+    "FeatureFlagsRecord",
     "IncidentsRecord",
     "LogsRecord",
     "SessionFactory",
@@ -23,6 +25,7 @@ _EXPORTS = {
     "create_session_factory": (".utils", "create_session_factory"),
     "LogsRecord": (".models.logs", "LogsRecord"),
     "IncidentsRecord": (".models.incidents", "IncidentsRecord"),
+    "FeatureFlagsRecord": (".models.incidents", "FeatureFlagsRecord"),
 }
 
 

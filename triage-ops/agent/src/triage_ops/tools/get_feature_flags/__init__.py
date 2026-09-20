@@ -2,16 +2,13 @@ from importlib import import_module
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from .schema import FeatureFlag
     from .tool import GetFeatureFlagsTool
 
 __all__ = [
-    "FeatureFlag",
     "GetFeatureFlagsTool",
 ]
 
 _EXPORTS = {
-    "FeatureFlag": (".schema", "FeatureFlag"),
     "GetFeatureFlagsTool": (".tool", "GetFeatureFlagsTool"),
 }
 

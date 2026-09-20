@@ -4,13 +4,13 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from triage_ops.tools.get_feature_flags import (
-    FeatureFlag,
-)
-
 from ..exceptions import RepositoryDataError, RepositoryUnavailable
 from .base import FeatureFlagsRepository
-from .schema import FeatureFlagsFixture, FindFeatureFlagsArgs
+from .schema import (
+    FeatureFlag,
+    FeatureFlagsFixture,
+    FindFeatureFlagsArgs,
+)
 
 FEATURE_FLAGS_FILE = (
     Path(__file__).resolve().parents[4] / "data" / "fixtures" / "feature_flags.json"

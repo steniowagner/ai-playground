@@ -1,11 +1,20 @@
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field
 
 from triage_ops.domain import Environment
-from triage_ops.tools.get_feature_flags import (
-    FeatureFlag,
-)
+
+
+class FeatureFlag(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    flag: str
+    service: str
+    environment: Environment
+    enabled: bool
+    owner_team: str
+    changed_at: AwareDatetime
+    changed_by_deployment: str
 
 
 class FeatureFlagsFixture(BaseModel):

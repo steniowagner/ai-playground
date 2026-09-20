@@ -1,10 +1,9 @@
 from abc import ABC, abstractmethod
 
-from triage_ops.tools.get_feature_flags import (
+from .schema import (
     FeatureFlag,
+    FindFeatureFlagsArgs,
 )
-
-from .schema import FindFeatureFlagsArgs
 
 
 class FeatureFlagsRepository(ABC):

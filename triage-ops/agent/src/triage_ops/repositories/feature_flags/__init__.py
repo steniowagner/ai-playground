@@ -4,18 +4,23 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from .base import FeatureFlagsRepository
     from .json import JSONFeatureFlagsRepository
-    from .schema import FindFeatureFlagsArgs
+    from .postgres import PostgresFeatureFlagsRepository
+    from .schema import FeatureFlag, FindFeatureFlagsArgs
 
 __all__ = [
+    "FeatureFlag",
     "FeatureFlagsRepository",
     "FindFeatureFlagsArgs",
     "JSONFeatureFlagsRepository",
+    "PostgresFeatureFlagsRepository",
 ]
 
 _EXPORTS = {
     "FeatureFlagsRepository": (".base", "FeatureFlagsRepository"),
     "JSONFeatureFlagsRepository": (".json", "JSONFeatureFlagsRepository"),
     "FindFeatureFlagsArgs": (".schema", "FindFeatureFlagsArgs"),
+    "FeatureFlag": (".schema", "FeatureFlag"),
+    "PostgresFeatureFlagsRepository": (".postgres", "PostgresFeatureFlagsRepository"),
 }
 
 
