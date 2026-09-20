@@ -13,8 +13,9 @@ class PostgresMaintenanceWindowsRepository(MaintenanceWindowsRepository):
 
     def find(self, args: FindMaintenanceWindowsArgs) -> list[MaintenanceWindow]:
         statement = select(MaintenanceWindowsRecord).where(
-            MaintenanceWindowsRecord.service == args.service,
+            MaintenanceWindowsRecord.services.contains([args.service]),
             MaintenanceWindowsRecord.environment == args.environment,
+            MaintenanceWindowsRecord.status != "cancelled",
             MaintenanceWindowsRecord.start_time < args.end_time,
             args.start_time < MaintenanceWindowsRecord.end_time,
         )

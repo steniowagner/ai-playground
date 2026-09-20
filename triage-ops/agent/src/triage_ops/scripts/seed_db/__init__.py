@@ -6,6 +6,7 @@ from .exceptions import SeedDatabaseException
 from .seed_feature_flags import seed_feature_flags
 from .seed_incidents import seed_incidents
 from .seed_logs import seed_logs
+from .seed_maintenance_windows import seed_maintenance_windows
 
 
 def seed_db(session_factory: SessionFactory) -> None:
@@ -16,6 +17,7 @@ def seed_db(session_factory: SessionFactory) -> None:
         seed_logs(session_factory, logger)
         seed_incidents(session_factory, logger)
         seed_feature_flags(session_factory, logger)
+        seed_maintenance_windows(session_factory, logger)
     except SeedDatabaseException:
         logger.exception("Database seeding failed.")
         raise

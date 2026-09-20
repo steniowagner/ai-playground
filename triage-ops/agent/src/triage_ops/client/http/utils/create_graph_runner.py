@@ -11,7 +11,7 @@ from triage_ops.repositories.incidents import (
 )
 from triage_ops.repositories.logs import PostgresLogsRepository
 from triage_ops.repositories.maintenance_windows import (
-    JSONMaintenanceWindowsRepository,
+    PostgresMaintenanceWindowsRepository,
 )
 from triage_ops.repositories.metrics import (
     JSONMetricsRepository,
@@ -36,7 +36,9 @@ def get_tools(session_factory: SessionFactory):
                 session_factory=session_factory
             ),
             logs_repository=PostgresLogsRepository(session_factory=session_factory),
-            maintenance_windows_repository=JSONMaintenanceWindowsRepository(),
+            maintenance_windows_repository=PostgresMaintenanceWindowsRepository(
+                session_factory=session_factory
+            ),
             metrics_repository=JSONMetricsRepository(),
             runbooks_repository=JSONRunbooksRepository(),
             services_repository=JSONServicesRepository(),

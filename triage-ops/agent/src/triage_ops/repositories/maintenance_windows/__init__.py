@@ -5,11 +5,12 @@ if TYPE_CHECKING:
     from .base import MaintenanceWindowsRepository
     from .json import JSONMaintenanceWindowsRepository
     from .postgres import PostgresMaintenanceWindowsRepository
-    from .schema import FindMaintenanceWindowsArgs
+    from .schema import FindMaintenanceWindowsArgs, MaintenanceWindowsFixture
 
 __all__ = [
     "FindMaintenanceWindowsArgs",
     "JSONMaintenanceWindowsRepository",
+    "MaintenanceWindowsFixture",
     "MaintenanceWindowsRepository",
     "PostgresMaintenanceWindowsRepository",
 ]
@@ -18,6 +19,7 @@ _EXPORTS = {
     "MaintenanceWindowsRepository": (".base", "MaintenanceWindowsRepository"),
     "JSONMaintenanceWindowsRepository": (".json", "JSONMaintenanceWindowsRepository"),
     "FindMaintenanceWindowsArgs": (".schema", "FindMaintenanceWindowsArgs"),
+    "MaintenanceWindowsFixture": (".schema", "MaintenanceWindowsFixture"),
     "PostgresMaintenanceWindowsRepository": (
         ".postgres",
         "PostgresMaintenanceWindowsRepository",
