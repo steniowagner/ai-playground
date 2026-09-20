@@ -2,6 +2,11 @@ name: triage-ops
 
 services:
   api:
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: postgresql+psycopg://triage_ops:triage_ops@db:5432/triage_ops
     build:
       context: ./agent
     env_file:
@@ -65,6 +70,22 @@ services:
       retries: 10
       start_period: 5s
     restart: unless-stopped
+
+  db-init:
+    build:
+      context: ./agent
+    env_file:
+      - ./agent/.env
+    environment:
+      DATABASE_URL: postgresql+psycopg://triage_ops:triage_ops@db:5432/triage_ops
+    command:
+      - python
+      - -m
+      - triage_ops.db.initialize
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
 
 volumes:
   postgres_data:

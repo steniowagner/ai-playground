@@ -2,7 +2,6 @@ from importlib import import_module
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from .bootstrap_tools import bootstrap_tools
     from .schema import (
         ToolErrorResponse,
         ToolErrorResponseDetail,
@@ -17,11 +16,9 @@ __all__ = [
     "ToolNames",
     "ToolResponse",
     "ToolSuccessResponse",
-    "bootstrap_tools",
 ]
 
 _EXPORTS = {
-    "bootstrap_tools": (".bootstrap_tools", "bootstrap_tools"),
     "ToolErrorResponse": (".schema", "ToolErrorResponse"),
     "ToolErrorResponseDetail": (".schema", "ToolErrorResponseDetail"),
     "ToolNames": (".schema", "ToolNames"),

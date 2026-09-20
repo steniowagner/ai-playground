@@ -26,7 +26,6 @@ from triage_ops.repositories.metrics import FindMetricsArgs, MetricsRepository
 from triage_ops.repositories.runbooks import FindRunbookByIdArgs, RunbooksRepository
 from triage_ops.repositories.services import FindServiceArgs, ServicesRepository
 from triage_ops.tools import ToolErrorResponse, ToolNames, ToolSuccessResponse
-from triage_ops.tools.bootstrap_tools import bootstrap_tools
 from triage_ops.tools.complete_investigation import CompleteInvestigationTool
 from triage_ops.tools.complete_investigation.schema import CompleteInvestigationArgs
 from triage_ops.tools.get_feature_flags import (
@@ -54,6 +53,7 @@ from triage_ops.tools.query_logs import Log, QueryLogsTool
 from triage_ops.tools.query_logs.schema import QueryLogsArgs
 from triage_ops.tools.query_metrics import Metric, QueryMetricsTool
 from triage_ops.tools.query_metrics.schema import MetricValues, QueryMetricsArgs
+from triage_ops.utils.bootstrap_tools.bootstrap_tools import bootstrap_tools
 
 from tests.support.factories import make_incident
 

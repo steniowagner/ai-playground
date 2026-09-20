@@ -2,7 +2,6 @@ from functools import partial
 
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
-from langgraph.types import Checkpointer
 
 from triage_ops.domain.investigation import (
     InvestigationResponse,
@@ -32,28 +31,26 @@ from triage_ops.graph.nodes.request_approvals import (
     request_approvals_node,
 )
 from triage_ops.graph.nodes.tool_calls.node import tool_calls_node
-from triage_ops.model import Model
 from triage_ops.services import (
     bootstrap_services,
 )
-from triage_ops.tools import bootstrap_tools
 
 from .conditions.after_scope_check import after_scope_check
 from .nodes.check_scope import ScopeDecision, check_scope_node
 from .nodes.reject_out_of_scope import reject_out_of_scope_node
+from .schema import BuildGraphArgs
 from .state import State
 
 
-def build_graph(model: Model, checkpointer: Checkpointer) -> CompiledStateGraph:
-    tools = bootstrap_tools()
+def build_graph(args: BuildGraphArgs) -> CompiledStateGraph:
     service_registry = bootstrap_services()
 
-    scope_model = model.with_structured_output(
+    scope_model = args.model.with_structured_output(
         ScopeDecision,
         method="json_schema",
     )
-    agent_model = model.bind_tools(tools)
-    finalizer_model = model.with_structured_output(
+    agent_model = args.model.bind_tools(args.tools)
+    finalizer_model = args.model.with_structured_output(
         InvestigationResponse, method="json_schema"
     )
 
@@ -66,7 +63,7 @@ def build_graph(model: Model, checkpointer: Checkpointer) -> CompiledStateGraph:
     )
     graph.add_node(
         Nodes.TOOL,
-        partial(tool_calls_node, tools={tool.get_name(): tool for tool in tools}),
+        partial(tool_calls_node, tools={tool.get_name(): tool for tool in args.tools}),
     )
     graph.add_node(
         Nodes.FINALIZER,
@@ -119,4 +116,4 @@ def build_graph(model: Model, checkpointer: Checkpointer) -> CompiledStateGraph:
     graph.add_edge(Nodes.REQUEST_APPROVALS, Nodes.EXECUTE_APPROVALS)
     graph.add_edge(Nodes.EXECUTE_APPROVALS, END)
 
-    return graph.compile(checkpointer=checkpointer)
+    return graph.compile(checkpointer=args.checkpointer)

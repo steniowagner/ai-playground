@@ -1,0 +1,2 @@
+class SeedDatabaseException(Exception):
+    pass
