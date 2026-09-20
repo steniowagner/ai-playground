@@ -4,18 +4,24 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from .base import MaintenanceWindowsRepository
     from .json import JSONMaintenanceWindowsRepository
+    from .postgres import PostgresMaintenanceWindowsRepository
     from .schema import FindMaintenanceWindowsArgs
 
 __all__ = [
     "FindMaintenanceWindowsArgs",
     "JSONMaintenanceWindowsRepository",
     "MaintenanceWindowsRepository",
+    "PostgresMaintenanceWindowsRepository",
 ]
 
 _EXPORTS = {
     "MaintenanceWindowsRepository": (".base", "MaintenanceWindowsRepository"),
     "JSONMaintenanceWindowsRepository": (".json", "JSONMaintenanceWindowsRepository"),
     "FindMaintenanceWindowsArgs": (".schema", "FindMaintenanceWindowsArgs"),
+    "PostgresMaintenanceWindowsRepository": (
+        ".postgres",
+        "PostgresMaintenanceWindowsRepository",
+    ),
 }
 
 

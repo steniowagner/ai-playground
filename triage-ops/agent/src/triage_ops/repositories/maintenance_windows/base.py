@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 
-from triage_ops.tools.get_maintenance_windows import (
-    MaintenanceWindow,
-)
+from triage_ops.domain import MaintenanceWindow
 
 from .schema import FindMaintenanceWindowsArgs
 

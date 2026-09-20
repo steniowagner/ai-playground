@@ -4,13 +4,14 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from triage_ops.tools.get_maintenance_windows import (
-    MaintenanceWindow,
-)
+from triage_ops.domain import MaintenanceWindow
 
 from ..exceptions import RepositoryDataError, RepositoryUnavailable
 from .base import MaintenanceWindowsRepository
-from .schema import FindMaintenanceWindowsArgs, MaintenanceWindowsFixture
+from .schema import (
+    FindMaintenanceWindowsArgs,
+    MaintenanceWindowsFixture,
+)
 
 MAINTENANCE_WINDOWS_FILE = (
     Path(__file__).resolve().parents[4]

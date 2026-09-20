@@ -2,16 +2,13 @@ from importlib import import_module
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from .schema import MaintenanceWindow
     from .tool import GetMaintenanceWindowsTool
 
 __all__ = [
     "GetMaintenanceWindowsTool",
-    "MaintenanceWindow",
 ]
 
 _EXPORTS = {
-    "MaintenanceWindow": (".schema", "MaintenanceWindow"),
     "GetMaintenanceWindowsTool": (".tool", "GetMaintenanceWindowsTool"),
 }
 

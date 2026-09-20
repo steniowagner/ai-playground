@@ -2,10 +2,7 @@ from typing import Literal
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict
 
-from triage_ops.domain import Environment
-from triage_ops.tools.get_maintenance_windows import (
-    MaintenanceWindow,
-)
+from triage_ops.domain import Environment, MaintenanceWindow
 
 
 class MaintenanceWindowsFixture(BaseModel):

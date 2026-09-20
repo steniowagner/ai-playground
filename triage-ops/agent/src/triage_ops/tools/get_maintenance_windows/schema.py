@@ -1,26 +1,10 @@
 from datetime import timedelta
-from typing import Literal
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, model_validator
 
-from triage_ops.domain import Environment
+from triage_ops.domain import Environment, MaintenanceWindow
 
 MAX_QUERY_WINDOW_HOURS = 24
-MaintenanceStatus = Literal["scheduled", "in_progress", "completed", "cancelled"]
-
-
-class MaintenanceWindow(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
-
-    maintenance_id: str
-    title: str
-    services: list[str]
-    environment: Environment
-    start_time: AwareDatetime
-    end_time: AwareDatetime
-    expected_effects: list[str]
-    approved_by: str
-    status: MaintenanceStatus
 
 
 class GetMaintenanceWindowsArgs(BaseModel):
