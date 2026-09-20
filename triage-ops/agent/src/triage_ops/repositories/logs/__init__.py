@@ -5,11 +5,13 @@ if TYPE_CHECKING:
     from .base import LogsRepository
     from .json import JSONLogsRepository
     from .postgres import PostgresLogsRepository
-    from .schema import FindLogsArgs
+    from .schema import FindLogsArgs, Log, LogSeverity
 
 __all__ = [
     "FindLogsArgs",
     "JSONLogsRepository",
+    "Log",
+    "LogSeverity",
     "LogsRepository",
     "PostgresLogsRepository",
 ]
@@ -18,6 +20,8 @@ _EXPORTS = {
     "LogsRepository": (".base", "LogsRepository"),
     "JSONLogsRepository": (".json", "JSONLogsRepository"),
     "FindLogsArgs": (".schema", "FindLogsArgs"),
+    "LogSeverity": (".schema", "LogSeverity"),
+    "Log": (".schema", "Log"),
     "PostgresLogsRepository": (".postgres", "PostgresLogsRepository"),
 }
 

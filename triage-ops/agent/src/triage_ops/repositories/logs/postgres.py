@@ -1,5 +1,5 @@
 from triage_ops.db import SessionFactory
-from triage_ops.tools.query_logs import Log
+from triage_ops.repositories.logs import Log
 
 from .base import LogsRepository
 from .schema import FindLogsArgs

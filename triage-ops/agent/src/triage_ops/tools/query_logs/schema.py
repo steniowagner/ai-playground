@@ -1,26 +1,11 @@
 from datetime import timedelta
-from typing import Any, Literal
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
 
 from triage_ops.domain import Environment
+from triage_ops.repositories.logs import Log, LogSeverity
 
 DEFAULT_QUERY_WINDOW_MINUTES = 60
-
-Severity = Literal["ERROR", "WARN", "INFO"]
-
-
-class Log(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
-
-    log_id: str
-    timestamp: AwareDatetime
-    service: str
-    environment: Environment
-    severity: Severity
-    trace_id: str | None = None
-    message: str
-    attributes: dict[str, Any]
 
 
 class QueryLogsArgs(BaseModel):
@@ -35,7 +20,7 @@ class QueryLogsArgs(BaseModel):
         ),
     )
     limit: int = Field(default=50, ge=1, le=50)
-    severity: set[Severity] | None = Field(
+    severity: set[LogSeverity] | None = Field(
         default=None,
         min_length=1,
         max_length=3,

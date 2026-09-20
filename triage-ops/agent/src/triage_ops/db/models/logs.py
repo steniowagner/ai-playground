@@ -13,9 +13,7 @@ class LogsRecord(Base):
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
 
-    timestamp = Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
-    )
+    timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     service: Mapped[str] = mapped_column(String, nullable=False)
 
