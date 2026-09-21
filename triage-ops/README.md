@@ -93,6 +93,11 @@ The main workspace combines the conversation, live tool and proposal activity, e
 
 ## Architecture
 
+![TriageOps system architecture](frontend/public/triageops-architecture.png)
+
+<details>
+<summary>View the Mermaid source</summary>
+
 ```mermaid
 flowchart LR
     U[User] --> UI[Next.js UI]
@@ -116,9 +121,16 @@ flowchart LR
     EVENTS -->|SSE stream| UI
 ```
 
+</details>
+
 The browser never calls FastAPI directly. It talks to a server-side Next.js proxy, which forwards regular responses and server-sent event streams to the API. The production-like application uses PostgreSQL-backed repositories for operational records and file-backed runbooks. The evaluation runner swaps in deterministic file-backed repositories so scenarios are repeatable.
 
 ### LangGraph workflow
+
+![TriageOps LangGraph workflow](frontend/public/triageops-langgraph.png)
+
+<details>
+<summary>View the Mermaid source</summary>
 
 ```mermaid
 flowchart TD
@@ -141,6 +153,8 @@ flowchart TD
     INTERRUPT -. resume .-> EXECUTE[Execute approved proposals]
     EXECUTE --> END4((End))
 ```
+
+</details>
 
 The graph deliberately separates evidence collection from report generation. The agent decides which tools to call, but it does not write the final investigation report itself. A dedicated finalizer receives a constrained evidence transcript and must return a validated `InvestigationResult` or `InvestigationFailure`.
 
