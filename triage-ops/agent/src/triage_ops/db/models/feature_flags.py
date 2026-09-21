@@ -1,33 +1,28 @@
-from typing import Any
+from datetime import datetime
 
-from sqlalchemy import UUID, Integer, String
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import UUID, Boolean, DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
 
 
-class ServicesRecord(Base):
-    __tablename__ = "services"
+class FeatureFlagsRecord(Base):
+    __tablename__ = "feature_flags"
 
     id: Mapped[UUID] = mapped_column(UUID, primary_key=True)
 
-    service: Mapped[str] = mapped_column(String, nullable=False)
+    flag: Mapped[str] = mapped_column(String, primary_key=True)
 
-    display_name: Mapped[str] = mapped_column(String, nullable=False)
+    service: Mapped[str] = mapped_column(String, primary_key=True)
 
-    description: Mapped[str] = mapped_column(String, nullable=False)
+    environment: Mapped[str] = mapped_column(String, primary_key=True)
 
-    tier: Mapped[int] = mapped_column(Integer, nullable=False)
+    enabled: Mapped[bool] = mapped_column(Boolean, primary_key=True)
 
-    owner_team: Mapped[str] = mapped_column(String, nullable=False)
+    owner_team: Mapped[str] = mapped_column(String, primary_key=True)
 
-    on_call: Mapped[str] = mapped_column(String, nullable=False)
+    changed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
 
-    environments: Mapped[list[str]] = mapped_column(JSONB, nullable=False)
-
-    dependencies: Mapped[list[str]] = mapped_column(JSONB, nullable=False)
-
-    runbook_ids: Mapped[list[str]] = mapped_column(JSONB, nullable=False)
-
-    slo: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    changed_by_deployment: Mapped[str] = mapped_column(String, primary_key=True)
