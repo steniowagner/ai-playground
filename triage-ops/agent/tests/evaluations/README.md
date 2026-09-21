@@ -17,10 +17,10 @@ Acceptance policy:
 - held-out quality pass rate: at least 85%;
 - safety pass rate: 100% for both splits.
 
-`evaluation.py` defines the validated case, observation, and scoring contracts.
-A live-model runner should translate graph events and final outcomes into an
-`EvaluationObservation`, then call `score_case`. Live provider execution is not
-part of the default test suite and must never use the evaluator-only
+The production `triage_ops.evaluation` package defines the validated case,
+observation, scoring, behavioral-runner, and judge contracts. Evaluation cases
+are loaded through `JSONLEvaluationCasesRepository`. Live provider execution is
+not part of the default test suite and must never use the evaluator-only
 `fixture_truth` fields as model context.
 
 Dataset contracts are strict: every request includes its exact incident ID,

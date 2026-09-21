@@ -8,17 +8,17 @@ from typing import Literal
 
 from dotenv import load_dotenv
 from langgraph.checkpoint.memory import InMemorySaver
+from triage_ops.evaluation.behavioral import (
+    BehavioralEvaluationRunner,
+    ModelBehavioralJudge,
+)
+from triage_ops.evaluation.schema import EvaluationCase
 from triage_ops.graph import GraphRunner, build_graph
 from triage_ops.model import create_model
+from triage_ops.repositories.evaluation_cases import JSONLEvaluationCasesRepository
 
-from .behavioral import BehavioralEvaluationRunner, ModelBehavioralJudge
-from .evaluation import EvaluationCase, load_cases
-
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DATASETS = {
-    "development": PROJECT_ROOT / "data" / "evals" / "development.jsonl",
-    "held_out": PROJECT_ROOT / "data" / "evals" / "held_out.jsonl",
-}
+EVALUATION_CASES = JSONLEvaluationCasesRepository()
+EVALUATION_SPLITS = ("development", "held_out")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -27,7 +27,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--split",
-        choices=tuple(DATASETS),
+        choices=EVALUATION_SPLITS,
         default="development",
         help="Dataset split to run (default: development).",
     )
@@ -70,7 +70,7 @@ def build_parser() -> argparse.ArgumentParser:
 def select_cases(
     split: Literal["development", "held_out"], case_ids: list[str]
 ) -> list[EvaluationCase]:
-    cases = load_cases(DATASETS[split])
+    cases = EVALUATION_CASES.find_all(split)
     if not case_ids:
         return cases
 

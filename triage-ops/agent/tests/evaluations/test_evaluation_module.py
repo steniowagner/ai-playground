@@ -10,22 +10,25 @@ from triage_ops.domain.investigation.schema import (
     RestartServiceProposal,
     RollbackDeploymentProposal,
 )
-from triage_ops.graph.nodes.check_scope.prompts import SCOPE_PROMPT
-from triage_ops.graph.nodes.finalize_investigation.prompts import (
-    FINALIZER_HUMAN_PROMPT,
-    FINALIZER_SYSTEM_PROMPT,
-)
-from triage_ops.graph.nodes.llm_call.prompts import SYSTEM_PROMPT
-
-from tests.evaluations.evaluation import (
+from triage_ops.evaluation.schema import (
     DEVELOPMENT_PASS_THRESHOLD,
     HELD_OUT_PASS_THRESHOLD,
     SAFETY_PASS_THRESHOLD,
     EvaluationCase,
     EvaluationExpectations,
     EvaluationObservation,
-    load_cases,
-    score_case,
+)
+from triage_ops.evaluation.scoring import score_case
+from triage_ops.graph.nodes.check_scope.prompts import SCOPE_PROMPT
+from triage_ops.graph.nodes.finalize_investigation.prompts import (
+    FINALIZER_HUMAN_PROMPT,
+    FINALIZER_SYSTEM_PROMPT,
+)
+from triage_ops.graph.nodes.llm_call.prompts import SYSTEM_PROMPT
+from triage_ops.repositories import RepositoryDataError, RepositoryUnavailable
+from triage_ops.repositories.evaluation_cases import (
+    EvaluationSplit,
+    JSONLEvaluationCasesRepository,
 )
 
 pytestmark = pytest.mark.evaluation
@@ -33,34 +36,59 @@ pytestmark = pytest.mark.evaluation
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEVELOPMENT_DATASET = PROJECT_ROOT / "data" / "evals" / "development.jsonl"
 HELD_OUT_DATASET = PROJECT_ROOT / "data" / "evals" / "held_out.jsonl"
+EVALUATION_CASES = JSONLEvaluationCasesRepository()
 
 
 class TestEvaluationDatasets:
     def test_development_dataset_is_valid_and_has_expected_size(self) -> None:
-        cases = load_cases(DEVELOPMENT_DATASET)
+        cases = EVALUATION_CASES.find_all("development")
 
         assert len(cases) == 18
         assert all(case.split == "development" for case in cases)
 
     def test_held_out_dataset_is_valid_and_has_expected_size(self) -> None:
-        cases = load_cases(HELD_OUT_DATASET)
+        cases = EVALUATION_CASES.find_all("held_out")
 
         assert len(cases) == 7
         assert all(case.split == "held_out" for case in cases)
 
     def test_development_and_held_out_ids_do_not_overlap(self) -> None:
-        development_ids = {case.case_id for case in load_cases(DEVELOPMENT_DATASET)}
-        held_out_ids = {case.case_id for case in load_cases(HELD_OUT_DATASET)}
+        development_ids = {
+            case.case_id for case in EVALUATION_CASES.find_all("development")
+        }
+        held_out_ids = {case.case_id for case in EVALUATION_CASES.find_all("held_out")}
 
         assert development_ids.isdisjoint(held_out_ids)
 
-    @pytest.mark.parametrize("dataset", [DEVELOPMENT_DATASET, HELD_OUT_DATASET])
-    def test_every_case_mentions_its_incident_id(self, dataset: Path) -> None:
-        for case in load_cases(dataset):
+    @pytest.mark.parametrize(
+        ("case_id", "expected_split"),
+        [
+            ("dev-018", "development"),
+            ("holdout-007", "held_out"),
+        ],
+    )
+    def test_finds_case_by_id(
+        self, case_id: str, expected_split: EvaluationSplit
+    ) -> None:
+        case = EVALUATION_CASES.find_by_id(case_id)
+
+        assert case is not None
+        assert case.case_id == case_id
+        assert case.split == expected_split
+
+    def test_unknown_case_id_returns_none(self) -> None:
+        assert EVALUATION_CASES.find_by_id("dev-999") is None
+        assert EVALUATION_CASES.find_by_id("invalid") is None
+
+    @pytest.mark.parametrize("split", ["development", "held_out"])
+    def test_every_case_mentions_its_incident_id(self, split: EvaluationSplit) -> None:
+        for case in EVALUATION_CASES.find_all(split):
             assert case.incident_id in case.user_request
 
     def test_safety_and_core_scenarios_are_represented(self) -> None:
-        cases = load_cases(DEVELOPMENT_DATASET) + load_cases(HELD_OUT_DATASET)
+        cases = EVALUATION_CASES.find_all("development") + EVALUATION_CASES.find_all(
+            "held_out"
+        )
         tags = {tag for case in cases for tag in case.tags}
 
         assert {
@@ -77,19 +105,48 @@ class TestEvaluationDatasets:
         case = DEVELOPMENT_DATASET.read_text(encoding="utf-8").splitlines()[0]
         path = tmp_path / "duplicate.jsonl"
         path.write_text(f"{case}\n{case}\n", encoding="utf-8")
+        repository = JSONLEvaluationCasesRepository(
+            {
+                "development": path,
+                "held_out": HELD_OUT_DATASET,
+            }
+        )
 
-        with pytest.raises(ValueError, match="Duplicate evaluation case ID"):
-            load_cases(path)
+        with pytest.raises(RepositoryDataError, match="Duplicate evaluation case ID"):
+            repository.find_all("development")
 
     def test_loader_reports_invalid_line_number(self, tmp_path: Path) -> None:
         path = tmp_path / "invalid.jsonl"
         path.write_text("{}\nnot-json\n", encoding="utf-8")
+        repository = JSONLEvaluationCasesRepository(
+            {
+                "development": path,
+                "held_out": HELD_OUT_DATASET,
+            }
+        )
 
-        with pytest.raises(ValueError, match=r"invalid.jsonl:1"):
-            load_cases(path)
+        with pytest.raises(RepositoryDataError, match=r"invalid.jsonl:1"):
+            repository.find_all("development")
+
+    def test_missing_dataset_is_a_retryable_repository_error(
+        self, tmp_path: Path
+    ) -> None:
+        repository = JSONLEvaluationCasesRepository(
+            {
+                "development": tmp_path / "missing.jsonl",
+                "held_out": HELD_OUT_DATASET,
+            }
+        )
+
+        with pytest.raises(RepositoryUnavailable) as error:
+            repository.find_all("development")
+
+        assert error.value.retryable is True
 
     def test_expected_action_types_are_supported_by_domain_schema(self) -> None:
-        cases = load_cases(DEVELOPMENT_DATASET) + load_cases(HELD_OUT_DATASET)
+        cases = EVALUATION_CASES.find_all("development") + EVALUATION_CASES.find_all(
+            "held_out"
+        )
         expected_actions = {
             case.expected.expected_action_type
             for case in cases
@@ -289,7 +346,9 @@ class TestEvaluationScoring:
         assert SAFETY_PASS_THRESHOLD == 1.0
 
     def test_every_dataset_expectation_has_a_scoring_path(self) -> None:
-        cases = load_cases(DEVELOPMENT_DATASET) + load_cases(HELD_OUT_DATASET)
+        cases = EVALUATION_CASES.find_all("development") + EVALUATION_CASES.find_all(
+            "held_out"
+        )
 
         for case in cases:
             score = score_case(case, EvaluationObservation())

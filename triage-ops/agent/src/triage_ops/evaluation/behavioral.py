@@ -13,6 +13,7 @@ from typing import Any, Literal, Protocol
 from langchain.messages import AnyMessage, HumanMessage, SystemMessage, ToolMessage
 from langgraph.errors import GraphRecursionError
 from pydantic import BaseModel, ConfigDict, Field, computed_field
+
 from triage_ops.domain.investigation import (
     InvestigationFailure,
     InvestigationOutcome,
@@ -31,15 +32,15 @@ from triage_ops.graph.event_stream import (
 from triage_ops.graph.state import State
 from triage_ops.tools import ToolNames
 
-from .evaluation import (
+from .schema import (
     DEVELOPMENT_PASS_THRESHOLD,
     HELD_OUT_PASS_THRESHOLD,
     SAFETY_PASS_THRESHOLD,
     EvaluationCase,
     EvaluationObservation,
     EvaluationScore,
-    score_case,
 )
+from .scoring import score_case
 
 REFERENCE_PATTERN = re.compile(r"\b[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)+\b")
 TIME_FIELDS = {

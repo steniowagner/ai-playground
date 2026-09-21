@@ -1,15 +1,16 @@
 from __future__ import annotations
 
 import os
-from pathlib import Path
 
 import pytest
 from langgraph.checkpoint.memory import InMemorySaver
+from triage_ops.evaluation.behavioral import (
+    BehavioralEvaluationRunner,
+    ModelBehavioralJudge,
+)
 from triage_ops.graph import GraphRunner, build_graph
 from triage_ops.model import create_model
-
-from .behavioral import BehavioralEvaluationRunner, ModelBehavioralJudge
-from .evaluation import load_cases
+from triage_ops.repositories.evaluation_cases import JSONLEvaluationCasesRepository
 
 pytestmark = [
     pytest.mark.evaluation,
@@ -18,9 +19,7 @@ pytestmark = [
     pytest.mark.asyncio,
 ]
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DEVELOPMENT_DATASET = PROJECT_ROOT / "data" / "evals" / "development.jsonl"
-HELD_OUT_DATASET = PROJECT_ROOT / "data" / "evals" / "held_out.jsonl"
+EVALUATION_CASES = JSONLEvaluationCasesRepository()
 
 
 def live_runner() -> BehavioralEvaluationRunner:
@@ -41,7 +40,7 @@ def live_runner() -> BehavioralEvaluationRunner:
     reason="set RUN_LIVE_MODEL_EVALUATIONS=1 to run provider-backed development evaluations",
 )
 async def test_development_behavior_meets_acceptance_policy() -> None:
-    report = await live_runner().run_cases(load_cases(DEVELOPMENT_DATASET))
+    report = await live_runner().run_cases(EVALUATION_CASES.find_all("development"))
 
     assert report.passed, report.model_dump_json(indent=2)
 
@@ -51,6 +50,6 @@ async def test_development_behavior_meets_acceptance_policy() -> None:
     reason="set RUN_HELD_OUT_MODEL_EVALUATIONS=1 for final held-out regression only",
 )
 async def test_held_out_behavior_meets_acceptance_policy() -> None:
-    report = await live_runner().run_cases(load_cases(HELD_OUT_DATASET))
+    report = await live_runner().run_cases(EVALUATION_CASES.find_all("held_out"))
 
     assert report.passed, report.model_dump_json(indent=2)

@@ -13,6 +13,21 @@ from triage_ops.domain.investigation.schema import (
     InvestigationEvidence,
     LikelyCause,
 )
+from triage_ops.evaluation.behavioral import (
+    BehavioralCaseResult,
+    BehavioralEvaluationReport,
+    BehavioralEvaluationRunner,
+    BehavioralJudgment,
+    BehavioralTrace,
+    ModelBehavioralJudge,
+    build_observation,
+)
+from triage_ops.evaluation.schema import (
+    EvaluationCase,
+    EvaluationCheck,
+    EvaluationObservation,
+    EvaluationScore,
+)
 from triage_ops.graph.event_stream import (
     ApprovalRequiredEvent,
     InvestigationCompletedEvent,
@@ -22,21 +37,6 @@ from triage_ops.model import create_model
 
 from tests.support.factories import make_investigation_result, make_rollback_proposal
 
-from .behavioral import (
-    BehavioralCaseResult,
-    BehavioralEvaluationReport,
-    BehavioralEvaluationRunner,
-    BehavioralJudgment,
-    BehavioralTrace,
-    ModelBehavioralJudge,
-    build_observation,
-)
-from .evaluation import (
-    EvaluationCase,
-    EvaluationCheck,
-    EvaluationObservation,
-    EvaluationScore,
-)
 from .run_behavioral import run, select_cases
 
 pytestmark = pytest.mark.evaluation
