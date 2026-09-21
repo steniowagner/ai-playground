@@ -14,7 +14,7 @@ class PostgresServicesRepository(ServicesRepository):
     def _parse_record(self, record: ServicesRecord) -> Service:
         return Service(
             service=record.service,
-            display_name=record.service,
+            display_name=record.display_name,
             description=record.description,
             tier=record.tier,
             owner_team=record.owner_team,

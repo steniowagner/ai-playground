@@ -39,6 +39,8 @@ class PostgresFeatureFlagsRepository(FeatureFlagsRepository):
         if args.flag_name:
             statement = statement.where(FeatureFlagsRecord.flag == args.flag_name)
 
+        statement = statement.order_by(FeatureFlagsRecord.flag.asc())
+
         with self._session_factory() as session:
             records = session.scalars(statement).all()
 

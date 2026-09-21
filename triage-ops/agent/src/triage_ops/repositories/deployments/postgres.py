@@ -39,6 +39,7 @@ class PostgresDeploymentsRepository(DeploymentsRepository):
             DeploymentsRecord.started_at <= args.completed_at,
             args.started_at <= DeploymentsRecord.completed_at,
         )
+        statement = statement.order_by(DeploymentsRecord.completed_at.desc())
 
         with self._session_factory() as session:
             records = session.scalars(statement).all()

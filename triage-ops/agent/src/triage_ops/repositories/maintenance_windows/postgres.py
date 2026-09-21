@@ -32,6 +32,7 @@ class PostgresMaintenanceWindowsRepository(MaintenanceWindowsRepository):
             MaintenanceWindowsRecord.start_time < args.end_time,
             args.start_time < MaintenanceWindowsRecord.end_time,
         )
+        statement = statement.order_by(MaintenanceWindowsRecord.start_time.asc())
 
         with self._session_factory() as session:
             records = session.scalars(statement).all()
