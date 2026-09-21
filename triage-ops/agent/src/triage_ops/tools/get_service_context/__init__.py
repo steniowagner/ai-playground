@@ -4,19 +4,16 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from .schema import (
         ExternalDependecy,
-        Service,
     )
     from .tool import GetServiceContextTool
 
 __all__ = [
     "ExternalDependecy",
     "GetServiceContextTool",
-    "Service",
 ]
 
 _EXPORTS = {
     "ExternalDependecy": (".schema", "ExternalDependecy"),
-    "Service": (".schema", "Service"),
     "GetServiceContextTool": (".tool", "GetServiceContextTool"),
 }
 

@@ -2,10 +2,9 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
-from triage_ops.domain import Environment
+from triage_ops.domain import Environment, Service
 from triage_ops.tools.get_service_context import (
     ExternalDependecy,
-    Service,
 )
 
 

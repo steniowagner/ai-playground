@@ -7,6 +7,7 @@ if TYPE_CHECKING:
     from .models.incidents import IncidentsRecord
     from .models.logs import LogsRecord
     from .models.maintenance_windows import MaintenanceWindowsRecord
+    from .models.services import ServicesRecord
     from .schema import (
         SessionFactory,
     )
@@ -18,6 +19,7 @@ __all__ = [
     "IncidentsRecord",
     "LogsRecord",
     "MaintenanceWindowsRecord",
+    "ServicesRecord",
     "SessionFactory",
     "create_database_engine",
     "create_session_factory",
@@ -35,6 +37,7 @@ _EXPORTS = {
     ),
     "FeatureFlagsRecord": (".models.feature_flags", "FeatureFlagsRecord"),
     "DeploymentsRecord": (".models.deployments", "DeploymentsRecord"),
+    "ServicesRecord": (".models.services", "ServicesRecord"),
 }
 
 

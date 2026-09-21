@@ -4,7 +4,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from triage_ops.tools.get_service_context import Service
+from triage_ops.domain import Service
 
 from ..exceptions import RepositoryDataError, RepositoryUnavailable
 from .base import ServicesRepository
@@ -55,3 +55,6 @@ class JSONServicesRepository(ServicesRepository):
             ),
             None,
         )
+
+    def find_all(self) -> list[Service]:
+        return self._read_services()
