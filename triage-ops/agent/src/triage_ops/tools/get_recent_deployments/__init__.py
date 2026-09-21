@@ -2,16 +2,13 @@ from importlib import import_module
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from .schema import Deployment
     from .tool import GetRecentDeploymentsTool
 
 __all__ = [
-    "Deployment",
     "GetRecentDeploymentsTool",
 ]
 
 _EXPORTS = {
-    "Deployment": (".schema", "Deployment"),
     "GetRecentDeploymentsTool": (".tool", "GetRecentDeploymentsTool"),
 }
 

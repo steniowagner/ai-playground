@@ -2,10 +2,7 @@ from typing import Literal
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict
 
-from triage_ops.domain.types import Environment
-from triage_ops.tools.get_recent_deployments.schema import (
-    Deployment,
-)
+from triage_ops.domain import Deployment, Environment
 
 
 class FindDeploymentsArgs(BaseModel):

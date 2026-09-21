@@ -2,18 +2,20 @@ from importlib import import_module
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from .deployments import Deployment
     from .maintenance_window import MaintenanceWindow
     from .types import (
         Environment,
         IncidentSeverity,
     )
 
-__all__ = ["Environment", "IncidentSeverity", "MaintenanceWindow"]
+__all__ = ["Deployment", "Environment", "IncidentSeverity", "MaintenanceWindow"]
 
 _EXPORTS = {
     "Environment": (".types", "Environment"),
     "IncidentSeverity": (".types", "IncidentSeverity"),
     "MaintenanceWindow": (".maintenance_window", "MaintenanceWindow"),
+    "Deployment": (".deployment", "Deployment"),
 }
 
 

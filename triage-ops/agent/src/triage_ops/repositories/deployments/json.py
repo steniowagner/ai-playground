@@ -4,9 +4,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from triage_ops.tools.get_recent_deployments import (
-    Deployment,
-)
+from triage_ops.domain import Deployment
 
 from ..exceptions import RepositoryDataError, RepositoryUnavailable
 from .base import DeploymentsRepository
