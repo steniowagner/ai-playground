@@ -1,5 +1,6 @@
 import logging
 from abc import ABC, abstractmethod
+from time import sleep
 from typing import Any, Literal, TypedDict
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -9,6 +10,12 @@ ServiceErrorResponseCode = Literal[
     "UNKNOWN_TOOL",
     "EXECUTION_ERROR",
 ]
+
+SERVICE_EXECUTION_DELAY_SECONDS = 3
+
+
+def wait_for_service_execution() -> None:
+    sleep(SERVICE_EXECUTION_DELAY_SECONDS)
 
 
 class ServiceErrorResponseDetail(BaseModel):

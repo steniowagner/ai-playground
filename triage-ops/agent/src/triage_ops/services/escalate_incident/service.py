@@ -1,5 +1,10 @@
 from ..exceptions import ServiceExecutionException
-from ..schema import Service, ServiceResponse, ServiceSuccessResponse
+from ..schema import (
+    Service,
+    ServiceResponse,
+    ServiceSuccessResponse,
+)
+from ..utils import wait_for_service_execution
 from .schema import EscalateIncidentServiceArgs
 
 
@@ -14,6 +19,8 @@ class EscalateIncidentService(Service[EscalateIncidentServiceArgs]):
             )
         except Exception as exc:
             raise ServiceExecutionException("Failed to escalate the incident.") from exc
+
+        wait_for_service_execution()
 
         return ServiceSuccessResponse(
             ok=True,

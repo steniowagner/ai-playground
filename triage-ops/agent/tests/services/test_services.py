@@ -2,9 +2,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Any
+from unittest.mock import Mock
 
 import pytest
 from pydantic import BaseModel, ValidationError
+
+import triage_ops.services.schema as service_schema
 from triage_ops.domain.investigation.proposals import (
     DisableFeatureFlagProposal,
     EscalateIncidentProposal,
@@ -207,14 +210,18 @@ INVALID_ARGUMENT_CASES = [
 class TestOperationalServices:
     @pytest.mark.parametrize("case", SERVICE_CASES, ids=lambda case: case.registry_key)
     def test_returns_standard_success_with_exact_serialized_arguments(
-        self, case: ServiceCase
+        self, monkeypatch: pytest.MonkeyPatch, case: ServiceCase
     ) -> None:
+        delay = Mock()
+        monkeypatch.setattr(service_schema, "sleep", delay)
+
         response = case.service_class().execute(case.args)
 
         assert isinstance(response, ServiceSuccessResponse)
         assert response.ok is True
         assert response.error is None
         assert response.data == case.args.model_dump(mode="json")
+        delay.assert_called_once_with(3)
 
     @pytest.mark.parametrize("case", SERVICE_CASES, ids=lambda case: case.registry_key)
     def test_rejects_untyped_arguments(self, case: ServiceCase) -> None:

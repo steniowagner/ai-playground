@@ -1,5 +1,10 @@
 from ..exceptions import ServiceExecutionException
-from ..schema import Service, ServiceResponse, ServiceSuccessResponse
+from ..schema import (
+    Service,
+    ServiceResponse,
+    ServiceSuccessResponse,
+)
+from ..utils import wait_for_service_execution
 from .schema import RestartServiceArgs
 
 
@@ -14,5 +19,7 @@ class RestartService(Service[RestartServiceArgs]):
             )
         except Exception as exc:
             raise ServiceExecutionException("Failed to restart the service.") from exc
+
+        wait_for_service_execution()
 
         return ServiceSuccessResponse(ok=True, data=args.model_dump(mode="json"))

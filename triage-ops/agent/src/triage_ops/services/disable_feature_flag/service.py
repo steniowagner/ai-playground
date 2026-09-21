@@ -1,5 +1,10 @@
 from ..exceptions import ServiceExecutionException
-from ..schema import Service, ServiceResponse, ServiceSuccessResponse
+from ..schema import (
+    Service,
+    ServiceResponse,
+    ServiceSuccessResponse,
+)
+from ..utils import wait_for_service_execution
 from .schema import DisableFeatureFlagServiceArgs
 
 
@@ -16,5 +21,7 @@ class DisableFeatureFlagService(Service[DisableFeatureFlagServiceArgs]):
             raise ServiceExecutionException(
                 "Failed to disable the feature flag."
             ) from exc
+
+        wait_for_service_execution()
 
         return ServiceSuccessResponse(ok=True, data=args.model_dump(mode="json"))
