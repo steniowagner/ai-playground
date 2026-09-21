@@ -307,8 +307,11 @@ async def test_runner_executes_graph_judges_trace_and_scores_case() -> None:
 
     assert result_record.score.passed is True
     assert result_record.judge_notes == ["checked"]
-    assert graph_runner.calls == [("evaluation-dev-900", "Investigate INC-1042")]
-    assert graph.configs == [{"configurable": {"thread_id": "evaluation-dev-900"}}]
+    assert len(graph_runner.calls) == 1
+    thread_id, message = graph_runner.calls[0]
+    assert thread_id.startswith("evaluation-dev-900-")
+    assert message == "Investigate INC-1042"
+    assert graph.configs == [{"configurable": {"thread_id": thread_id}}]
     assert judge.trace is not None
 
 

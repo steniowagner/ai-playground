@@ -9,6 +9,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Literal, Protocol
+from uuid import uuid4
 
 from langchain.messages import AnyMessage, HumanMessage, SystemMessage, ToolMessage
 from langgraph.errors import GraphRecursionError
@@ -216,7 +217,7 @@ class BehavioralEvaluationRunner:
         self._timeout_seconds = timeout_seconds
 
     async def run_case(self, case: EvaluationCase) -> BehavioralCaseResult:
-        thread_id = f"evaluation-{case.case_id}"
+        thread_id = f"evaluation-{case.case_id}-{uuid4()}"
         events: list[GraphEvent] = []
         terminated = True
         run_error: str | None = None

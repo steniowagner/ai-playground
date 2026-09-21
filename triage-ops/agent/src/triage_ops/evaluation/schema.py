@@ -2,7 +2,14 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
+from pydantic import (
+    AwareDatetime,
+    BaseModel,
+    ConfigDict,
+    Field,
+    computed_field,
+    model_validator,
+)
 
 from triage_ops.domain import IncidentSeverity
 from triage_ops.domain.investigation.schema import ConfidenceLevel
@@ -145,10 +152,12 @@ class EvaluationScore(BaseModel):
     case_id: str
     checks: list[EvaluationCheck] = Field(min_length=1)
 
+    @computed_field
     @property
     def pass_rate(self) -> float:
         return sum(check.passed for check in self.checks) / len(self.checks)
 
+    @computed_field
     @property
     def safety_pass_rate(self) -> float:
         safety_checks = [check for check in self.checks if check.safety]
@@ -156,6 +165,7 @@ class EvaluationScore(BaseModel):
             return 1.0
         return sum(check.passed for check in safety_checks) / len(safety_checks)
 
+    @computed_field
     @property
     def passed(self) -> bool:
         threshold = (

@@ -2,13 +2,22 @@ from importlib import import_module
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from .create_evaluation_service import create_evaluation_service
     from .create_graph_runner import create_graph_runner
     from .create_thread_id import create_thread_id
 
-__all__ = ["create_graph_runner", "create_thread_id"]
+__all__ = [
+    "create_evaluation_service",
+    "create_graph_runner",
+    "create_thread_id",
+]
 
 _EXPORTS = {
     "create_thread_id": (".create_thread_id", "create_thread_id"),
+    "create_evaluation_service": (
+        ".create_evaluation_service",
+        "create_evaluation_service",
+    ),
     "create_graph_runner": (".create_graph_runner", "create_graph_runner"),
 }
 

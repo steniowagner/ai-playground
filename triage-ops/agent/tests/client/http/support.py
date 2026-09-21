@@ -4,8 +4,12 @@ import json
 from collections.abc import AsyncIterator
 from typing import Any
 
+from triage_ops.evaluation.behavioral import BehavioralCaseResult
+from triage_ops.evaluation.exceptions import EvaluationCaseNotFoundError
+from triage_ops.evaluation.schema import EvaluationCase
 from triage_ops.graph.event_stream import GraphEvent
 from triage_ops.graph.nodes.request_approvals import ApprovalDecision
+from triage_ops.repositories.evaluation_cases import EvaluationSplit
 from triage_ops.repositories.sample_questions import SampleQuestions
 
 
@@ -36,6 +40,29 @@ class RecordingSampleQuestionsRepository:
 
     def find_all(self) -> SampleQuestions:
         self.calls += 1
+        return self.result
+
+
+class RecordingEvaluationCasesRepository:
+    def __init__(self, cases: list[EvaluationCase]) -> None:
+        self.cases = cases
+        self.find_all_calls: list[EvaluationSplit] = []
+
+    def find_all(self, split: EvaluationSplit) -> list[EvaluationCase]:
+        self.find_all_calls.append(split)
+        return [case for case in self.cases if case.split == split]
+
+
+class RecordingRunEvaluationCaseService:
+    def __init__(self, result: BehavioralCaseResult) -> None:
+        self.result = result
+        self.case_ids: list[str] = []
+        self.missing_case_ids: set[str] = set()
+
+    async def execute(self, case_id: str) -> BehavioralCaseResult:
+        self.case_ids.append(case_id)
+        if case_id in self.missing_case_ids:
+            raise EvaluationCaseNotFoundError(case_id)
         return self.result
 
 
