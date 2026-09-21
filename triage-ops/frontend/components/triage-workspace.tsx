@@ -8,6 +8,7 @@ import {
   ChevronRight,
   CircleDot,
   FileSearch,
+  FlaskConical,
   LoaderCircle,
   RotateCcw,
   ServerCog,
@@ -17,6 +18,7 @@ import {
   Zap,
 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   FormEvent,
   useCallback,
@@ -442,10 +444,7 @@ export function TriageWorkspace() {
         );
       } else {
         assistantMessageId.current = id;
-        setItems((current) => [
-          ...current,
-          { id, kind: "assistant", content },
-        ]);
+        setItems((current) => [...current, { id, kind: "assistant", content }]);
       }
 
       return;
@@ -670,10 +669,9 @@ export function TriageWorkspace() {
           </div>
         </div>
         <div className="topbar-meta">
-          <span className="thread-label">
-            SESSION / {shortThread(threadId)}
-          </span>
-          <StatusPill online={online} busy={busy} />
+          <Link className="topbar-link" href="/evaluations">
+            <FlaskConical size={15} /> Evaluations
+          </Link>
           <button
             className="icon-button"
             type="button"

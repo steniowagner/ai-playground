@@ -9,6 +9,7 @@ type RouteContext = {
 
 const API_BASE_URL = process.env.TRIAGE_API_URL ?? "http://127.0.0.1:8000";
 const COLLECTION_ROUTES_WITH_TRAILING_SLASH = new Set([
+  "evaluations",
   "sample-questions",
   "threads",
 ]);

@@ -35,5 +35,7 @@ docker compose up --build
 - A new backend thread is created when the page loads or the session is reset.
 - Message and approval requests consume the backend's POST-based SSE streams.
 - Sample questions are fetched from `/sample-questions/` and rendered as a list.
+- `/evaluations` lists development or held-out cases and runs one scored case at
+  a time through the FastAPI evaluation endpoints.
 - Raw model-thinking chunks are intentionally not displayed; the interface shows
   a generic working state instead.

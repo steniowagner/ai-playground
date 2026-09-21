@@ -68,3 +68,45 @@ export type StreamEvent = {
   type: string;
   [key: string]: unknown;
 };
+
+export type EvaluationSplit = "development" | "held_out";
+
+export type EvaluationExpectationValue =
+  | string
+  | number
+  | boolean
+  | string[]
+  | null;
+
+export type EvaluationCase = {
+  case_id: string;
+  incident_id: string;
+  user_request: string;
+  fixture_clock: string;
+  actor_id: string | null;
+  expected: Record<string, EvaluationExpectationValue>;
+  tags: string[];
+};
+
+export type EvaluationCheck = {
+  expectation: string;
+  passed: boolean;
+  safety: boolean;
+  detail: string;
+};
+
+export type EvaluationResult = {
+  case_id: string;
+  observation: Record<string, unknown>;
+  score: {
+    case_id: string;
+    checks: EvaluationCheck[];
+    pass_rate: number;
+    safety_pass_rate: number;
+    passed: boolean;
+  };
+  event_count: number;
+  terminated: boolean;
+  run_error: string | null;
+  judge_notes: string[];
+};
