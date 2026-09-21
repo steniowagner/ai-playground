@@ -45,11 +45,11 @@ This is intentionally a learning project, not a production incident-management s
 
 ## Demos
 
-| Experience | What the demo shows | Video |
-|---|---|---|
-| Web application | The full investigation workspace, streamed agent activity, evidence-backed results, and human approval flow | [▶ Watch the web app demo](https://stenio-wagner-project-demos.s3.us-east-1.amazonaws.com/triageops-app.mp4) |
-| Evaluation workspace | A behavioral evaluation running through the complete graph, followed by its quality and safety results | [▶ Watch the evaluation demo](https://stenio-wagner-project-demos.s3.us-east-1.amazonaws.com/triageops-evaluation.mp4) |
-| CLI | The incident-triage workflow running as an interactive terminal application | [▶ Watch the CLI demo](https://stenio-wagner-project-demos.s3.us-east-1.amazonaws.com/triageops-cli.mp4) |
+| Experience           | What the demo shows                                                                                         | Video                                                                                                                  |
+| -------------------- | ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Web application      | The full investigation workspace, streamed agent activity, evidence-backed results, and human approval flow | [▶ Watch the web app demo](https://stenio-wagner-project-demos.s3.us-east-1.amazonaws.com/triageops-app.mp4)           |
+| Evaluation workspace | A behavioral evaluation running through the complete graph, followed by its quality and safety results      | [▶ Watch the evaluation demo](https://stenio-wagner-project-demos.s3.us-east-1.amazonaws.com/triageops-evaluation.mp4) |
+| CLI                  | The incident-triage workflow running as an interactive terminal application                                 | [▶ Watch the CLI demo](https://stenio-wagner-project-demos.s3.us-east-1.amazonaws.com/triageops-cli.mp4)               |
 
 ## Why I built it
 
@@ -85,6 +85,9 @@ It also supports direct questions such as “Who owns `checkout-api`?” or “W
 ## Interface
 
 ![TriageOps incident workspace](frontend/public/triageops-workspace.jpg)
+![TriageOps development evaluation](frontend/public/triageops-development-evaluation.jpg)
+![TriageOps held-out evaluation](frontend/public/triageops-held-out-evaluation.jpg)
+![TriageOps cli](frontend/public/triageops-cli.png)
 
 The main workspace combines the conversation, live tool and proposal activity, evidence-backed investigation cards, approval controls, and a catalog of sample scenarios. A separate evaluation workspace runs development or held-out cases and presents quality and safety checks.
 
