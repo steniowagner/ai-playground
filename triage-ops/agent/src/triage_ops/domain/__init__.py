@@ -6,6 +6,7 @@ if TYPE_CHECKING:
     from .feature_flag import FeatureFlag
     from .log import Log, LogSeverity
     from .maintenance_window import MaintenanceWindow
+    from .metrics import Metric, MetricValues, ServiceMetric
     from .service import Service
     from .types import (
         Environment,
@@ -20,7 +21,10 @@ __all__ = [
     "Log",
     "LogSeverity",
     "MaintenanceWindow",
+    "Metric",
+    "MetricValues",
     "Service",
+    "ServiceMetric",
 ]
 
 _EXPORTS = {
@@ -32,6 +36,9 @@ _EXPORTS = {
     "Log": (".log", "Log"),
     "LogSeverity": (".log", "LogSeverity"),
     "Service": (".service", "Service"),
+    "Metric": (".metrics", "Metric"),
+    "ServiceMetric": (".metrics", "ServiceMetric"),
+    "MetricValues": (".metrics", "MetricValues"),
 }
 
 

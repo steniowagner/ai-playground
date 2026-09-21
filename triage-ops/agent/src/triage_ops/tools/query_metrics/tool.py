@@ -3,6 +3,7 @@ import logging
 from langchain_core.tools import BaseTool
 from pydantic import AwareDatetime, BaseModel
 
+from triage_ops.domain import Metric, ServiceMetric
 from triage_ops.domain.types import (
     Environment,
 )
@@ -21,13 +22,7 @@ from triage_ops.tools import (
 )
 
 from ..schema import ToolNames
-from .schema import (
-    Metric,
-    MetricSeries,
-    QueryMetricsArgs,
-    QueryMetricsResult,
-    ServiceMetric,
-)
+from .schema import MetricSeries, QueryMetricsArgs, QueryMetricsResult
 
 
 class QueryMetricsTool(BaseTool):

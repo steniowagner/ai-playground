@@ -1,7 +1,6 @@
 from pydantic import AwareDatetime, BaseModel, ConfigDict
 
-from triage_ops.domain import Environment
-from triage_ops.tools.query_metrics import ServiceMetric
+from triage_ops.domain import Environment, ServiceMetric
 
 
 class FindMetricsArgs(BaseModel):

@@ -2,21 +2,13 @@ from importlib import import_module
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from .schema import (
-        Metric,
-        ServiceMetric,
-    )
     from .tool import QueryMetricsTool
 
 __all__ = [
-    "Metric",
     "QueryMetricsTool",
-    "ServiceMetric",
 ]
 
 _EXPORTS = {
-    "Metric": (".schema", "Metric"),
-    "ServiceMetric": (".schema", "ServiceMetric"),
     "QueryMetricsTool": (".tool", "QueryMetricsTool"),
 }
 

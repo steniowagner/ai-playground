@@ -1,7 +1,7 @@
 from sqlalchemy import select
 
 from triage_ops.db import LogsRecord, SessionFactory
-from triage_ops.repositories.logs import Log
+from triage_ops.domain import Log
 
 from .base import LogsRepository
 from .schema import FindLogsArgs

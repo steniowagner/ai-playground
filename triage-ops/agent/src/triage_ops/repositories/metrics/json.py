@@ -2,7 +2,7 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
-from triage_ops.tools.query_metrics import Metric
+from triage_ops.domain import Metric
 
 from ..exceptions import RepositoryDataError, RepositoryUnavailable
 from .base import MetricsRepository
@@ -52,3 +52,6 @@ class JSONMetricsRepository(MetricsRepository):
         ]
 
         return sorted(metrics, key=lambda metric: metric.timestamp)
+
+    def find_all(self) -> list[Metric]:
+        return self._read_metrics()

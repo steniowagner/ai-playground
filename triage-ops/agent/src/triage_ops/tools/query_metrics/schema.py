@@ -1,41 +1,10 @@
 from datetime import timedelta
-from typing import Literal
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
 
-from triage_ops.domain import (
-    Environment,
-)
+from triage_ops.domain import Environment, ServiceMetric
 
 DEFAULT_QUERY_WINDOW_MINUTES = 60
-
-ServiceMetric = Literal[
-    "error_rate",
-    "p95_latency_ms",
-    "request_rate",
-    "cpu_percent",
-    "queue_depth",
-]
-
-
-class MetricValues(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
-
-    error_rate: float | None = None
-    p95_latency_ms: int | None = None
-    request_rate: float | None = None
-    queue_depth: int | None = None
-    cpu_percent: float | None = None
-
-
-class Metric(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
-
-    metric_id: str
-    timestamp: AwareDatetime
-    service: str
-    environment: Environment
-    values: MetricValues
 
 
 class QueryMetricsArgs(BaseModel):
