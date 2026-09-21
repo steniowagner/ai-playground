@@ -9,5 +9,5 @@ class IncidentRepository(ABC):
         pass
 
     @abstractmethod
-    def find(self) -> list[Incident]:
+    def find_all(self) -> list[Incident]:
         pass

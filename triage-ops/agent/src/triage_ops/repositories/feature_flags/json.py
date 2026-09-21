@@ -4,10 +4,11 @@ from typing import Any
 
 from pydantic import ValidationError
 
+from triage_ops.domain import FeatureFlag
+
 from ..exceptions import RepositoryDataError, RepositoryUnavailable
 from .base import FeatureFlagsRepository
 from .schema import (
-    FeatureFlag,
     FeatureFlagsFixture,
     FindFeatureFlagsArgs,
 )
@@ -72,3 +73,6 @@ class JSONFeatureFlagsRepository(FeatureFlagsRepository):
         return sorted(
             self._find_feature_flags(args), key=lambda feature_flag: feature_flag.flag
         )
+
+    def find_all(self) -> list[FeatureFlag]:
+        return self._read_feature_flags()

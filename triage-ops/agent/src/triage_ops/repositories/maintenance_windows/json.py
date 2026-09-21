@@ -64,3 +64,6 @@ class JSONMaintenanceWindowsRepository(MaintenanceWindowsRepository):
         ]
 
         return sorted(matching_windows, key=lambda window: window.start_time)
+
+    def find_all(self) -> list[MaintenanceWindow]:
+        return self._read_maintenance_windows()

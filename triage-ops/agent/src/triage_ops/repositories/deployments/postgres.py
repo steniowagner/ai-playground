@@ -11,6 +11,27 @@ class PostgresDeploymentsRepository(DeploymentsRepository):
     def __init__(self, session_factory: SessionFactory) -> None:
         self._session_factory = session_factory
 
+    def _parse_record(self, record: DeploymentsRecord) -> Deployment:
+        return Deployment(
+            deployment_id=record.id,
+            service=record.service,
+            environment=record.environment,
+            version=record.version,
+            commit=record.commit,
+            started_at=record.started_at,
+            completed_at=record.completed_at,
+            status=record.status,
+            summary=record.summary,
+        )
+
+    def find_all(self) -> list[Deployment]:
+        statement = select(DeploymentsRecord)
+
+        with self._session_factory() as session:
+            records = session.scalars(statement).all()
+
+            return [self._parse_record(record) for record in records]
+
     def find(self, args: FindDeploymentsArgs) -> list[Deployment]:
         statement = select(DeploymentsRecord).where(
             DeploymentsRecord.service == args.service,
@@ -22,17 +43,4 @@ class PostgresDeploymentsRepository(DeploymentsRepository):
         with self._session_factory() as session:
             records = session.scalars(statement).all()
 
-            return [
-                Deployment(
-                    deployment_id=record.id,
-                    service=record.service,
-                    environment=record.environment,
-                    version=record.version,
-                    commit=record.commit,
-                    started_at=record.started_at,
-                    completed_at=record.completed_at,
-                    status=record.status,
-                    summary=record.summary,
-                )
-                for record in records
-            ]
+            return [self._parse_record(record) for record in records]

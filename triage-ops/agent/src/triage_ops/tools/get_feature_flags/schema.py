@@ -1,7 +1,6 @@
 from pydantic import BaseModel, ConfigDict, Field
 
-from triage_ops.domain import Environment
-from triage_ops.repositories.feature_flags import FeatureFlag
+from triage_ops.domain import Environment, FeatureFlag
 
 
 class GetFeatureFlagsArgs(BaseModel):

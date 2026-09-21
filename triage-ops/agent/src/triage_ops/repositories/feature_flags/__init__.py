@@ -5,10 +5,9 @@ if TYPE_CHECKING:
     from .base import FeatureFlagsRepository
     from .json import JSONFeatureFlagsRepository
     from .postgres import PostgresFeatureFlagsRepository
-    from .schema import FeatureFlag, FeatureFlagsFixture, FindFeatureFlagsArgs
+    from .schema import FeatureFlagsFixture, FindFeatureFlagsArgs
 
 __all__ = [
-    "FeatureFlag",
     "FeatureFlagsFixture",
     "FeatureFlagsRepository",
     "FindFeatureFlagsArgs",
@@ -20,7 +19,6 @@ _EXPORTS = {
     "FeatureFlagsRepository": (".base", "FeatureFlagsRepository"),
     "JSONFeatureFlagsRepository": (".json", "JSONFeatureFlagsRepository"),
     "FindFeatureFlagsArgs": (".schema", "FindFeatureFlagsArgs"),
-    "FeatureFlag": (".schema", "FeatureFlag"),
     "PostgresFeatureFlagsRepository": (".postgres", "PostgresFeatureFlagsRepository"),
     "FeatureFlagsFixture": (".schema", "FeatureFlagsFixture"),
 }

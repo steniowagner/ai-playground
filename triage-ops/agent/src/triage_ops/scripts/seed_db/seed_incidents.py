@@ -1,5 +1,4 @@
 from logging import Logger
-from pathlib import Path
 
 from sqlalchemy import delete
 from sqlalchemy.exc import SQLAlchemyError
@@ -7,10 +6,6 @@ from triage_ops.db import IncidentsRecord, SessionFactory
 from triage_ops.repositories.incidents import Incident, JSONIncidentRepository
 
 from .exceptions import SeedDatabaseException
-
-INCIDENTS_FILE = (
-    Path(__file__).resolve().parents[4] / "data" / "fixtures" / "incidents.json"
-)
 
 
 def save_incidents(session_factory: SessionFactory, incidents: list[Incident]) -> None:
@@ -40,6 +35,6 @@ def save_incidents(session_factory: SessionFactory, incidents: list[Incident]) -
 
 def seed_incidents(session_factory: SessionFactory, logger: Logger) -> None:
     json_incident_repository = JSONIncidentRepository()
-    incidents = json_incident_repository.find()
+    incidents = json_incident_repository.find_all()
     save_incidents(session_factory, incidents)
     logger.warning("Incidents seeded ✓")

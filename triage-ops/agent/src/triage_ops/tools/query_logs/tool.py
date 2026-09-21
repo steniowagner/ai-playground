@@ -3,11 +3,11 @@ import logging
 from langchain_core.tools import BaseTool
 from pydantic import AwareDatetime, BaseModel
 
-from triage_ops.domain import Environment
+from triage_ops.domain import Environment, LogSeverity
 from triage_ops.repositories import (
     RepositoryException,
 )
-from triage_ops.repositories.logs import FindLogsArgs, LogSeverity, LogsRepository
+from triage_ops.repositories.logs import FindLogsArgs, LogsRepository
 from triage_ops.tools import (
     ToolErrorResponse,
     ToolErrorResponseDetail,

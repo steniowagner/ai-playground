@@ -1,53 +1,12 @@
-import json
 from logging import Logger
-from pathlib import Path
-from typing import Any
 
-from pydantic import ValidationError
 from sqlalchemy import delete
 from sqlalchemy.exc import SQLAlchemyError
 from triage_ops.db import MaintenanceWindowsRecord, SessionFactory
 from triage_ops.domain import MaintenanceWindow
-from triage_ops.repositories.maintenance_windows import MaintenanceWindowsFixture
+from triage_ops.repositories.maintenance_windows import JSONMaintenanceWindowsRepository
 
 from .exceptions import SeedDatabaseException
-
-MAINTENANCE_WINDOWS_FILE = (
-    Path(__file__).resolve().parents[4]
-    / "data"
-    / "fixtures"
-    / "maintenance_windows.json"
-)
-
-
-def parse_fixture(fixture_json: Any) -> MaintenanceWindowsFixture:
-    try:
-        return MaintenanceWindowsFixture.model_validate(fixture_json)
-    except ValidationError as exc:
-        raise SeedDatabaseException(
-            "Maintenance-windows repository data is invalid."
-        ) from exc
-
-
-def read_maintenance_windows() -> list[MaintenanceWindow]:
-    try:
-        with open(MAINTENANCE_WINDOWS_FILE, "r", encoding="utf-8") as f:
-            maintenance_windows_json = json.load(f)
-    except json.JSONDecodeError as exc:
-        raise SeedDatabaseException(
-            "Maintenance-windows repository contains invalid JSON."
-        ) from exc
-    except UnicodeDecodeError as exc:
-        raise SeedDatabaseException(
-            "Maintenance-windows repository contains invalid text data."
-        ) from exc
-    except OSError as exc:
-        raise SeedDatabaseException(
-            "Maintenance-windows repository is unavailable."
-        ) from exc
-
-    fixture = parse_fixture(maintenance_windows_json)
-    return fixture.maintenance_windows
 
 
 def save_maintenance_windows(
@@ -79,6 +38,7 @@ def save_maintenance_windows(
 
 
 def seed_maintenance_windows(session_factory: SessionFactory, logger: Logger) -> None:
-    maintenance_windows = read_maintenance_windows()
+    json_maintenance_window_repository = JSONMaintenanceWindowsRepository()
+    maintenance_windows = json_maintenance_window_repository.find_all()
     save_maintenance_windows(session_factory, maintenance_windows)
     logger.warning("Maintenance Windows seeded ✓")

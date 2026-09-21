@@ -54,5 +54,5 @@ class JSONIncidentRepository(IncidentRepository):
             None,
         )
 
-    def find(self) -> list[Incident]:
+    def find_all(self) -> list[Incident]:
         return self._read_incidents()

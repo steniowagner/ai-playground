@@ -11,6 +11,18 @@ class PostgresLogsRepository(LogsRepository):
     def __init__(self, session_factory: SessionFactory) -> None:
         self._session_factory = session_factory
 
+    def _parse_record(record: LogsRecord) -> Log:
+        return Log(
+            log_id=record.id,
+            timestamp=record.timestamp,
+            service=record.service,
+            environment=record.environment,
+            severity=record.severity,
+            trace_id=record.trace_id,
+            message=record.message,
+            attributes=record.attributes,
+        )
+
     def find(self, args: FindLogsArgs) -> list[Log]:
         statement = select(LogsRecord).where(
             LogsRecord.service == args.service,
@@ -32,16 +44,12 @@ class PostgresLogsRepository(LogsRepository):
         with self._session_factory() as session:
             records = session.scalars(statement).all()
 
-            return [
-                Log(
-                    log_id=record.id,
-                    timestamp=record.timestamp,
-                    service=record.service,
-                    environment=record.environment,
-                    severity=record.severity,
-                    trace_id=record.trace_id,
-                    message=record.message,
-                    attributes=record.attributes,
-                )
-                for record in records
-            ]
+            return [self._parse_record(record) for record in records]
+
+    def find_all(self) -> list[Log]:
+        statement = select(LogsRecord)
+
+        with self._session_factory() as session:
+            records = session.scalars(statement).all()
+
+            return [self._parse_record(record) for record in records]

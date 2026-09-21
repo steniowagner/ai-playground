@@ -5,9 +5,10 @@ if TYPE_CHECKING:
     from .base import DeploymentsRepository
     from .json import JSONDeploymentsRepository
     from .postgres import PostgresDeploymentsRepository
-    from .schema import FindDeploymentsArgs
+    from .schema import DeploymentsFixture, FindDeploymentsArgs
 
 __all__ = [
+    "DeploymentsFixture",
     "DeploymentsRepository",
     "FindDeploymentsArgs",
     "JSONDeploymentsRepository",
@@ -18,6 +19,7 @@ _EXPORTS = {
     "DeploymentsRepository": (".base", "DeploymentsRepository"),
     "JSONDeploymentsRepository": (".json", "JSONDeploymentsRepository"),
     "FindDeploymentsArgs": (".schema", "FindDeploymentsArgs"),
+    "DeploymentsFixture": (".schema", "DeploymentsFixture"),
     "PostgresDeploymentsRepository": (".postgres", "PostgresDeploymentsRepository"),
 }
 

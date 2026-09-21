@@ -33,7 +33,7 @@ class PostgresIncidentsRepository(IncidentRepository):
 
             return self._parse_record(record)
 
-    def find(self) -> list[Incident]:
+    def find_all(self) -> list[Incident]:
         statement = select(IncidentsRecord)
 
         with self._session_factory() as session:

@@ -2,7 +2,7 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
-from triage_ops.repositories.logs import Log
+from triage_ops.domain import Log
 
 from ..exceptions import RepositoryDataError, RepositoryUnavailable
 from .base import LogsRepository
@@ -75,3 +75,6 @@ class JSONLogsRepository(LogsRepository):
     def find(self, args: FindLogsArgs) -> list[Log]:
         all_logs = self._read_logs()
         return self._filter_logs(args, all_logs)[: args.limit]
+
+    def find_all(self) -> list[Log]:
+        return self._read_logs()

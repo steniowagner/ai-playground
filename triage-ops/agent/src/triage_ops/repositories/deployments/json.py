@@ -42,6 +42,9 @@ class JSONDeploymentsRepository(DeploymentsRepository):
         fixture = self._parse_fixture(deployments_json)
         return fixture.deployments
 
+    def find_all(self) -> list[Deployment]:
+        return self._read_deployments()
+
     def find(self, args: FindDeploymentsArgs) -> list[Deployment]:
         all_deployments = self._read_deployments()
 

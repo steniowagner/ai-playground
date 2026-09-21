@@ -9,3 +9,7 @@ class MaintenanceWindowsRepository(ABC):
     @abstractmethod
     def find(self, args: FindMaintenanceWindowsArgs) -> list[MaintenanceWindow]:
         pass
+
+    @abstractmethod
+    def find_all(self) -> list[MaintenanceWindow]:
+        pass

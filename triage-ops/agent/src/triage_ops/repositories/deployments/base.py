@@ -9,3 +9,7 @@ class DeploymentsRepository(ABC):
     @abstractmethod
     def find(self, args: FindDeploymentsArgs) -> list[Deployment]:
         pass
+
+    @abstractmethod
+    def find_all(self) -> list[Deployment]:
+        pass

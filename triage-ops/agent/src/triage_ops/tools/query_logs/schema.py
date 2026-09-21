@@ -2,8 +2,7 @@ from datetime import timedelta
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
 
-from triage_ops.domain import Environment
-from triage_ops.repositories.logs import Log, LogSeverity
+from triage_ops.domain import Environment, Log, LogSeverity
 
 DEFAULT_QUERY_WINDOW_MINUTES = 60
 
