@@ -45,10 +45,7 @@ async def run_evaluation_case(
     if case_id.startswith("holdout-") and not confirm_held_out:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                "Held-out evaluation requires confirm_held_out=true and must not "
-                "be used for prompt tuning."
-            ),
+            detail="Held-out evaluation requires confirm_held_out=true and must not be used for prompt tuning.",
         )
 
     try:
