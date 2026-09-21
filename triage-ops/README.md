@@ -279,6 +279,13 @@ triage-ops/
 
 ## Running the project
 
+First, clone the main [`ai-playground`](https://github.com/steniowagner/ai-playground/tree/main) repository and navigate to the `triage-ops` project. All remaining commands in this section assume your terminal is inside that directory:
+
+```bash
+git clone https://github.com/steniowagner/ai-playground.git
+cd ai-playground/triage-ops
+```
+
 ### Requirements
 
 The easiest path requires:
