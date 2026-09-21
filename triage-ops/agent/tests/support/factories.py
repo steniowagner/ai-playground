@@ -6,7 +6,19 @@ from uuid import UUID
 
 from langchain.messages import AIMessage, AIMessageChunk, HumanMessage, ToolMessage
 from langchain_core.messages.tool import ToolCall
-from triage_ops.domain import Environment
+from triage_ops.domain import (
+    Deployment,
+    Environment,
+    FeatureFlag,
+    Log,
+    LogSeverity,
+    MaintenanceWindow,
+    Metric,
+    MetricValues,
+)
+from triage_ops.domain import (
+    Service as ServiceContext,
+)
 from triage_ops.domain.investigation.proposals import (
     DisableFeatureFlagProposal,
     EscalateIncidentProposal,
@@ -24,6 +36,7 @@ from triage_ops.domain.investigation.schema import (
 from triage_ops.graph.nodes.prepare_approvals import PendingApproval
 from triage_ops.graph.nodes.prepare_approvals.schema import ApprovalStatus
 from triage_ops.graph.nodes.request_approvals import ApprovalDecision
+from triage_ops.repositories.incidents import Incident, IncidentAlert
 from triage_ops.services import ServiceResponse
 from triage_ops.services.disable_feature_flag import DisableFeatureFlagServiceArgs
 from triage_ops.services.escalate_incident import EscalateIncidentServiceArgs
@@ -35,15 +48,6 @@ from triage_ops.tools import (
     ToolResponse,
     ToolSuccessResponse,
 )
-from triage_ops.tools.get_feature_flags import FeatureFlag
-from triage_ops.tools.get_incident.schema import Incident, IncidentAlert
-from triage_ops.tools.get_maintenance_windows import MaintenanceWindow
-from triage_ops.tools.get_recent_deployments import Deployment
-from triage_ops.tools.get_service_context import Service as ServiceContext
-from triage_ops.tools.query_logs import Log
-from triage_ops.tools.query_logs.schema import Severity
-from triage_ops.tools.query_metrics import Metric
-from triage_ops.tools.query_metrics.schema import MetricValues
 from triage_ops.tools.schema import ToolErrorResponseCode
 
 DEFAULT_PROPOSAL_ID = UUID("00000000-0000-0000-0000-000000000001")
@@ -328,7 +332,7 @@ def make_log(
     *,
     service: str = "checkout-api",
     environment: Environment = "production",
-    severity: Severity = "ERROR",
+    severity: LogSeverity = "ERROR",
     message: str = "OrderMappingError occurred",
 ) -> Log:
     return Log(

@@ -38,7 +38,9 @@ async def http_client(
     graph_runner = RecordingGraphRunner()
     sample_repository = RecordingSampleQuestionsRepository(sample_questions)
 
-    monkeypatch.setattr(app_module, "create_graph_runner", lambda: graph_runner)
+    monkeypatch.setattr(
+        app_module, "create_graph_runner", lambda _session_factory: graph_runner
+    )
     monkeypatch.setattr(
         app_module,
         "JSONSampleQuestionsRepository",

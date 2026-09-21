@@ -16,7 +16,7 @@ from triage_ops.domain.investigation.schema import (
     InvestigationFailure,
     InvestigationResponse,
 )
-from triage_ops.graph import GraphRunner, build_graph
+from triage_ops.graph import BuildGraphArgs, GraphRunner, build_graph
 from triage_ops.graph.event_stream import (
     ApprovalRequiredEvent,
     BaseToolEvent,
@@ -33,15 +33,31 @@ from triage_ops.graph.nodes.request_approvals import (
     InvalidApprovalResponse,
 )
 from triage_ops.repositories import RepositoryDataError, RepositoryUnavailable
-from triage_ops.repositories.incidents import IncidentRepository
-from triage_ops.repositories.logs import FindLogsArgs, LogsRepository
+from triage_ops.repositories.deployments import JSONDeploymentsRepository
+from triage_ops.repositories.feature_flags import JSONFeatureFlagsRepository
+from triage_ops.repositories.incidents import (
+    Incident,
+    IncidentRepository,
+    JSONIncidentRepository,
+)
+from triage_ops.repositories.logs import (
+    FindLogsArgs,
+    JSONLogsRepository,
+    LogsRepository,
+)
+from triage_ops.repositories.maintenance_windows import (
+    JSONMaintenanceWindowsRepository,
+)
+from triage_ops.repositories.metrics import JSONMetricsRepository
+from triage_ops.repositories.runbooks import JSONRunbooksRepository
+from triage_ops.repositories.services import JSONServicesRepository
 from triage_ops.services import (
     ServiceExecutionException,
     bootstrap_services,
 )
 from triage_ops.services.restart_service import RestartServiceArgs
-from triage_ops.tools import bootstrap_tools
-from triage_ops.tools.get_incident import GetIncidentTool, Incident
+from triage_ops.tools.bootstrap_tools import BootstrapToolsArgs, bootstrap_tools
+from triage_ops.tools.get_incident import GetIncidentTool
 from triage_ops.tools.query_logs import QueryLogsTool
 
 from tests.support.factories import (
@@ -69,7 +85,7 @@ class SequentialIncidentRepository(IncidentRepository):
             raise outcome
         return outcome
 
-    def find(self) -> list[Incident]:
+    def find_all(self) -> list[Incident]:
         raise AssertionError("This test repository only supports find_by_id().")
 
 
@@ -81,6 +97,9 @@ class FailingLogsRepository(LogsRepository):
     def find(self, args: FindLogsArgs):
         self.calls.append(args)
         raise self.error
+
+    def find_all(self):
+        raise AssertionError("This test repository only supports find().")
 
 
 @dataclass
@@ -104,13 +123,20 @@ def harness(
     scopes: Iterable[RequestScope],
     agent_messages: Iterable[AIMessage],
     final_responses: Iterable[InvestigationResponse] = (),
+    tools: list | None = None,
 ) -> Harness:
     model = ScriptedGraphModel(
         scopes=[ScopeDecision(scope=scope) for scope in scopes],
         agent_messages=agent_messages,
         final_responses=final_responses,
     )
-    graph = build_graph(model, InMemorySaver())  # type: ignore[arg-type]
+    graph = build_graph(
+        BuildGraphArgs(
+            model=model,  # type: ignore[arg-type]
+            checkpointer=InMemorySaver(),
+            tools=tools or build_test_tools(),
+        )
+    )
     return Harness(model=model, graph=graph, runner=GraphRunner(graph))
 
 
@@ -139,8 +165,23 @@ def completion_failure() -> InvestigationResponse:
 
 def replace_tool(name: str, replacement: Any) -> list:
     return [
-        replacement if tool.get_name() == name else tool for tool in bootstrap_tools()
+        replacement if tool.get_name() == name else tool for tool in build_test_tools()
     ]
+
+
+def build_test_tools() -> list:
+    return bootstrap_tools(
+        BootstrapToolsArgs(
+            deployments_repository=JSONDeploymentsRepository(),
+            feature_flags_repository=JSONFeatureFlagsRepository(),
+            incidents_repository=JSONIncidentRepository(),
+            logs_repository=JSONLogsRepository(),
+            maintenance_windows_repository=JSONMaintenanceWindowsRepository(),
+            metrics_repository=JSONMetricsRepository(),
+            runbooks_repository=JSONRunbooksRepository(),
+            services_repository=JSONServicesRepository(),
+        )
+    )
 
 
 def replace_incident_tool(repository: IncidentRepository) -> list:
@@ -372,7 +413,6 @@ class TestInvestigationPaths:
             [RepositoryUnavailable("temporary"), make_incident()]
         )
         tools = replace_incident_tool(repository)
-        monkeypatch.setattr(builder_module, "bootstrap_tools", lambda: tools)
         expected = completed_result()
         app = harness(
             scopes=[RequestScope.IN_SCOPE],
@@ -389,6 +429,7 @@ class TestInvestigationPaths:
                 ),
             ],
             final_responses=[expected],
+            tools=tools,
         )
 
         events = await app.start("Investigate INC-1042")
@@ -410,11 +451,7 @@ class TestInvestigationPaths:
                 RepositoryUnavailable("temporary two"),
             ]
         )
-        monkeypatch.setattr(
-            builder_module,
-            "bootstrap_tools",
-            lambda: replace_incident_tool(repository),
-        )
+        tools = replace_incident_tool(repository)
         failure = InvestigationResponse(
             outcome=InvestigationFailure(
                 incident_id="INC-1042",
@@ -437,6 +474,7 @@ class TestInvestigationPaths:
                 ),
             ],
             final_responses=[failure],
+            tools=tools,
         )
 
         events = await app.start("Investigate INC-1042")
@@ -460,11 +498,7 @@ class TestInvestigationPaths:
             RepositoryDataError("secret log backend details")
         )
         query_logs = QueryLogsTool(repository=repository)
-        monkeypatch.setattr(
-            builder_module,
-            "bootstrap_tools",
-            lambda: replace_tool("query_logs", query_logs),
-        )
+        tools = replace_tool("query_logs", query_logs)
         expected = completed_result(
             summary="The incident was investigated, but log evidence was unavailable.",
             confidence="low",
@@ -496,6 +530,7 @@ class TestInvestigationPaths:
                 ),
             ],
             final_responses=[expected],
+            tools=tools,
         )
 
         events = await app.start("Investigate INC-1042")
@@ -520,7 +555,6 @@ class TestInvestigationPaths:
     ) -> None:
         repository = SequentialIncidentRepository([RepositoryDataError("invalid data")])
         tools = replace_incident_tool(repository)
-        monkeypatch.setattr(builder_module, "bootstrap_tools", lambda: tools)
         failure = InvestigationResponse(
             outcome=InvestigationFailure(
                 incident_id="INC-1042",
@@ -542,6 +576,7 @@ class TestInvestigationPaths:
                 ),
             ],
             final_responses=[failure],
+            tools=tools,
         )
 
         events = await app.start("Investigate INC-1042")
@@ -584,11 +619,7 @@ class TestMultiTurnStatePaths:
                 make_incident(incident_id="INC-2042"),
             ]
         )
-        monkeypatch.setattr(
-            builder_module,
-            "bootstrap_tools",
-            lambda: replace_incident_tool(repository),
-        )
+        tools = replace_incident_tool(repository)
         service = RecordingService()
         install_restart_service(monkeypatch, service)
         app = harness(
@@ -601,6 +632,7 @@ class TestMultiTurnStatePaths:
                 completed_result(actions=[make_restart_proposal()]),
                 completed_result(incident_id="INC-2042"),
             ],
+            tools=tools,
         )
 
         first_events = await app.start("Investigate INC-1042")

@@ -28,7 +28,7 @@ class GetIncidentsTool(BaseTool):
 
     def _run(self) -> ToolResponse[GetIncidentsResult]:
         try:
-            incidents = self.repository.find()
+            incidents = self.repository.find_all()
         except RepositoryException as exc:
             return self._handle_error(exception=exc)
 

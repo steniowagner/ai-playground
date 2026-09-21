@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-
 import triage_ops.repositories.deployments.json as deployments_json
 import triage_ops.repositories.feature_flags.json as feature_flags_json
 import triage_ops.repositories.incidents.json as incidents_json
@@ -14,6 +13,26 @@ import triage_ops.repositories.maintenance_windows.json as maintenance_json
 import triage_ops.repositories.metrics.json as metrics_json
 import triage_ops.repositories.runbooks.json as runbooks_json
 import triage_ops.repositories.services.json as services_json
+from triage_ops.domain import MetricValues
+from triage_ops.repositories import RepositoryDataError, RepositoryUnavailable
+from triage_ops.repositories.deployments import (
+    FindDeploymentsArgs,
+    JSONDeploymentsRepository,
+)
+from triage_ops.repositories.feature_flags import (
+    FindFeatureFlagsArgs,
+    JSONFeatureFlagsRepository,
+)
+from triage_ops.repositories.incidents import JSONIncidentRepository
+from triage_ops.repositories.logs import FindLogsArgs, JSONLogsRepository
+from triage_ops.repositories.maintenance_windows import (
+    FindMaintenanceWindowsArgs,
+    JSONMaintenanceWindowsRepository,
+)
+from triage_ops.repositories.metrics import FindMetricsArgs, JSONMetricsRepository
+from triage_ops.repositories.runbooks import FindRunbookByIdArgs, JSONRunbooksRepository
+from triage_ops.repositories.services import FindServiceArgs, JSONServicesRepository
+
 from tests.support.factories import (
     at,
     make_incident,
@@ -36,25 +55,6 @@ from tests.support.factories import (
 from tests.support.factories import (
     make_service_context as service,
 )
-from triage_ops.repositories import RepositoryDataError, RepositoryUnavailable
-from triage_ops.repositories.deployments import (
-    FindDeploymentsArgs,
-    JSONDeploymentsRepository,
-)
-from triage_ops.repositories.feature_flags import (
-    FindFeatureFlagsArgs,
-    JSONFeatureFlagsRepository,
-)
-from triage_ops.repositories.incidents import JSONIncidentRepository
-from triage_ops.repositories.logs import FindLogsArgs, JSONLogsRepository
-from triage_ops.repositories.maintenance_windows import (
-    FindMaintenanceWindowsArgs,
-    JSONMaintenanceWindowsRepository,
-)
-from triage_ops.repositories.metrics import FindMetricsArgs, JSONMetricsRepository
-from triage_ops.repositories.runbooks import FindRunbookByIdArgs, JSONRunbooksRepository
-from triage_ops.repositories.services import FindServiceArgs, JSONServicesRepository
-from triage_ops.tools.query_metrics.schema import MetricValues
 
 pytestmark = pytest.mark.unit
 
@@ -131,6 +131,19 @@ class TestRepositoryFixtureContract:
         records = getattr(case.repository, case.reader_name)()
 
         assert records
+
+    @pytest.mark.parametrize(
+        "case",
+        REPOSITORY_FIXTURE_CASES,
+        ids=lambda case: type(case.repository).__name__,
+    )
+    def test_find_all_returns_every_record(
+        self, monkeypatch: pytest.MonkeyPatch, case: RepositoryFixtureCase
+    ) -> None:
+        records = [object(), object()]
+        monkeypatch.setattr(case.repository, case.reader_name, lambda: records)
+
+        assert case.repository.find_all() is records
 
     @pytest.mark.parametrize(
         "repository",

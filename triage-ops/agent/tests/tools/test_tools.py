@@ -7,6 +7,15 @@ from unittest.mock import Mock
 
 import pytest
 from pydantic import BaseModel, ValidationError
+from triage_ops.domain import (
+    Deployment,
+    FeatureFlag,
+    Log,
+    MaintenanceWindow,
+    Metric,
+    MetricValues,
+    Service,
+)
 from triage_ops.repositories import RepositoryDataError, RepositoryUnavailable
 from triage_ops.repositories.deployments import (
     DeploymentsRepository,
@@ -26,34 +35,25 @@ from triage_ops.repositories.metrics import FindMetricsArgs, MetricsRepository
 from triage_ops.repositories.runbooks import FindRunbookByIdArgs, RunbooksRepository
 from triage_ops.repositories.services import FindServiceArgs, ServicesRepository
 from triage_ops.tools import ToolErrorResponse, ToolNames, ToolSuccessResponse
+from triage_ops.tools.bootstrap_tools import BootstrapToolsArgs, bootstrap_tools
 from triage_ops.tools.complete_investigation import CompleteInvestigationTool
 from triage_ops.tools.complete_investigation.schema import CompleteInvestigationArgs
-from triage_ops.tools.get_feature_flags import (
-    FeatureFlag,
-    GetFeatureFlagsTool,
-)
+from triage_ops.tools.get_feature_flags import GetFeatureFlagsTool
 from triage_ops.tools.get_feature_flags.schema import GetFeatureFlagsArgs
 from triage_ops.tools.get_incident import GetIncidentTool
 from triage_ops.tools.get_incident.schema import GetIncidentArgs
 from triage_ops.tools.get_incidents import GetIncidentsTool
 from triage_ops.tools.get_incidents.schema import GetIncidentsArgs
-from triage_ops.tools.get_maintenance_windows import (
-    GetMaintenanceWindowsTool,
-    MaintenanceWindow,
-)
+from triage_ops.tools.get_maintenance_windows import GetMaintenanceWindowsTool
 from triage_ops.tools.get_maintenance_windows.schema import GetMaintenanceWindowsArgs
-from triage_ops.tools.get_recent_deployments import (
-    Deployment,
-    GetRecentDeploymentsTool,
-)
+from triage_ops.tools.get_recent_deployments import GetRecentDeploymentsTool
 from triage_ops.tools.get_recent_deployments.schema import GetRecentDeploymentsArgs
 from triage_ops.tools.get_runbook import GetRunbookTool
-from triage_ops.tools.get_service_context import GetServiceContextTool, Service
-from triage_ops.tools.query_logs import Log, QueryLogsTool
+from triage_ops.tools.get_service_context import GetServiceContextTool
+from triage_ops.tools.query_logs import QueryLogsTool
 from triage_ops.tools.query_logs.schema import QueryLogsArgs
-from triage_ops.tools.query_metrics import Metric, QueryMetricsTool
-from triage_ops.tools.query_metrics.schema import MetricValues, QueryMetricsArgs
-from triage_ops.utils.bootstrap_tools.bootstrap_tools import bootstrap_tools
+from triage_ops.tools.query_metrics import QueryMetricsTool
+from triage_ops.tools.query_metrics.schema import QueryMetricsArgs
 
 from tests.support.factories import make_incident
 
@@ -386,25 +386,25 @@ class TestGetIncidentsTool:
             ),
         ]
         repository = Mock(spec=IncidentRepository)
-        repository.find.return_value = incidents
+        repository.find_all.return_value = incidents
         tool = GetIncidentsTool(repository=repository)
 
         response = tool.invoke({})
 
         assert isinstance(response, ToolSuccessResponse)
         assert response.data.incidents == incidents
-        repository.find.assert_called_once_with()
+        repository.find_all.assert_called_once_with()
 
     def test_returns_success_when_no_incidents_are_registered(self) -> None:
         repository = Mock(spec=IncidentRepository)
-        repository.find.return_value = []
+        repository.find_all.return_value = []
         tool = GetIncidentsTool(repository=repository)
 
         response = tool.invoke({})
 
         assert isinstance(response, ToolSuccessResponse)
         assert response.data.incidents == []
-        repository.find.assert_called_once_with()
+        repository.find_all.assert_called_once_with()
 
     @pytest.mark.parametrize(
         ("exception", "retryable", "guidance"),
@@ -420,7 +420,7 @@ class TestGetIncidentsTool:
         guidance: str,
     ) -> None:
         repository = Mock(spec=IncidentRepository)
-        repository.find.side_effect = exception
+        repository.find_all.side_effect = exception
         tool = GetIncidentsTool(repository=repository)
 
         response = tool.invoke({})
@@ -431,7 +431,7 @@ class TestGetIncidentsTool:
         assert response.error.input == {}
         assert guidance in response.error.suggested_action
         assert "secret" not in response.model_dump_json()
-        repository.find.assert_called_once_with()
+        repository.find_all.assert_called_once_with()
 
 
 class TestQueryMetricsTool:
@@ -563,7 +563,18 @@ class TestCompleteInvestigationTool:
 
 class TestToolRegistry:
     def test_registers_every_tool_name_once_with_an_argument_schema(self) -> None:
-        tools = bootstrap_tools()
+        tools = bootstrap_tools(
+            BootstrapToolsArgs(
+                deployments_repository=Mock(spec=DeploymentsRepository),
+                feature_flags_repository=Mock(spec=FeatureFlagsRepository),
+                incidents_repository=Mock(spec=IncidentRepository),
+                logs_repository=Mock(spec=LogsRepository),
+                maintenance_windows_repository=Mock(spec=MaintenanceWindowsRepository),
+                metrics_repository=Mock(spec=MetricsRepository),
+                runbooks_repository=Mock(spec=RunbooksRepository),
+                services_repository=Mock(spec=ServicesRepository),
+            )
+        )
         names = [tool.get_name() for tool in tools]
 
         assert set(names) == {name.value for name in ToolNames}
