@@ -11,7 +11,7 @@ class PostgresLogsRepository(LogsRepository):
     def __init__(self, session_factory: SessionFactory) -> None:
         self._session_factory = session_factory
 
-    def _parse_record(record: LogsRecord) -> Log:
+    def _parse_record(self, record: LogsRecord) -> Log:
         return Log(
             log_id=record.id,
             timestamp=record.timestamp,

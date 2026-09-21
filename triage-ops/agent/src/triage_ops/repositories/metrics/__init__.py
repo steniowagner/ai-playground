@@ -4,18 +4,21 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from .base import MetricsRepository
     from .json import JSONMetricsRepository
+    from .postgres import PostgresMetricsRepository
     from .schema import FindMetricsArgs
 
 __all__ = [
     "FindMetricsArgs",
     "JSONMetricsRepository",
     "MetricsRepository",
+    "PostgresMetricsRepository",
 ]
 
 _EXPORTS = {
     "MetricsRepository": (".base", "MetricsRepository"),
     "JSONMetricsRepository": (".json", "JSONMetricsRepository"),
     "FindMetricsArgs": (".schema", "FindMetricsArgs"),
+    "PostgresMetricsRepository": (".postgres", "PostgresMetricsRepository"),
 }
 
 

@@ -11,7 +11,7 @@ class PostgresMetricsRepository(MetricsRepository):
     def __init__(self, session_factory: SessionFactory) -> None:
         self._session_factory = session_factory
 
-    def _parse_record(record: MetricsRecord) -> Metric:
+    def _parse_record(self, record: MetricsRecord) -> Metric:
         return Metric(
             metric_id=record.id,
             timestamp=record.timestamp,

@@ -11,7 +11,7 @@ class PostgresMaintenanceWindowsRepository(MaintenanceWindowsRepository):
     def __init__(self, session_factory: SessionFactory) -> None:
         self._session_factory = session_factory
 
-    def _parse_record(record: MaintenanceWindowsRecord) -> MaintenanceWindow:
+    def _parse_record(self, record: MaintenanceWindowsRecord) -> MaintenanceWindow:
         return MaintenanceWindow(
             maintenance_id=record.id,
             title=record.title,

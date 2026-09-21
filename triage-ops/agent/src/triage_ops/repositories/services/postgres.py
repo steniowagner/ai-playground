@@ -25,19 +25,22 @@ class PostgresServicesRepository(ServicesRepository):
             slo=record.slo,
         )
 
-    def find_all(self) -> list[Service]:
-        statement = select(ServicesRecord)
-
-        with self._session_factory() as session:
-            records = session.scalars(statement).all()
-
-            return [self._parse_record(record) for record in records]
-
-    def find(self, args: FindServiceArgs) -> list[Service]:
+    def find(self, args: FindServiceArgs) -> Service | None:
         statement = select(ServicesRecord).where(
             ServicesRecord.service == args.service,
-            ServicesRecord.environment == args.environment,
+            ServicesRecord.environments.contains([args.environment]),
         )
+
+        with self._session_factory() as session:
+            record = session.scalar(statement)
+
+        if record is None:
+            return None
+
+        return self._parse_record(record)
+
+    def find_all(self) -> list[Service]:
+        statement = select(ServicesRecord)
 
         with self._session_factory() as session:
             records = session.scalars(statement).all()
